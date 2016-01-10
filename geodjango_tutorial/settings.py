@@ -86,7 +86,8 @@ DATABASES = {
 
 import dj_database_url
 DATABASES['default'] =  dj_database_url.config()
-    
+DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
