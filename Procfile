@@ -1,1 +1,1 @@
-web: gunicorn geodjango_tutorial.wsgi
+web: gunicorn pshapes_site.wsgi

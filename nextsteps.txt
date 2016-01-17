@@ -1,0 +1,20 @@
+
+# first finish easydjango and move over to pshapes-site as fresh step
+# ...
+
+# basic map test
+- test add natearth data as overlay in main map by reading geojson from pshapes github
+
+# dynamic map setup
+- add natearth geomodel and data into db
+- add 10 most recently added entries table below map on front page
+- add restframework api to obtain json from db
+- add leaflet filter plugin, customizing the api request, and adding the json results to leaflet map
+- see: http://www.ipasic.com/article/query-and-filter-leaflet-map-layers/
+
+# user contributions
+- embed admin in template
+- add auth registration
+- see https://docs.djangoproject.com/en/1.9/topics/auth/default/
+- allow login through admin
+

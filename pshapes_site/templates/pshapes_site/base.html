@@ -1,0 +1,35 @@
+
+
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Welcome to the pshapes_site site</title>
+    </head>
+
+    <body>
+	<div class="page-header" style="background-color: #ff9400; margin-top: 0; padding: 20px 20px 20px 40px; font-family: comic sans relief;">
+    		<h1 style="color:white">
+		Welcome to the pshapes_site site
+		</h1>
+    		<h2 style="color:white">
+		<em>- Some subtitle...</em>
+		</h2>
+	</div>
+
+	<div class="topmenu" style="background-color: black; font-family: comic sans relief;">
+	<a href="/" style="color: white;">Home</a>
+        <a href="/admin/" style="color: white;">Admin</a>
+	</div>
+
+	<br><br>
+
+	<div class="content">
+	{% block content %}
+	{% endblock %}
+	</div>
+
+    </body>
+
+</html>
+
