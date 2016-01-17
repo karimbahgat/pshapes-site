@@ -5,12 +5,18 @@
 
 {% block content %}
 
+	<div class="map header" style="margin-top: 0; padding: 0px 0px 20px 40px; font-family: comic sans relief;">
+    		<h2 style="color:black">
+		<em>Historical Province Boundaries, 1946-2014</em>
+		</h2>
+	</div>
+
 	<div>
         {% leaflet_js %}
         {% leaflet_css %}
         {% leaflet_map "map" %}
         </div>
-        
+
 	{% block extracss %}
 	 <style>
 	    #map { 
