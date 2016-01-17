@@ -18,12 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url('^$', "provshapes.views.mapview")
 ]
-
-from django.shortcuts import render
-
-def index(request):
-    return render(request, 'pshapes_site/base.html')
-
-urlpatterns.append(url('^$', index))
 

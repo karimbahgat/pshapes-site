@@ -1,0 +1,22 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load leaflet_tags %}
+
+{% block content %}
+
+	<div>
+        {% leaflet_js %}
+        {% leaflet_css %}
+        {% leaflet_map "map" %}
+        </div>
+        
+	{% block extracss %}
+	 <style>
+	    #map { 
+	        width: 100%;
+	     }
+	 </style>
+	{% endblock extracss %}
+
+{% endblock %}
