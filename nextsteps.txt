@@ -1,7 +1,4 @@
 
-# first finish easydjango and move over to pshapes-site as fresh step
-# ...
-
 # basic map test
 - test add natearth data as overlay in main map by reading geojson from pshapes github
 

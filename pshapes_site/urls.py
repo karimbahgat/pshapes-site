@@ -20,6 +20,9 @@ admin.site.site_header = "Pshapes User Site"
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url('^$', "provshapes.views.mapview")
+    url('^contact/', "pshapes_site.views.contact"),
+    url('^method/', "pshapes_site.views.method"),
+    url('^download/', "pshapes_site.views.download"),
+    url('^$', "provshapes.views.mapview"),
 ]
 
