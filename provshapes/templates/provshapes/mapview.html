@@ -31,13 +31,48 @@
 	<div>
         {% leaflet_js %}
         {% leaflet_css %}
-        {% leaflet_map "map" %}
-        </div>
+		
+		<script>
+			function map_init_basic (map, options) {
+			
+				var dataurl = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json";
+				//var dataurl = "https://raw.githubusercontent.com/karimbahgat/pshapes/master/BaseData/ne_admin1.geojson";
+				
+				$.getJSON(dataurl, function(data) {
+					var options = 	{
+									style: {color: "white",
+										  weight: 1,
+										  fillColor: "orange",
+										  fillOpacity: 255,
+										  opacity: 255},
+									onEachFeature: function (feature, layer) {
+										var html = "<div style='overflow-y: scroll; max-height: 150px'>";
+										html = html + "<table>";
+										for (var k in feature.properties) {
+											html = html + "<tr>"
+											html = html + "<td><b>" + k + ": </b></td>";
+											html = html + "<td>" + feature.properties[k] + "</td>";
+											html = html + "</tr>"
+											};
+										html = html + "</table>";
+										html = html + "</div>";
+										layer.bindPopup(html);
+										}
+									};
+					var geojson = L.geoJson(data, options);
+					geojson.addTo(map);
+				});
+			}
+		</script>
+		
+        {% leaflet_map "map" callback="window.map_init_basic" %}
+    </div>
 
 	{% block extracss %}
 	 <style>
 	    #map { 
 	        width: 100%;
+			//padding-top: 25%;
 	     }
 	 </style>
 	{% endblock extracss %}
