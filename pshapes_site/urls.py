@@ -24,5 +24,6 @@ urlpatterns = [
     url('^method/', "pshapes_site.views.method"),
     url('^download/', "pshapes_site.views.download"),
     url('^$', "provshapes.views.mapview"),
+    url('^cshapestest/', "cshapes.views.mapview"),
 ]
 
