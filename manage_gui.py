@@ -4,6 +4,14 @@ import os
 import subprocess
 
 
+# NOTE: ALL BEHAVIOUR ASSUMES THAT THIS SCRIPT MUST BE LOCATED IN PROJECT'S TOPLEVEL FOLDER
+# NEXT TO manage.py
+
+# TOFIX: need to shift to geo imports when auto creating admin.py and urls.py
+
+
+
+
 
 
 
@@ -49,33 +57,60 @@ def prereq():
 
 
 
-############
+class DjangoSite(object):
 
-def setup():
-    # BELOW COMMENTS ARE OLD
-    # TODO: maybe switch away from the heroku template,
-    # instead manually write procfile, requirements.txt, runtime.txt,
-    # DATABASES = dj_database_url()...
-    # DATABASES["BACKEND"] = postgresgeodb...
-    # also
-    # STATIC ADDON
-    # also
-    # WSGI WITH WHITENOISE...
-    # maybe also
-    # add static folder
-    # ...
-    
-    sys.argv = [r"C:\Python27\Lib\site-packages\django\bin\django-admin.py",
-                "startproject",
-                SITENAME,
-                "&pause"]
-    os.system(" ".join(sys.argv))
+    def __init__(self, sitepath=None):
+        if not sitepath:
+            sitepath = os.path.split(__file__)[0]
+            
+        self.path = sitepath
+        self.name = os.path.split(self.path)[1]
 
-    # custom edit some settings
-    # maybe also add some basic leaflet settings, incl installing it during setup
-    # ...
-    with open("%s/%s/settings.py"%(SITENAME,SITENAME), "a") as writer:
-        writer.write("""
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "%s.settings" %self.name)
+            
+
+
+
+
+
+    ############
+
+    def __getattr__(self, appname):
+        """Accesses any sub app as an object"""
+        return DjangoApp(appname) 
+            
+            
+
+
+
+
+    ############
+
+    def setup(self):
+        # BELOW COMMENTS ARE OLD
+        # TODO: maybe switch away from the heroku template,
+        # instead manually write procfile, requirements.txt, runtime.txt,
+        # DATABASES = dj_database_url()...
+        # DATABASES["BACKEND"] = postgresgeodb...
+        # also
+        # STATIC ADDON
+        # also
+        # WSGI WITH WHITENOISE...
+        # maybe also
+        # add static folder
+        # ...
+        
+        sys.argv = [r"C:\Python27\Lib\site-packages\django\bin\django-admin.py",
+                    "startproject",
+                    self.name,
+                    "&pause"]
+        os.system(" ".join(sys.argv))
+
+        # custom edit some settings
+        # maybe also add some basic leaflet settings, incl installing it during setup
+        # ...
+        with open("%s/%s/settings.py"%(self.name,self.name), "a") as writer:
+            writer.write("""
 
 #### CUSTOMIZATIONS ####
 
@@ -112,12 +147,12 @@ LEAFLET_CONFIG = {
                         ],
                 }
 
-""" % SITENAME )
+""" % self.name )
 
-    os.makedirs("%s/%s/templates/%s"%(SITENAME,SITENAME,SITENAME))
-    with open("%s/%s/templates/%s/base.html"%(SITENAME,SITENAME,SITENAME), "a") as writer:
-        # add default base template with topmenu...
-        writer.write("""
+        os.makedirs("%s/%s/templates/%s"%(self.name,self.name,self.name))
+        with open("%s/%s/templates/%s/base.html"%(self.name,self.name,self.name), "a") as writer:
+            # add default base template with topmenu...
+            writer.write("""
 
 <!DOCTYPE html>
 <html>
@@ -152,23 +187,23 @@ LEAFLET_CONFIG = {
 
 </html>
 
-""".format(SITENAME=SITENAME))
+""".format(SITENAME=self.name))
     
-    os.mkdir("%s/%s/static"%(SITENAME,SITENAME))
-    with open("%s/%s/static/dummy.txt"%(SITENAME,SITENAME), "a") as writer:
-        pass
+        os.mkdir("%s/%s/static"%(self.name,self.name))
+        with open("%s/%s/static/dummy.txt"%(self.name,self.name), "a") as writer:
+            pass
 
-    with open("%s/%s/wsgi.py"%(SITENAME,SITENAME), "a") as writer:
-        writer.write("""
+        with open("%s/%s/wsgi.py"%(self.name,self.name), "a") as writer:
+            writer.write("""
 
 from whitenoise.django import DjangoWhiteNoise
 application = DjangoWhiteNoise(application)
 
 """)
 
-    # create default frontpage
-    with open("%s/%s/urls.py"%(SITENAME,SITENAME), "a") as writer:
-        writer.write("""
+        # create default frontpage
+        with open("%s/%s/urls.py"%(self.name,self.name), "a") as writer:
+            writer.write("""
 from django.shortcuts import render
 
 def index(request):
@@ -176,14 +211,14 @@ def index(request):
 
 urlpatterns.append(url('^$', index))
 
-""".format(SITENAME=SITENAME))
+""".format(SITENAME=self.name))
 
-    # prep for heroku web hosting
-    with open("%s/Procfile"%SITENAME, "w") as writer:
-        writer.write("web: gunicorn %s.wsgi"%SITENAME)
+        # prep for heroku web hosting
+        with open("%s/Procfile"%self.name, "w") as writer:
+            writer.write("web: gunicorn %s.wsgi"%self.name)
 
-    with open("%s/requirements.txt"%SITENAME, "w") as writer:
-        writer.write("""
+        with open("%s/requirements.txt"%self.name, "w") as writer:
+            writer.write("""
 Django==1.9
 dj-database-url==0.3.0
 dj-static==0.0.6
@@ -194,12 +229,12 @@ wsgiref==0.1.2
 whitenoise==2.0.6
 """)
 
-    with open("%s/runtime.txt"%SITENAME, "w") as writer:
-        writer.write("python-%s"%sys.version.split()[0])
+        with open("%s/runtime.txt"%self.name, "w") as writer:
+            writer.write("python-%s"%sys.version.split()[0])
 
-    # script for testing site on local server
-    with open("%s/testserver.py"%SITENAME, "w") as writer:
-        writer.write("""
+        # script for testing site on local server
+        with open("%s/testserver.py"%self.name, "w") as writer:
+            writer.write("""
 import sys,os
 
 sys.argv = ["manage.py", "runserver", "&pause"]
@@ -210,73 +245,79 @@ os.system(" ".join(sys.argv))
 
 
 
-############
+    ############
 
-def new_db():
-    # create the db
-    import psycopg2
-    print("To create a new database for your project, login as a valid user")
-    user = raw_input("username:\n")
-    password = raw_input("password:\n")
-    con = psycopg2.connect(dbname="postgres",
-                           user=user,
-                           password=password)
-    con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    def new_db(self):
+        # create the db
+        import psycopg2
+        print("To create a new database for your project, login as a valid user")
+        user = raw_input("username:\n")
+        password = raw_input("password:\n")
+        con = psycopg2.connect(dbname="postgres",
+                               user=user,
+                               password=password)
+        con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        
+        curs = con.cursor()
+        curs.execute('CREATE DATABASE %s;' % self.name)
+
+        curs.close()
+        con.close()
+
+        # add postgis extension
+        con = psycopg2.connect(dbname=self.name,
+                               user=user,
+                               password=password)
+        con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        
+        curs = con.cursor()
+        curs.execute('CREATE EXTENSION POSTGIS;')
+
+        curs.close()
+        con.close()
+        
+        # create data tables in db (makemigration) or manually
+        sys.argv = ["manage.py", "makemigrations"]#, "--settings=%s.settings" %self.name]
+        print sys.argv
+        os.system(" ".join(sys.argv)+" &pause")
+
+        sys.argv = ["manage.py", "migrate"]#, "--settings=%s.settings" %self.name]
+        print sys.argv
+        os.system(" ".join(sys.argv)+" &pause")
+
+        # create website superuser
+        sys.argv = ["manage.py", "createsuperuser"]#, "--settings=%s.settings" %self.name]
+        os.system(" ".join(sys.argv))
+
+
+
+
+
+
+    ###########
     
-    curs = con.cursor()
-    curs.execute('CREATE DATABASE %s;' % SITENAME)
+    def clear_db(self):
+        # create data tables in db (makemigration) or manually
+        sys.argv = ["manage.py", "flush"]#, "--settings=%s.settings" %self.name]
+        print sys.argv
+        os.system(" ".join(sys.argv)+" &pause")
 
-    curs.close()
-    con.close()
 
-    # add postgis extension
-    con = psycopg2.connect(dbname=SITENAME,
-                           user=user,
-                           password=password)
-    con.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+
+
+
+
+    ###########
     
-    curs = con.cursor()
-    curs.execute('CREATE EXTENSION POSTGIS;')
+    def update_db(self):
+        # create data tables in db (makemigration) or manually
+        sys.argv = ["manage.py", "makemigrations"]#, "--settings=%s.settings" %self.name]
+        print sys.argv
+        os.system(" ".join(sys.argv)+" &pause")
 
-    curs.close()
-    con.close()
-    
-    # create data tables in db (makemigration) or manually
-    sys.argv = ["manage.py", "makemigrations"]#, "--settings=%s.settings" %SITENAME]
-    print sys.argv
-    os.system(" ".join(sys.argv)+" &pause")
-
-    sys.argv = ["manage.py", "migrate"]#, "--settings=%s.settings" %SITENAME]
-    print sys.argv
-    os.system(" ".join(sys.argv)+" &pause")
-
-    # create website superuser
-    sys.argv = ["manage.py", "createsuperuser"]#, "--settings=%s.settings" %SITENAME]
-    os.system(" ".join(sys.argv))
-
-
-
-
-
-###########
-
-def update_db():
-    # create data tables in db (makemigration) or manually
-    sys.argv = ["manage.py", "flush"]#, "--settings=%s.settings" %SITENAME]
-    print sys.argv
-    os.system(" ".join(sys.argv)+" &pause")
-
-    sys.argv = ["manage.py", "makemigrations"]#, "--settings=%s.settings" %SITENAME]
-    print sys.argv
-    os.system(" ".join(sys.argv)+" &pause")
-
-    sys.argv = ["manage.py", "migrate"]#, "--settings=%s.settings" %SITENAME]
-    print sys.argv
-    os.system(" ".join(sys.argv)+" &pause")
-
-    # create website superuser
-    sys.argv = ["manage.py", "createsuperuser"]#, "--settings=%s.settings" %SITENAME]
-    os.system(" ".join(sys.argv))
+        sys.argv = ["manage.py", "migrate"]#, "--settings=%s.settings" %self.name]
+        print sys.argv
+        os.system(" ".join(sys.argv)+" &pause")
 
 
 
@@ -284,20 +325,20 @@ def update_db():
 
 
 
-###########
+    ###########
 
-def new_app(name):
-    
-    # python manage.py runserver
-    sys.argv = ["manage.py", "startapp", name, #"--settings=%s.settings" %SITENAME,
-                "&pause"]
-    #management.execute_from_command_line(sys.argv)
-    os.system(" ".join(sys.argv))
+    def new_app(self, appname):
+        
+        # python manage.py runserver
+        sys.argv = ["manage.py", "startapp", appname, #"--settings=%s.settings" %self.name,
+                    "&pause"]
+        #management.execute_from_command_line(sys.argv)
+        os.system(" ".join(sys.argv))
 
-    # add app specific templates
-    os.makedirs("%s/templates/%s"%(name,name))
-    with open("%s/templates/%s/%s.html"%(name,name,name), "a") as writer:
-        writer.write("""
+        # add app specific templates
+        os.makedirs("%s/templates/%s"%(appname,appname))
+        with open("%s/templates/%s/%s.html"%(appname,appname,appname), "a") as writer:
+            writer.write("""
 {{% extends '{SITENAME}/base.html' %}}
 
 {{% block content %}}
@@ -307,21 +348,36 @@ def new_app(name):
         </div>
         
 {{% endblock %}}
-""".format(SITENAME=SITENAME))
+""".format(SITENAME=self.name))
 
-    # add app specific static folder
-    os.mkdir("%s/static"%name)
-    with open("%s/static/dummy.txt"%name, "a") as writer:
-        pass
+        # add app specific static folder
+        os.mkdir("%s/static"%appname)
+        with open("%s/static/dummy.txt"%appname, "a") as writer:
+            pass
 
-    # register app to site
-    with open("%s/settings.py"%SITENAME, "a") as writer:
-        writer.write("""
+        # register app to site
+        with open("%s/settings.py"%self.name, "a") as writer:
+            writer.write("""
 
 INSTALLED_APPS.append('%s')
 
-""" % name)
+""" % appname)
         
+
+
+
+
+
+
+    ###########
+
+    def testserver(self):
+        
+        # python manage.py runserver
+        sys.argv = ["manage.py", "runserver", #"--settings=%s.settings" %self.name,
+                    "&pause"]
+        #management.execute_from_command_line(sys.argv)
+        os.system(" ".join(sys.argv))
 
 
 
@@ -332,55 +388,63 @@ INSTALLED_APPS.append('%s')
 ###########
 class DjangoApp(object):
 
-    def __init__(self, sitepath, appname):
+    def __init__(self, appname, sitepath=None):
+
+        if not os.path.lexists(appname):
+            raise Exception("No such app")
+        
         self.name = appname
+        self.siteobj = DjangoSite(sitepath)
+
+    def __getattr__(self, attr):
+        """Gets any app submodule and returns its variables as a dict for inspection"""
+
+        class dict_as_obj:
+            def __init__(self, dictdef):
+                self.__dict__ = dictdef.copy()
+        
+        exec("import %s.%s as tempimport" %(self.name,attr) )
+
+        return dict_as_obj(tempimport.__dict__)
     
-    def load_geodata(path, modelname=None, encoding="latin"):
+    def load_geodata(self, path, modelname=None, encoding="latin"):
+        # FIND WAY TO UPDATE EXISTING MODELS, OTHERWISE REPEAT DEFS LEAD TO ERROR
+        
         # autogenerate the model and mapping definition for data source
         if not modelname:
             modelname = os.path.splitext(os.path.split(path)[1])[0]
+
         mappingdef = cmd_manage("ogrinspect",
-                                path, # path to geodata
+                                '"'+path+'"', # path to geodata
                                 modelname, # model name
                                 "--mapping",
                                 "--multi-geom",
                                 )
 
         # write the generated python code by appending to existing models.py
-##        with open("%s/models.py"%self.name, "a") as writer:
-##            writer.write("\n"+mappingdef)
+        with open("%s/models.py"%self.name, "a") as writer:
+            writer.write("\n"+mappingdef)
 
-        # also then somehow sync the new model to the db from the filesource?
+        # register the new model in the db
+        self.siteobj.update_db()
+
+        # finally populate the new model to the db from the filesource
         # that would be the layermapping stuff:
-        # (dont make load.py file as recommended, will only be needed this once)
-        mappingdef += """
-import os
-from django.contrib.gis.utils import LayerMapping
+        # (dont make load.py file as recommended, as it will only be needed this once)
+        from django.contrib.gis.utils import LayerMapping
 
-lm = LayerMapping({modelname}, "{path}", {modelname}_mapping,
-                  transform=False, encoding={encoding})
+        modelobj = self.models.__dict__[modelname]
+        modelobj_mapping = self.models.__dict__[modelname+"_mapping"]
 
-lm.save(strict=True, verbose=True)
-""".format(modelname=modelname, path=path, encoding=encoding)
+        lm = LayerMapping(modelobj, "%s"%path, modelobj_mapping,
+                          transform=False, encoding=encoding)
 
-        # code generated, now run
-        print mappingdef
-        #eval(mappingdef)
+        lm.save(strict=True, verbose=False)
 
 
 
 
 
-
-###########
-
-def testserver():
-    
-    # python manage.py runserver
-    sys.argv = ["manage.py", "runserver", #"--settings=%s.settings" %SITENAME,
-                "&pause"]
-    #management.execute_from_command_line(sys.argv)
-    os.system(" ".join(sys.argv))
 
 
 
@@ -390,48 +454,47 @@ def testserver():
 
 import tk2
 
-class SiteGUI(object):
 
-    # FOR NOW JUST MANAGING EXISTING SITE
+class DjangoWidget(tk2.Frame):
 
-    def __init__(self):
+    def __init__(self, master):
+        tk2.Frame.__init__(self, master)
+
+        # ...
+
+
+class SiteWidget(tk2.Frame):
+
+    def __init__(self, master, sitepath=None):
+        tk2.Frame.__init__(self, master)
 
         # settings
-        global SITENAME
-        SITENAME = os.path.split(os.path.split(__file__)[0])[1]
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "%s.settings" %SITENAME)
-
-        # main
-        self.window = tk2.Tk()
+        self.siteobj = DjangoSite(sitepath=sitepath)
 
         # header
-        _row = tk2.Frame(self.window)
+        _row = tk2.Frame(self)
         _row.pack(fill="x")
         self.header = tk2.Label(_row, text="Django Site Manager",
                                 font=("Cambria", 8))
         self.header.pack(side="left")
         
-        _row = tk2.Frame(self.window)
+        _row = tk2.Frame(self)
         _row.pack(fill="x")
-        self.projname = tk2.Label(_row, text="Project: %s" % SITENAME,
+        self.projname = tk2.Label(_row, text="Project: %s" % self.siteobj.name,
                                 font=("Cambria", 16))
         self.projname.pack()
 
-        # commands
-        _butframe = tk2.Frame(self.window, text="Commands")
-        _butframe.pack(fill="both")
+        #### commands
+        _butframe = tk2.Frame(self, text="Commands")
+        _butframe.pack(fill="both", expand=1, padx=6, pady=6)
 
-        # load geodata button
+        # clear db button
         _row = tk2.Frame(_butframe)
         _row.pack(fill="x")
-        def acceptfile(path):
-            load_geodata(path)
-        self.loaddatabut = tk2.Button(_row, text="Load geodata",
-                                      command=lambda: acceptfile(tk2.filedialog.askopenfilename())
-                                      )
-        self.loaddatabut.bind_dnddrop(lambda event: acceptfile(event.data[0]),
-                                      "Files")
-        self.loaddatabut.pack() 
+        self.clearbut = tk2.Button(_row,
+                                  text="Clear DB",
+                                  command=self.siteobj.clear_db)
+        self.clearbut.pack()
 
         # new app button
         _row = tk2.Frame(_butframe)
@@ -448,7 +511,7 @@ class SiteGUI(object):
             newappname = tk2.Entry(_row)
             newappname.pack(side="left")
             def accept():
-                new_app(newappname.get())
+                self.siteobj.new_app(newappname.get())
                 newwin.destroy()
             okbut = tk2.Button(_row, text="Create App", command=accept)
             okbut.pack(side="right")
@@ -464,7 +527,7 @@ class SiteGUI(object):
         _row.pack(fill="x")
         self.syncbut = tk2.Button(_row,
                                   text="Sync DB",
-                                  command=lambda: update_db())
+                                  command=self.siteobj.update_db)
         self.syncbut.pack()
 
         # test site button
@@ -472,45 +535,59 @@ class SiteGUI(object):
         _row.pack(fill="x")
         self.testbut = tk2.Button(_row,
                                   text="Test",
-                                  command=testserver)
+                                  command=self.siteobj.testserver)
         self.testbut.pack()
 
-    def run(self):
-        self.window.mainloop()
+        #### apps (only those in defined inside the project folder that are actually yours)
+        _appsframe = tk2.Frame(self, text="Site Apps")
+        _appsframe.pack(fill="both", expand=1, padx=6, pady=6)
+
+        installed_apps = self.siteobj.pshapes_site.settings.INSTALLED_APPS
+        for appname in os.listdir(os.path.abspath("")):
+            if appname in installed_apps:
+                print appname
+                _row = tk2.Frame(_appsframe)
+                _row.pack(fill="x")
+                
+                _app = tk2.Button(_row, text=appname)
+                def commandfunc(appname=appname):
+                    newwin = tk2.Window()
+                    appwidg = AppWidget(newwin, appname)
+                    appwidg.pack()
+                _app["command"] = commandfunc
+                _app.pack()
 
 
-class AppGUI(object):
+class AppWidget(tk2.Frame):
 
-    def __init__(self, sitepath, appname):
-
+    def __init__(self, master, appname, sitepath=None):
+        tk2.Frame.__init__(self, master)
+        
         # settings
-        self.appobj = DjangoApp(sitepath, appname)
-
-        # main
-        self.window = tk2.Tk()
+        self.appobj = DjangoApp(appname, sitepath)
 
         # header
-        _row = tk2.Frame(self.window)
+        _row = tk2.Frame(self)
         _row.pack(fill="x")
         self.header = tk2.Label(_row, text="Django App Manager",
                                 font=("Cambria", 8))
         self.header.pack(side="left")
         
-        _row = tk2.Frame(self.window)
+        _row = tk2.Frame(self)
         _row.pack(fill="x")
         self.appname = tk2.Label(_row, text="App: %s" % self.appobj.name,
                                 font=("Cambria", 16))
         self.appname.pack()
 
         # commands
-        _butframe = tk2.Frame(self.window, text="Commands")
+        _butframe = tk2.Frame(self, text="Commands")
         _butframe.pack(fill="both")
 
         # load geodata button
         _row = tk2.Frame(_butframe)
         _row.pack(fill="x")
         def acceptfile(path):
-            load_geodata(path)
+            self.appobj.load_geodata(path)
         self.loaddatabut = tk2.Button(_row, text="Load geodata",
                                       command=lambda: acceptfile(tk2.filedialog.askopenfilename())
                                       )
@@ -518,16 +595,27 @@ class AppGUI(object):
                                       "Files")
         self.loaddatabut.pack()
 
+
+class ManageGUI(object):
+    
+    def __init__(self):
+        # main
+        self.window = tk2.Tk()
+
+        # site commands
+        siteframe = SiteWidget(self.window)
+        siteframe.pack()
+
     def run(self):
         self.window.mainloop()
-
-
 
 
 
 ###########
 
 if __name__ == "__main__":
-    #SiteGUI().run()
-    AppGUI("", "cshapes").run()
+    
+    ManageGUI().run()
+
+
 
