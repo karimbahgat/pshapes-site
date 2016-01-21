@@ -40,17 +40,17 @@ class cshapes(models.Model):
 
     gwcode = models.IntegerField()
 
-    gwsyear = models.FloatField()
+    gwsyear = models.FloatField(db_index=True)
 
-    gwsmonth = models.FloatField()
+    gwsmonth = models.FloatField(db_index=True)
 
-    gwsday = models.FloatField()
+    gwsday = models.FloatField(db_index=True)
 
-    gweyear = models.FloatField()
+    gweyear = models.FloatField(db_index=True)
 
-    gwemonth = models.FloatField()
+    gwemonth = models.FloatField(db_index=True)
 
-    gweday = models.FloatField()
+    gweday = models.FloatField(db_index=True)
 
     isoname = models.CharField(max_length=42)
 

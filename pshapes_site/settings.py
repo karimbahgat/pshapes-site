@@ -140,4 +140,14 @@ LEAFLET_CONFIG = {
 INSTALLED_APPS.append('provshapes')
 INSTALLED_APPS.append('cshapes')
 
+INSTALLED_APPS.append('rest_framework')
+INSTALLED_APPS.append('rest_framework_gis')
+
+REST_FRAMEWORK = {
+    # other settings...
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
+}
+
 
