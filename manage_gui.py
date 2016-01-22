@@ -287,7 +287,7 @@ os.system(" ".join(sys.argv))
 
         # create website superuser
         sys.argv = ["manage.py", "createsuperuser"]#, "--settings=%s.settings" %self.name]
-        os.system(" ".join(sys.argv))
+        os.system(" ".join(sys.argv)+" &pause")
 
 
 
@@ -407,7 +407,7 @@ class DjangoApp(object):
 
         return dict_as_obj(tempimport.__dict__)
     
-    def load_geodata(self, path, modelname=None, encoding="latin"):
+    def define_geodata(self, path, modelname=None):
         # FIND WAY TO UPDATE EXISTING MODELS, OTHERWISE REPEAT DEFS LEAD TO ERROR
         
         # autogenerate the model and mapping definition for data source
@@ -428,6 +428,12 @@ class DjangoApp(object):
         # register the new model in the db
         self.siteobj.update_db()
 
+    def load_geodata(self, path, modelname=None, encoding="latin"):
+
+        # autogenerate the model and mapping definition for data source
+        if not modelname:
+            modelname = os.path.splitext(os.path.split(path)[1])[0]
+        
         # finally populate the new model to the db from the filesource
         # that would be the layermapping stuff:
         # (dont make load.py file as recommended, as it will only be needed this once)
@@ -491,36 +497,18 @@ class SiteWidget(tk2.Frame):
         # clear db button
         _row = tk2.Frame(_butframe)
         _row.pack(fill="x")
+        self.createbut = tk2.Button(_row,
+                                  text="Create DB",
+                                  command=self.siteobj.new_db)
+        self.createbut.pack()
+
+        # clear db button
+        _row = tk2.Frame(_butframe)
+        _row.pack(fill="x")
         self.clearbut = tk2.Button(_row,
                                   text="Clear DB",
                                   command=self.siteobj.clear_db)
         self.clearbut.pack()
-
-        # new app button
-        _row = tk2.Frame(_butframe)
-        _row.pack(fill="x")
-
-        def newappwin():
-            newwin = tk2.Window()
-            _row = tk2.Frame(newwin)
-            _row.pack(fill="x")
-            header = tk2.Label(_row, text="Enter name of new app")
-            header.pack()
-            _row = tk2.Frame(newwin)
-            _row.pack(fill="x")
-            newappname = tk2.Entry(_row)
-            newappname.pack(side="left")
-            def accept():
-                self.siteobj.new_app(newappname.get())
-                newwin.destroy()
-            okbut = tk2.Button(_row, text="Create App", command=accept)
-            okbut.pack(side="right")
-        
-        self.newappbut = tk2.Button(_row,
-                                    text="New App",
-                                    command=newappwin
-                                    )
-        self.newappbut.pack()
 
         # sync db button
         _row = tk2.Frame(_butframe)
@@ -542,6 +530,30 @@ class SiteWidget(tk2.Frame):
         _appsframe = tk2.Frame(self, text="Site Apps")
         _appsframe.pack(fill="both", expand=1, padx=6, pady=6)
 
+        def newappwin():
+            newwin = tk2.Window()
+            _row = tk2.Frame(newwin)
+            _row.pack(fill="x")
+            header = tk2.Label(_row, text="Enter name of new app")
+            header.pack()
+            _row = tk2.Frame(newwin)
+            _row.pack(fill="x")
+            newappname = tk2.Entry(_row)
+            newappname.pack(side="left")
+            def accept():
+                self.siteobj.new_app(newappname.get())
+                newwin.destroy()
+            okbut = tk2.Button(_row, text="Create App", command=accept)
+            okbut.pack(side="right")
+
+        _row = tk2.Frame(_appsframe)
+        _row.pack(fill="x")        
+        self.newappbut = tk2.Button(_row,
+                                    text="+++",
+                                    command=newappwin
+                                    )
+        self.newappbut.pack()
+
         installed_apps = self.siteobj.pshapes_site.settings.INSTALLED_APPS
         for appname in os.listdir(os.path.abspath("")):
             if appname in installed_apps:
@@ -556,6 +568,11 @@ class SiteWidget(tk2.Frame):
                     appwidg.pack()
                 _app["command"] = commandfunc
                 _app.pack()
+
+
+        # new app button
+        _row = tk2.Frame(_butframe)
+        _row.pack(fill="x")
 
 
 class AppWidget(tk2.Frame):
@@ -582,6 +599,18 @@ class AppWidget(tk2.Frame):
         # commands
         _butframe = tk2.Frame(self, text="Commands")
         _butframe.pack(fill="both")
+
+        # define geodata button
+        _row = tk2.Frame(_butframe)
+        _row.pack(fill="x")
+        def acceptfile(path):
+            self.appobj.define_geodata(path)
+        self.defdatabut = tk2.Button(_row, text="Define geodata",
+                                      command=lambda: acceptfile(tk2.filedialog.askopenfilename())
+                                      )
+        self.defdatabut.bind_dnddrop(lambda event: acceptfile(event.data[0]),
+                                      "Files")
+        self.defdatabut.pack()
 
         # load geodata button
         _row = tk2.Frame(_butframe)

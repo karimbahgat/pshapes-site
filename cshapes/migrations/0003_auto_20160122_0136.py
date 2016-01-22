@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cshapes', '0001_initial'),
+        ('cshapes', '0002_auto_20160122_0114'),
     ]
 
     operations = [

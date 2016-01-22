@@ -2,6 +2,8 @@ from django.db import models
 
 # Create your models here.
 
+
+
 # This is an auto-generated Django model module created by ogrinspect.
 
 from django.contrib.gis.db import models
@@ -60,7 +62,7 @@ class cshapes(models.Model):
 
     iso1al3 = models.CharField(max_length=7)
 
-    geom = models.MultiPolygonField(srid=-1)
+    geom = models.MultiPolygonField(srid=4326)
 
     objects = models.GeoManager()
 
@@ -123,3 +125,4 @@ cshapes_mapping = {
     'geom' : 'MULTIPOLYGON',
 
 }
+
