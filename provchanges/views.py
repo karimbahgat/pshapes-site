@@ -1,10 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django import forms
+
+from .models import ProvChange
+
 
 # Create your views here.
 
 def dashboard(request):
-    html = render(request, 'provchanges/dashboard.html') #, {'form': ProvChangeList})
+    changelist = ProvChange.objects.all()
+    html = render(request, 'provchanges/dashboard.html', {'changelist': changelist})
     return html
 
 def submitchange(request):
@@ -16,24 +20,22 @@ def submitchange(request):
     html = render(request, 'provchanges/submitchange.html', args)
     return html
 
+def editchange(request, pk):
+    change = get_object_or_404(ProvChange, pk=pk)
+    args = {'typechange': TypeChangeForm(instance=change),
+            'generalchange': GeneralChangeForm(instance=change),
+            'fromchange': FromChangeForm(instance=change),
+            'geochange': GeoChangeForm(instance=change),
+            'tochange': ToChangeForm(instance=change),}
+    html = render(request, 'provchanges/editchange.html', args)
+    return html
 
-
-
-
-# Change list
-##class ChangeListForm(forms.ModelForm):
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ['type']
 
 
 
 
 
 # Change form
-
-from .models import ProvChange
 
 class TypeChangeForm(forms.ModelForm):
 

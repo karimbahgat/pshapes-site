@@ -4,23 +4,99 @@
 {% block content %}
 
 	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
-    		<h3 style="color:black">
+    	
+		<h3 style="color:black">
 		User Dashboard
 		</h3>
-
+		
 		<div>
 			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
 			<b>Submit New Change...</b>
 			</a>
 		</div>
 		
-		<br>
-		<br>
-		
-		
 		<div>
-		Table of changes goes here...
+		<h4>Recently added province changes:</h4>
+		
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+				
+				<th>
+                <b>Date</b>
+				</th>
+
+				<th>
+                <b>Type</b>
+				</th>
+			
+				<th>
+                <b>From Name</b>
+				</th>
+
+				<th>
+                <b>To Name</b>
+				</th>
+				
+				<th>
+                <b>Country</b>
+				</th>
+			</tr>
+			</a>
+			
+			{% for change in changelist %}
+				<tr>
+					<td>
+					<a href="{% url 'editchange' pk=change.pk %}">Edit</a>
+					</td>
+					
+					<td>
+					{{ change.date }}
+					</td>
+
+					<td>
+					{{ change.type }}
+					</td>
+
+					<td>
+					{{ change.fromname }}
+					</td>
+					
+					<td>
+					{{ change.toname }}
+					</td>
+					
+					<td>
+					{{ change.country }}
+					</td>
+
+				</tr>
+			{% endfor %}
+		</table>
+		
 		</div>
+		
 	</div>
 
 {% endblock %}
