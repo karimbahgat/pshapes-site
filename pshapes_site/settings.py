@@ -137,7 +137,7 @@ LEAFLET_CONFIG = {
                         ],
                 }
 
-INSTALLED_APPS.append('provshapes')
+INSTALLED_APPS.append('provchanges')
 INSTALLED_APPS.append('cshapes')
 
 INSTALLED_APPS.append('rest_framework')

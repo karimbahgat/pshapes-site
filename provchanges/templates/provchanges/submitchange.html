@@ -1,0 +1,49 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% block content %}
+
+	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+    		<h3 style="color:black">
+		Submit New Province Change
+		</h3>
+
+		<div>
+		Form goes here...
+		
+			<form action="/your-name/" method="post">
+			
+				{% csrf_token %}
+
+				<fieldset>
+					<legend>Type of Change</legend>
+					{{ typechange }}
+				</fieldset>
+				
+				<fieldset>
+					<legend>General Information</legend>
+					{{ generalchange }}
+				</fieldset>
+				
+				<fieldset>
+					<legend>From Province</legend>
+					{{ fromchange }}
+				</fieldset>
+
+				<fieldset>
+					<legend>Geo Change</legend>
+					{{ geochange }}
+				</fieldset>
+				
+				<fieldset>
+					<legend>To Province</legend>
+					{{ tochange }}
+				</fieldset>
+				
+				<input type="submit" value="Submit" />
+			</form>
+			
+		</div>
+	</div>
+
+{% endblock %}

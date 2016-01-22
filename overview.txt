@@ -1,0 +1,8 @@
+
+Django app containing the data, model, and logic for the spatiotemporal province data. 
+Pshapes is the final product that users can download or view on the main page.
+Pshapes is created by starting with any modern-day spatial province dataset, and then 
+reverse georeferencing earlier provinces based on the 'pchanges' data entries. 
+The 'pshapes' github repository contains a process.py script that can be used to create
+a final pshapes geojson file. Once quality checked, this geojson file must then be
+inserted into the 'pshapes' table in the heroku pshapes_site database. 

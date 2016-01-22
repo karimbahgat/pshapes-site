@@ -16,15 +16,19 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib.gis import admin
 
-admin.site.site_header = "Pshapes User Site"
+admin.site.site_header = "Pshapes Website Admin"
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url('^contact/', "pshapes_site.views.contact"),
+    url('^$', "cshapes.views.mapview_lite"),
     url('^method/', "pshapes_site.views.method"),
     url('^download/', "pshapes_site.views.download"),
-    url('^$', "provshapes.views.mapview"),
-    url('^cshapestest/', "cshapes.views.mapview"),
+    url('^contact/', "pshapes_site.views.contact"),
+
+    url('^dashboard/', "provchanges.views.dashboard"),
+    url('^submitchange/', "provchanges.views.submitchange"),
+    
+    url('^timetest/', "cshapes.views.mapview"),
+    url(r'^admin/', include(admin.site.urls)),
 ]
 
 # Wire up our API using automatic URL routing.

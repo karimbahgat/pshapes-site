@@ -2,14 +2,18 @@ from django.shortcuts import render
 
 # Create your views here.
 
+
+
 def mapview(request):
     return render(request, 'cshapes/mapview.html')
+
+def mapview_lite(request):
+    return render(request, 'cshapes/mapview_lite.html')
 
 
 
 from cshapes.models import cshapes
 from rest_framework import viewsets, generics, views, decorators, response
-from cshapes.serializers import CshapesSerializer
 
 @decorators.api_view(["GET"])
 def apiview(request):
@@ -53,12 +57,10 @@ def apiview(request):
     
     return response.Response(jsondict)
 
-##class CshapesViewSet(views.APIView):
-##    def get(self, request):
-##        data = cshapes.objects.values()
-##        print str(data)[:100]
-##        return Response(data)
     
+# original most correct using geo rest framework, but super super slow
+
+##from cshapes.serializers import CshapesSerializer
 ##class CshapesViewSet(viewsets.ModelViewSet):
 ##    """
 ##    API endpoint that allows users to be viewed or edited.
