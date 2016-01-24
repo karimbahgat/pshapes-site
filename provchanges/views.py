@@ -191,6 +191,41 @@ from django.contrib.gis.forms.widgets import OpenLayersWidget
 ##        fields = ["transfer_source","transfer_geom"]
 ##        widgets = {'transfer_geom': OpenLayersWidget()}
 
+class CustomOLWidget(OpenLayersWidget):
+    default_zoom = 1
+    
+    def render(self, name, value, attrs = None):
+        output = super(CustomOLWidget, self).render(name, value, attrs)
+        output += """
+<script>
+function syncwms() {
+var wmsurl = document.getElementById('id_transfer_source').value;
+if (wmsurl.trim() != "") {
+    var layerlist = geodjango_transfer_geom.map.getLayersByName('Custom WMS');
+    if (layerlist.length >= 1) 
+        {
+        // replace existing
+        geodjango_transfer_geom.map.removeLayer(layerlist[0]);
+        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+        customwms.isBaseLayer = false;
+        geodjango_transfer_geom.map.addLayer(customwms);
+        } 
+    else {
+        // add as new
+        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+        customwms.isBaseLayer = false;
+        geodjango_transfer_geom.map.addLayer(customwms);
+        };
+};
+};
+
+// at startup
+syncwms();
+
+</script>
+"""
+        return output
+
 class GeoChangeForm(forms.ModelForm):
 
     class Meta:
@@ -231,20 +266,13 @@ class GeoChangeForm(forms.ModelForm):
 ##                                ])
 ##            })
 
-        # make wms auto add/update on sourceurl input
+        # make wms auto add/update at startup
+        # by overriding widget's render func and adding custom js
+        self.fields['transfer_geom'].widget = CustomOLWidget()
+
+        # also load wms on sourceurl input
         self.fields['transfer_source'].widget.attrs.update({
-            'oninput': "".join(["var wmsurl = document.getElementById('id_transfer_source').value;",
-                                "var layerlist = geodjango_transfer_geom.map.getLayersByName('Custom WMS');",
-                                "if (layerlist.length >= 1) ",
-                                "{",
-                                "layerlist[0].url = wmsurl;",
-                                "} ",
-                                "else {",
-                                """customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
-                                """customwms.isBaseLayer = false;""",
-                                """geodjango_transfer_geom.map.addLayer(customwms);""",
-                                "};",
-                                ])
+            'oninput': "syncwms();",
 
             # http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png
             #'onclick': """geodjango_changepart.map.layers.sourceurl = new OpenLayers.Layer.WMS("Custom WMS","http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png", {layers: 'basic'} ); geodjango_changepart.map.addLayer(geodjango_changepart.map.layers.sourceurl);"""
