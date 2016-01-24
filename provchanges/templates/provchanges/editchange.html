@@ -1,8 +1,14 @@
 
 {% extends 'pshapes_site/base.html' %}
 
-{% block content %}
+{% load leaflet_tags %}
 
+{% block content %}
+	<head>
+	{{ geochange.media }}
+    {% leaflet_js %}
+    {% leaflet_css %}
+	</head>
 	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
     		<h3 style="color:black">
 		Edit Province Change

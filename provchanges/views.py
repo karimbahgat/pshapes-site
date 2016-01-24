@@ -178,46 +178,64 @@ class ToChangeForm(forms.ModelForm):
         fields = 'toname toiso tofips tohasc tocapital totype'.split()
 
 
-from django.contrib.gis.forms import ModelForm as GeoModelForm
 
-class GeoChangeForm(GeoModelForm):
+#################################################
+# BUILTIN
+
+from django.contrib.gis.forms.widgets import OpenLayersWidget
+
+class GeoChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
         fields = ["transfer_source","transfer_geom"]
-        
-##    def __init__(self, *args, **kwargs):
-##        super(ProvChangeForm, self).__init__(*args, **kwargs)
+        widgets = {'transfer_geom': OpenLayersWidget()}
 
-        # autozoom map to country depending on country
-##        import pycountries as pc
-##        self.fields['country'].widget.attrs.update({
-##            'onchange': "".join(["var cntr = document.getElementById('id_country').value;",
-##                                 #"alert(cntr);",
-##                                 "var bbox = [0,0,180,90];", #%s[cntr];" % dict([(c.iso3,getbox(c)) for c in pc.all_countries() if getbox(c)]),
-##                                 #"alert(bbox);",
-##                                 "geodjango_changepart.map.zoomToExtent(bbox);",
-##                                ])
+
+#################################################
+# LEAFLET VERSION
+
+##from leaflet.forms.widgets import LeafletWidget
+##
+##LeafletWidget.settings_overrides.update({"RESET_VIEW":False,                                         })
+##
+##class GeoChangeForm(forms.ModelForm):
+##
+##    class Meta:
+##        model = ProvChange
+##        fields = ["transfer_source","transfer_geom"]
+##        widgets = {'transfer_geom': LeafletWidget()}
+
+##    def __init__(self, *args, **kwargs):
+##        forms.ModelForm.__init__(self, *args, **kwargs)
+##        # make wms auto add/update on sourceurl input
+##        self.fields['transfer_source'].widget.attrs.update({
+##            "onload":"""
+##$(document).ready(function() {
+##    // Store the variable to hold the map in scope
+##    var map;
+##    alert("hello");
+##    
+##    // Populate the map var during the map:init event (see Using Javascript callback function)
+##    // here https://github.com/makinacorpus/django-leaflet
+##    $(window).on('map:init', function(e) {
+##      map = e.originalEvent.detail.map;
+##      alert(map);
+##    });
+##""",
+##            "onchange": """
+##var map = L.Map.djangoMap('id_transfer_geom_map') //window['loadmap' + 'id_transfer_geom_map'];
+##alert(map);
+##var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
+##    layers: 'nexrad-n0r-900913',
+##    format: 'image/png',
+##    transparent: true,
+##    attribution: "Weather data 2012 IEM Nexrad"
+##});
+##map.addLayer(nexrad);
+##"""
 ##            })
 
-##        self.fields = (
-##                    (None, {
-##                        'fields': ('country', 'date', 'type')
-##                    }),
-##                    ('Map', {
-##                        'classes': ('collapse',),
-##                        'fields': ('transfer_source', 'transfer_geom'),
-##                    }),
-##                    ("From Province", {
-##                        'fields': tuple('fromname fromiso fromfips fromhasc fromcapital fromtype'.split())
-##                    }),
-##                    ("To Province", {
-##                        'fields': tuple('toname toiso tofips tohasc tocapital totype'.split())
-##                    }),
-##                )
-
-        # make wms auto add/update on sourceurl input
-##        self.fields['transfer_source'].widget.attrs.update({
 ##            'oninput': "".join(["var wmsurl = document.getElementById('id_transfer_source').value;",
 ##                                "var layerlist = geodjango_transfer_geom.map.getLayersByName('Custom WMS');",
 ##                                "if (layerlist.length >= 1) ",
@@ -230,3 +248,62 @@ class GeoChangeForm(GeoModelForm):
 ##                                """geodjango_transfer_geom.map.addLayer(customwms);""",
 ##                                "};",
 ##                                ])
+        
+
+
+################################################################
+# OLWIDGET APPROACH
+
+###from django.contrib.gis.forms.widgets import OpenLayersWidget
+##from olwidget.fields import EditableLayerField, MapField, MapModelForm
+##
+##
+##
+##class GeoChangeForm(MapModelForm):
+##
+##    class Meta:
+##        model = ProvChange
+##        fields = ["transfer_source","transfer_geom"]
+##
+####    def __init__(self, *args, **kwargs):
+####        super(MapModelForm, self).__init__(*args, **kwargs)
+##
+####        # autozoom map to country depending on country
+######        import pycountries as pc
+######        self.fields['country'].widget.attrs.update({
+######            'onchange': "".join(["var cntr = document.getElementById('id_country').value;",
+######                                 #"alert(cntr);",
+######                                 "var bbox = [0,0,180,90];", #%s[cntr];" % dict([(c.iso3,getbox(c)) for c in pc.all_countries() if getbox(c)]),
+######                                 #"alert(bbox);",
+######                                 "geodjango_changepart.map.zoomToExtent(bbox);",
+######                                ])
+######            })
+####
+######        self.fields = (
+######                    (None, {
+######                        'fields': ('country', 'date', 'type')
+######                    }),
+######                    ('Map', {
+######                        'classes': ('collapse',),
+######                        'fields': ('transfer_source', 'transfer_geom'),
+######                    }),
+######                    ("From Province", {
+######                        'fields': tuple('fromname fromiso fromfips fromhasc fromcapital fromtype'.split())
+######                    }),
+######                    ("To Province", {
+######                        'fields': tuple('toname toiso tofips tohasc tocapital totype'.split())
+######                    }),
+######                )
+##
+##        # make wms auto add/update on sourceurl input
+####        self.fields['transfer_geom'].widget = EditableLayerField().widget
+####        self.fields['transfer_source'].widget.attrs.update({
+####            "onload": "alert(OpenLayers);",
+####            'oninput': "".join(["alert(OpenLayers.objectName);","var wmsurl = document.getElementById('id_transfer_source').value;",
+####                                "alert(wmsurl);",
+####                                """var customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
+####                                #"""customwms.isBaseLayer = false;""",
+####                                "alert(customwms.objectName);",
+####                                """geodjango_transfer_geom.map.addLayer(customwms);""",
+####                                ])
+####            })

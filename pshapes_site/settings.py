@@ -135,6 +135,7 @@ LEAFLET_CONFIG = {
                         ('dark', 'http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {"noWrap":True}),
                         ('watercolor', 'http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.png', {"noWrap":True}),
                         ],
+                "NO_GLOBALS": False,
                 }
 
 INSTALLED_APPS.append('provchanges')
