@@ -2,11 +2,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib import admin
 
 from rest_framework import response
 from rest_framework.decorators import api_view
 
 from .models import ProvChange
+
+import datetime
 
 
 # Create your views here.
@@ -78,6 +81,8 @@ def submitchange(request):
         print "data",request.POST
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        formfieldvalues["user"] = request.user.username
+        formfieldvalues["added"] = datetime.date.today()
         print formfieldvalues
         obj = ProvChange.objects.create(**formfieldvalues)
         print obj
@@ -104,6 +109,7 @@ def editchange(request, pk):
     if request.method == "POST":
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        formfieldvalues["user"] = request.user.username
         print formfieldvalues
 
         changeobj = ProvChange.objects.get(pk=pk)
@@ -128,6 +134,32 @@ def editchange(request, pk):
 
 
 
+# Date...
+
+class CustomDateWidget(admin.widgets.AdminDateWidget):
+    
+    def render(self, name, value, attrs = None):
+        output = super(CustomDateWidget, self).render(name, value, attrs)
+        output += """
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<script>
+$('#id_date').datepicker({
+    changeMonth: true,
+    changeYear: true,
+    dateFormat: "yy-mm-dd",
+    defaultDate: "2014-12-31",
+    yearRange: '1946:2014',
+
+});
+</script>
+"""
+        return output
+
+    
+
+
 # Auth forms
 
 from django.contrib.auth.models import User
@@ -149,7 +181,9 @@ class UserInfoForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["first_name","last_name","email"]
+
         
+
 
 # Change form
 
@@ -164,6 +198,7 @@ class GeneralChangeForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ['country', 'date']
+        widgets = {"date": CustomDateWidget()}
 
 class FromChangeForm(forms.ModelForm):
 
@@ -176,6 +211,7 @@ class ToChangeForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = 'toname toiso tofips tohasc tocapital totype'.split()
+
 
 
 

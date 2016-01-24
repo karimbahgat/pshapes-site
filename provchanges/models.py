@@ -4,6 +4,9 @@ from django.contrib.gis.db import models
 
 class ProvChange(models.Model):
 
+    user = models.CharField(max_length=200)
+    added = models.DateField()
+
     #import pycountries as pc
     country = models.CharField(choices=[("Vietnam","Vietnam"),("Tanzania","Tanzania")], #(c.iso3,c.name) for c in pc.all_countries()],
                                 max_length=40)
