@@ -17,7 +17,7 @@ class ProvChange(models.Model):
 
     # should only show if changetype requires border delimitation...
     transfer_source = models.CharField(max_length=200)
-    transfer_geom = models.MultiPolygonField(blank=True)
+    transfer_geom = models.MultiPolygonField(null=True, blank=True)
     
     fromname = models.CharField(max_length=40)
     fromiso = models.CharField(max_length=40)

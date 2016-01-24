@@ -1,0 +1,61 @@
+
+
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Welcome to the Pshapes project</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    </head>
+
+    <body style="font-family: verdana;">
+	<div class="page-header" style="text-align:center; overflow:hidden; display:block; background-color: #ff9400;">
+		<div style="width:70%; display:inline-block">
+
+    		<div style="float:left; text-align:left">
+			<h2 style="color:white;">
+			Province Shapes
+			</h2>
+
+	    		<h4 style="color:white;">
+			Historical Province Boundaries, 1946-2014
+			</h4>
+		</div>
+
+    		<div style="overflow:hidden; display:block; float:right; padding: 0px 0px 0px 0px; height:100%">
+    		<a href="/dashboard/" style="overflow:hidden; display:block; float:right; padding:1.2em 10px; color:white; pad-right:10px;">
+		Login
+		</a>
+    		<a href="/contact/" style="overflow:hidden; display:block; float:right; padding:1.2em 10px; color:white; pad-right:10px;">
+		Contact
+		</a>
+		</div>
+
+		</div>
+	</div>
+
+	<div class="topmenu" style="text-align:center; background-color: black;">
+		<div style="width:70%; display:inline-block;">
+
+		<a href="/" style="float:left; padding-right:2%; color: white;">Home</a>
+	        <a href="/method/" style="float:left; padding-right:2%; color: white;">Methodology</a>
+	        <a href="/download/" style="float:left; padding-right:2%; color: white;">Download</a>
+
+		</div>
+	</div>
+
+	<br><br>
+
+	<div class="contentwrap" style="text-align:center;">	
+	<div class="content" style="width:70%; display:inline-block;">	
+	{% block content %}
+	{% endblock %}
+	</div>
+	</div>
+	
+
+
+    </body>
+
+</html>
+

@@ -8,29 +8,38 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     </head>
 
-    <body style=" font-family: verdana;">
+    <body class="body" style="font-family: verdana;">
 	<div class="page-header" style="text-align:center; overflow:hidden; display:block; background-color: #ff9400;">
 		<div style="width:70%; display:inline-block">
 
-    		<div style="float:left; text-align:left">
-			<h2 style="color:white;">
-			Province Shapes
-			</h2>
+			<div style="float:left; text-align:left">
+				<h2 style="color:white;">
+				Province Shapes
+				</h2>
 
-	    		<h4 style="color:white;">
-			Historical Province Boundaries, 1946-2014
-			</h4>
-		</div>
+				<h4 style="color:white;">
+				Historical Province Boundaries, 1946-2014
+				</h4>
+			</div>
 
-    		<div style="overflow:hidden; display:block; float:right; padding: 0px 0px 0px 0px; height:100%">
-    		<a href="/dashboard/" style="overflow:hidden; display:block; float:right; padding:1.2em 10px; color:white; pad-right:10px;">
-		Login
-		</a>
-    		<a href="/contact/" style="overflow:hidden; display:block; float:right; padding:1.2em 10px; color:white; pad-right:10px;">
-		Contact
-		</a>
-		</div>
+			<div style="float:right; text-align:right; display:block; overflow:hidden; padding:30px; font-size:0.8em">
 
+				{% if user.is_authenticated %}
+					Welcome <em>"{{user}}"</em>
+					
+					<br>
+					
+					<a href="/dashboard/" style="color:white;padding:5px">Go to Dashboard</a>
+					<a href="/logout/" style="color:white;padding:5px">Logout</a>
+				
+				{% else %}
+					<a href="/contact/" style="color:white;padding:5px">Contact</a>
+					<a href="/login/" style="color:white;padding:5px">Login</a>
+					
+				{% endif %}
+				
+			</div>
+			
 		</div>
 	</div>
 
@@ -44,15 +53,36 @@
 		</div>
 	</div>
 
-	<br><br>
+	<div class="maincontainer" style="position:relative; padding:0 0 0 15%;">	
+	
+		<div class="content" style="width:70%; height:100%;
+									margin:3% 0 5% 0;">	
+		{% block content %}
+		{% endblock %}
+		</div>
+		
+		<!--
+		<div class="sidebar" style="position:absolute;
+									top:0; bottom:0; right:10%;
+									width:17%;
+									border-style:solid;
+									border-color:black;
+									border-width:3px;
+									border-radius:10px;
+									padding:6px;">
+			<div class="sidebar-header" style="text-align:center; background:black; color:white; border-top-left-radius:5px; border-top-right-radius:5px; padding:5px">
+				Welcome, Guest
+			</div>
+			<div class="sidebar-content">
+				{% block sidebarcontent %}
+				{% endblock %}
+			</div>
+		</div>
+		</!-->
 
-	<div class="contentwrap" style="text-align:center;">	
-	<div class="content" style="width:70%; display:inline-block;">	
-	{% block content %}
-	{% endblock %}
-	</div>
 	</div>
 
+	
     </body>
 
 </html>

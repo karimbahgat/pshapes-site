@@ -1,0 +1,38 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% block content %}
+
+	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+    	<h3 style="color:black">
+			Login as User
+		</h3>
+
+		<div>
+		
+			<form action="/login/" method="post">
+			
+				{% csrf_token %}
+				
+				<p style="color:red">{{ errormessage }}</p>
+				
+				<fieldset>
+					<legend>Login</legend>
+					{{ login.as_p }}
+				</fieldset>
+
+				<input type="submit" value="Login" style="float:right; font-family:inherit; font-size:inherit; text-decoration:underline; background-color:orange; color:white; border-radius:5px; padding:5px; margin:5px">
+				
+			</form>
+			
+			<br><br><br>
+			
+			<div style="float:right; text-align:right">
+				<p>Don't already have a user account?</p><a href="/registration/" style="background-color:orange; color:white; border-radius:5px; padding:5px">Become a New User</a>
+			</div>
+			
+		</div>
+		
+	</div>
+
+{% endblock %}

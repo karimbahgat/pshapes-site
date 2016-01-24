@@ -1,39 +1,155 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django import forms
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+
+from rest_framework import response
+from rest_framework.decorators import api_view
 
 from .models import ProvChange
 
 
 # Create your views here.
 
+def registration(request):
+    
+    if request.method == "POST":
+        print "data",request.POST
+        fieldnames = [f.name for f in User._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        print formfieldvalues
+        obj = User.objects.create_user(**formfieldvalues)
+        print obj
+        obj.save()
+
+        html = redirect("/dashboard/")
+
+    elif request.method == "GET":
+        args = {'logininfo': LoginInfoForm(),
+                'userinfo': UserInfoForm(),
+                }
+        html = render(request, 'provchanges/registration.html', args)
+
+    return html
+
+def login(request):
+    
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        print username,password
+        user = authenticate(username=username, password=password)
+        print user
+        if user is not None:
+            auth_login(request, user)
+            html = redirect("/dashboard/")
+        else:
+            args = {'login': LoginForm(),
+                    'errormessage': "Could not find that username or password",
+                    }
+            html = render(request, 'provchanges/login.html', args)
+            
+    elif request.method == "GET":
+        print request, request.user
+        args = {'login': LoginForm(),
+                }
+        html = render(request, 'provchanges/login.html', args)
+
+    return html
+
+@login_required
+def logout(request):
+    print request, request.user
+    auth_logout(request)
+    html = render(request, 'provchanges/logout.html')
+    return html
+
+@login_required
 def dashboard(request):
+    print request, request.user
     changelist = ProvChange.objects.all()
     html = render(request, 'provchanges/dashboard.html', {'changelist': changelist})
     return html
 
+@login_required
 def submitchange(request):
-    args = {'typechange': TypeChangeForm(),
-            'generalchange': GeneralChangeForm(),
-            'fromchange': FromChangeForm(),
-            'geochange': GeoChangeForm(),
-            'tochange': ToChangeForm(),}
-    html = render(request, 'provchanges/submitchange.html', args)
+    
+    if request.method == "POST":
+        print "data",request.POST
+        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        print formfieldvalues
+        obj = ProvChange.objects.create(**formfieldvalues)
+        print obj
+        obj.save()
+
+        # hmmmm # need to make get request to editchange to just return basic html of the get
+
+        html = redirect("/provchange/%s/edit/" % obj.pk)
+
+    elif request.method == "GET":
+        args = {'typechange': TypeChangeForm(),
+                'generalchange': GeneralChangeForm(),
+                'fromchange': FromChangeForm(),
+                'geochange': GeoChangeForm(),
+                'tochange': ToChangeForm(),}
+        html = render(request, 'provchanges/submitchange.html', args)
+        
     return html
 
+@login_required
 def editchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
-    args = {'typechange': TypeChangeForm(instance=change),
-            'generalchange': GeneralChangeForm(instance=change),
-            'fromchange': FromChangeForm(instance=change),
-            'geochange': GeoChangeForm(instance=change),
-            'tochange': ToChangeForm(instance=change),}
-    html = render(request, 'provchanges/editchange.html', args)
+
+    if request.method == "POST":
+        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        print formfieldvalues
+
+        changeobj = ProvChange.objects.get(pk=pk)
+        changeobj.__dict__.update(**formfieldvalues)
+        changeobj.save()
+
+        html = redirect("/provchange/%s/edit/" % pk)
+        
+    elif request.method == "GET":
+        args = {'pk': pk,
+                'typechange': TypeChangeForm(instance=change),
+                'generalchange': GeneralChangeForm(instance=change),
+                'fromchange': FromChangeForm(instance=change),
+                'geochange': GeoChangeForm(instance=change),
+                'tochange': ToChangeForm(instance=change),}
+        html = render(request, 'provchanges/editchange.html', args)
+        
     return html
 
 
 
 
 
+
+# Auth forms
+
+from django.contrib.auth.models import User
+
+class LoginForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["username","password"]
+
+class LoginInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["username","password"]
+
+class UserInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["first_name","last_name","email"]
+        
 
 # Change form
 

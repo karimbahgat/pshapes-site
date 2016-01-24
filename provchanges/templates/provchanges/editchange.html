@@ -9,38 +9,38 @@
 		</h3>
 
 		<div>
-		Form goes here...
 		
-			<form action="/your-name/" method="post">
+			<form action="/provchange/{{pk}}/edit/" method="post">
 			
 				{% csrf_token %}
 
 				<fieldset>
 					<legend>Type of Change</legend>
-					{{ typechange }}
+					{{ typechange.as_p }}
 				</fieldset>
 				
 				<fieldset>
 					<legend>General Information</legend>
-					{{ generalchange }}
+					{{ generalchange.as_p }}
 				</fieldset>
 				
 				<fieldset>
 					<legend>From Province</legend>
-					{{ fromchange }}
+					{{ fromchange.as_p }}
 				</fieldset>
 
 				<fieldset>
 					<legend>Geo Change</legend>
-					{{ geochange }}
+					{{ geochange.as_p }}
 				</fieldset>
 				
 				<fieldset>
 					<legend>To Province</legend>
-					{{ tochange }}
+					{{ tochange.as_p }}
 				</fieldset>
 				
-				<input type="submit" value="Submit" />
+				<input type="submit" value="Submit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; float:right; margin:10px;">
+				
 			</form>
 			
 		</div>
