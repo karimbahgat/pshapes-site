@@ -1,0 +1,72 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load leaflet_tags %}
+
+{% block content %}
+	<head>
+	{{ geochange.media }}
+    {% leaflet_js %}
+    {% leaflet_css %}
+	</head>
+	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+		<div>
+    	<h3 style="color:black">
+		Province Change
+		</h3>
+		
+		<br>
+		
+		<a href="/provchange/{{pk}}/edit/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+		Edit
+		</a>
+		</div>
+		
+		<br><br>
+		
+		<div>
+			
+				{% csrf_token %}
+
+				<fieldset>
+					<legend>Submitted By</legend>
+					{% for field in metachange %}
+						<p>{{ field.label }}: {{ field.value }}</p>
+					{% endfor %}
+				</fieldset>
+				
+				<fieldset>
+					<legend>Type of Change</legend>
+					<p>Type: {{ typechange.type.value }}</p>
+				</fieldset>
+				
+				<fieldset>
+					<legend>General Information</legend>
+					{% for field in generalchange %}
+						<p>{{ field.label }}: {{ field.value }}</p>
+					{% endfor %}
+				</fieldset>
+				
+				<fieldset>
+					<legend>From Province</legend>
+					{% for field in fromchange %}
+						<p>{{ field.label }}: {{ field.value }}</p>
+					{% endfor %}
+				</fieldset>
+
+				<fieldset>
+					<legend>Geo Change</legend>
+					{{ geochange.as_p }}
+				</fieldset>
+				
+				<fieldset>
+					<legend>To Province</legend>
+					{% for field in tochange %}
+						<p>{{ field.label }}: {{ field.value }}</p>
+					{% endfor %}
+				</fieldset>
+			
+		</div>
+	</div>
+
+{% endblock %}

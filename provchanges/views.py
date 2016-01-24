@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import admin
 
+from django.core.paginator import Paginator
+
 from rest_framework import response
 from rest_framework.decorators import api_view
 
@@ -71,6 +73,12 @@ def logout(request):
 def dashboard(request):
     print request, request.user
     changelist = ProvChange.objects.all()
+    pages = Paginator(changelist, 10)
+
+    page = request.GET.get("page", 1)
+    if page:
+        changelist = pages.page(page)
+    
     html = render(request, 'provchanges/dashboard.html', {'changelist': changelist})
     return html
 
@@ -90,7 +98,7 @@ def submitchange(request):
 
         # hmmmm # need to make get request to editchange to just return basic html of the get
 
-        html = redirect("/provchange/%s/edit/" % obj.pk)
+        html = redirect("/provchange/%s/view/" % obj.pk)
 
     elif request.method == "GET":
         args = {'typechange': TypeChangeForm(),
@@ -99,6 +107,28 @@ def submitchange(request):
                 'geochange': GeoChangeForm(),
                 'tochange': ToChangeForm(),}
         html = render(request, 'provchanges/submitchange.html', args)
+        
+    return html
+
+def viewchange(request, pk):
+    change = get_object_or_404(ProvChange, pk=pk)
+
+    args = {'pk': pk,
+            'metachange': MetaChangeForm(instance=change),
+            'typechange': TypeChangeForm(instance=change),
+            'generalchange': GeneralChangeForm(instance=change),
+            'fromchange': FromChangeForm(instance=change),
+            'geochange': GeoChangeForm(instance=change),
+            'tochange': ToChangeForm(instance=change),}
+    for key,form in args.items():
+        if key == "pk": continue
+        for field in form.fields.values():
+            field.widget.attrs['readonly'] = "readonly"
+    for key,form in args.items():
+        if key == "pk": continue
+        for field in form.fields.values():
+            print "------",key,field,field.widget.attrs['readonly']
+    html = render(request, 'provchanges/viewchange.html', args)
         
     return html
 
@@ -116,7 +146,7 @@ def editchange(request, pk):
         changeobj.__dict__.update(**formfieldvalues)
         changeobj.save()
 
-        html = redirect("/provchange/%s/edit/" % pk)
+        html = redirect("/provchange/%s/view/" % pk)
         
     elif request.method == "GET":
         args = {'pk': pk,
@@ -186,6 +216,12 @@ class UserInfoForm(forms.ModelForm):
 
 
 # Change form
+
+class MetaChangeForm(forms.ModelForm):
+
+    class Meta:
+        model = ProvChange
+        fields = ['user','added']
 
 class TypeChangeForm(forms.ModelForm):
 

@@ -16,7 +16,7 @@
 		</div>
 		
 		<div>
-		<h4>Recently added province changes:</h4>
+		<h4>Browse province changes:</h4>
 		
 		<table> 
 		
@@ -62,13 +62,21 @@
 				<th>
                 <b>Country</b>
 				</th>
+				
+				<th>
+                <b>User</b>
+				</th>
+				
+				<th>
+                <b>Added</b>
+				</th>
 			</tr>
 			</a>
 			
 			{% for change in changelist %}
 				<tr>
 					<td>
-					<a href="{% url 'editchange' pk=change.pk %}">Edit</a>
+					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
 					</td>
 					
 					<td>
@@ -89,6 +97,14 @@
 					
 					<td>
 					{{ change.country }}
+					</td>
+					
+					<td>
+					{{ change.user }}
+					</td>
+					
+					<td>
+					{{ change.added }}
 					</td>
 
 				</tr>

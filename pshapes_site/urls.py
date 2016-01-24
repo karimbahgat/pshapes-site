@@ -27,6 +27,7 @@ urlpatterns = [
     url('^dashboard/$', "provchanges.views.dashboard"),
     url('^submitchange/$', "provchanges.views.submitchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
+    url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
 
     url('^registration/$', "provchanges.views.registration"),
     url('^login/$', "provchanges.views.login"),
