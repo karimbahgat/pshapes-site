@@ -6,6 +6,12 @@ class ProvChange(models.Model):
 
     user = models.CharField(max_length=200)
     added = models.DateField()
+    status = models.CharField(choices=[("Pending","Pending"),
+                                       ("Accepted","Accepted"),
+                                       ("NonActive","NonActive"),
+                                        ],
+                              default="Pending",
+                              max_length=40)
 
     #import pycountries as pc
     country = models.CharField(choices=[("Vietnam","Vietnam"),("Tanzania","Tanzania")], #(c.iso3,c.name) for c in pc.all_countries()],
@@ -16,10 +22,11 @@ class ProvChange(models.Model):
                                        ("FullTransfer","FullTransfer"),
                                        ("Breakaway","Breakaway"), 
                                         ],
-                                    max_length=40)
+                                    max_length=40,)
 
     # should only show if changetype requires border delimitation...
     transfer_source = models.CharField(max_length=200)
+    transfer_reference = models.CharField(max_length=400)
     transfer_geom = models.MultiPolygonField(null=True, blank=True)
     
     fromname = models.CharField(max_length=40)

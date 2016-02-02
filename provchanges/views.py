@@ -221,7 +221,7 @@ class MetaChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ['user','added']
+        fields = ['user','added','status']
 
 class TypeChangeForm(forms.ModelForm):
 
@@ -302,7 +302,7 @@ class GeoChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ["transfer_source","transfer_geom"]
+        fields = ["transfer_source","transfer_reference","transfer_geom"]
         
     def __init__(self, *args, **kwargs):
         super(GeoChangeForm, self).__init__(*args, **kwargs)
