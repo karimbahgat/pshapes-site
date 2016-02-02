@@ -9,4 +9,4 @@ wsgiref==0.1.2
 whitenoise==2.0.6
 Django-leaflet==0.18.0
 Django-geojson==2.8.1
-rest_framework==3.3.2
+djangorestframework==3.3.2
