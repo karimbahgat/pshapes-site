@@ -139,6 +139,7 @@ LEAFLET_CONFIG = {
                 }
 
 INSTALLED_APPS.append('provchanges')
+INSTALLED_APPS.append('provshapes')
 INSTALLED_APPS.append('cshapes')
 
 INSTALLED_APPS.append('rest_framework')
@@ -152,6 +153,6 @@ REST_FRAMEWORK = {
 }
 
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
+LOGIN_REDIRECT_URL = "/contribute/"
 
 

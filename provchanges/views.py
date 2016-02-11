@@ -70,7 +70,7 @@ def logout(request):
     return html
 
 @login_required
-def dashboard(request):
+def contribute(request):
     print request, request.user
     changelist = ProvChange.objects.all()
     pages = Paginator(changelist, 10)
@@ -79,7 +79,7 @@ def dashboard(request):
     if page:
         changelist = pages.page(page)
     
-    html = render(request, 'provchanges/dashboard.html', {'changelist': changelist})
+    html = render(request, 'provchanges/contribute.html', {'changelist': changelist})
     return html
 
 @login_required

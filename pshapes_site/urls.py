@@ -19,12 +19,13 @@ from django.contrib.gis import admin
 admin.site.site_header = "Pshapes Website Admin"
 
 urlpatterns = [
-    url('^$', "cshapes.views.mapview_lite"),
-    url('^method/$', "pshapes_site.views.method"),
-    url('^download/$', "pshapes_site.views.download"),
-    url('^contact/$', "pshapes_site.views.contact"),
+    url('^$', "pshapes_site.views.home"),
+    url('^about/$', "pshapes_site.views.about"),
+    
+    url('^data/$', "provshapes.views.data"),
+    url('^interactive/$', "provshapes.views.interactive"),
 
-    url('^dashboard/$', "provchanges.views.dashboard"),
+    url('^contribute/$', "provchanges.views.contribute"),
     url('^submitchange/$', "provchanges.views.submitchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
