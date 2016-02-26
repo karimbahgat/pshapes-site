@@ -19,3 +19,13 @@ def home(request):
 
 def about(request):
     return render(request, 'pshapes_site/about.html')
+
+def testgrid(request):
+    grids = tuple([("title%s"%i, "content%s"%i) for i in range(5)])
+    bannertitle = "Banner Title"
+    bannerleft = "Banner left"
+    bannerright = "Banner right"
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+

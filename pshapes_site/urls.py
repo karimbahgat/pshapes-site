@@ -21,6 +21,8 @@ admin.site.site_header = "Pshapes Website Admin"
 urlpatterns = [
     url('^$', "pshapes_site.views.home"),
     url('^about/$', "pshapes_site.views.about"),
+
+    url('^testgrid/$', "pshapes_site.views.testgrid"),
     
     url('^data/$', "provshapes.views.data"),
     url('^interactive/$', "provshapes.views.interactive"),
