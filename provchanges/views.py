@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template import Template,Context
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -81,6 +82,142 @@ def contribute(request):
     
     html = render(request, 'provchanges/contribute.html', {'changelist': changelist})
     return html
+
+def browsechanges(request):
+    html = """
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+				
+				<th>
+                <b>Date</b>
+				</th>
+
+				<th>
+                <b>Type</b>
+				</th>
+			
+				<th>
+                <b>From Name</b>
+				</th>
+
+				<th>
+                <b>To Name</b>
+				</th>
+				
+				<th>
+                <b>Country</b>
+				</th>
+				
+				<th>
+                <b>User</b>
+				</th>
+				
+				<th>
+                <b>Added</b>
+				</th>
+				
+				<th>
+                <b>Status</b>
+				</th>
+			</tr>
+			</a>
+			
+			{% for change in changelist %}
+				<tr>
+					<td>
+					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
+					</td>
+					
+					<td>
+					{{ change.date }}
+					</td>
+
+					<td>
+					{{ change.type }}
+					</td>
+
+					<td>
+					{{ change.fromname }}
+					</td>
+					
+					<td>
+					{{ change.toname }}
+					</td>
+					
+					<td>
+					{{ change.country }}
+					</td>
+					
+					<td>
+					{{ change.user }}
+					</td>
+					
+					<td>
+					{{ change.added }}
+					</td>
+
+					<td>
+					{{ change.status }}
+					</td>
+					
+				</tr>
+			{% endfor %}
+		</table>
+                """
+    changelist = ProvChange.objects.all().order_by("-added") # the dash reverses the order
+    rendered = Template(html).render(Context({"request":request, "changelist":changelist}))
+    return rendered
+
+def contribute(request):
+    bannertitle = "Contributing is easy! Here is how:"
+    bannerleft = """
+                    <div style="text-align:left">
+                        <ol>
+			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
+			<li>Go to the submission form and fill in the information.</li>
+			<li>Send it and wait for a moderator to verify and accept your submission!</li>
+			</ol>
+			
+			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+		    </div>
+    """
+    bannerright = """
+			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+			<b>Submit New Change...</b>
+			</a>
+    """
+    grids = []
+    grids.append(dict(title="Browse province changes:",
+                      content=browsechanges(request),
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
 
 @login_required
 def submitchange(request):
