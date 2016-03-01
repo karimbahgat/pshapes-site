@@ -4,6 +4,9 @@ from django.contrib.gis.db import models
 
 class ProvChange(models.Model):
 
+    changeid = models.IntegerField(null=True)
+    bestversion = models.BooleanField(default=False)
+
     user = models.CharField(max_length=200)
     added = models.DateField()
     status = models.CharField(choices=[("Pending","Pending"),

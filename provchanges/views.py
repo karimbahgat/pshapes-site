@@ -28,7 +28,7 @@ def registration(request):
         print obj
         obj.save()
 
-        html = redirect("/dashboard/")
+        html = redirect("/contribute/")
 
     elif request.method == "GET":
         args = {'logininfo': LoginInfoForm(),
@@ -48,7 +48,7 @@ def login(request):
         print user
         if user is not None:
             auth_login(request, user)
-            html = redirect("/dashboard/")
+            html = redirect("/contribute/")
         else:
             args = {'login': LoginForm(),
                     'errormessage': "Could not find that username or password",
@@ -228,8 +228,10 @@ def submitchange(request):
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
         formfieldvalues["user"] = request.user.username
         formfieldvalues["added"] = datetime.date.today()
+        formfieldvalues["bestversion"] = True
         print formfieldvalues
         obj = ProvChange.objects.create(**formfieldvalues)
+        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
         print obj
         obj.save()
 
@@ -277,13 +279,21 @@ def editchange(request, pk):
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
         formfieldvalues["user"] = request.user.username
+        formfieldvalues["added"] = datetime.date.today()
+
+        if request.user.username == change.user:
+            for c in ProvChange.objects.filter(changeid=change.changeid):
+                c.bestversion = False
+                c.save()
+            formfieldvalues["bestversion"] = True
+        
         print formfieldvalues
 
-        changeobj = ProvChange.objects.get(pk=pk)
-        changeobj.__dict__.update(**formfieldvalues)
-        changeobj.save()
+        change.__dict__.update(**formfieldvalues)
+        change.pk = None # nulling the pk will add a modified copy of the instance
+        change.save()
 
-        html = redirect("/provchange/%s/view/" % pk)
+        html = redirect("/provchange/%s/view/" % change.pk)
         
     elif request.method == "GET":
         args = {'pk': pk,
