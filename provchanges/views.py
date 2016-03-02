@@ -249,24 +249,103 @@ def submitchange(request):
         
     return html
 
+def model2table(request, title, objects, fields):
+    html = """
+                <h3>{{ title }}</h3>
+                
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+
+				{% for field in fields %}
+                                    <th>
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+			
+			{% for pk,changerow in changelist %}
+				<tr>
+					<td>
+					<a href="{% url 'viewchange' pk=pk %}">View</a>
+					</td>
+					
+                                        {% for value in changerow %}
+                                            <td>{{ value }}</td>
+                                        {% endfor %}
+					
+				</tr>
+			{% endfor %}
+		</table>
+                """
+    changelist = ((change.pk, [getattr(change,field) for field in fields]) for change in objects)
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "changelist":changelist, "title":title}))
+    return rendered
+
 def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
 
+    if not change.bestversion:
+        note = """
+                <div style="background-color:rgb(248,234,150); outline: black solid thick; padding:1%%; font-family: comic sans ms">
+                <p style="font-size:large; font-weight:bold">Note:</p>
+                <p style="font-size:medium; font-style:italic">
+                There is a more recent version of this province change <a href="/provchange/%s/view/">here</a>.
+                </p>
+                </div>
+                <br>
+                """ % ProvChange.objects.get(changeid=change.changeid, bestversion=True).pk
+    else:
+        note = ""
+
+    pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").order_by("-added") # the dash reverses the order
+    pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
+                              fields=["date","type","fromname","toname","country","user","added","status"])
+
+    oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").order_by("-added") # the dash reverses the order
+    oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
+                              fields=["date","type","fromname","toname","country","user","added","status"])
+
     args = {'pk': pk,
+            'note': note,
             'metachange': MetaChangeForm(instance=change),
             'typechange': TypeChangeForm(instance=change),
             'generalchange': GeneralChangeForm(instance=change),
             'fromchange': FromChangeForm(instance=change),
             'geochange': GeoChangeForm(instance=change),
-            'tochange': ToChangeForm(instance=change),}
-    for key,form in args.items():
-        if key == "pk": continue
-        for field in form.fields.values():
-            field.widget.attrs['readonly'] = "readonly"
-    for key,form in args.items():
-        if key == "pk": continue
-        for field in form.fields.values():
-            print "------",key,field,field.widget.attrs['readonly']
+            'tochange': ToChangeForm(instance=change),
+            "pendingeditstable": pendingeditstable,
+            "oldversionstable": oldversionstable,
+            }
+    
+    for key,val in args.items():
+        if hasattr(val,"fields"):
+            for field in val.fields.values():
+                field.widget.attrs['readonly'] = "readonly"
+                
     html = render(request, 'provchanges/viewchange.html', args)
         
     return html
@@ -280,10 +359,13 @@ def editchange(request, pk):
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
         formfieldvalues["user"] = request.user.username
         formfieldvalues["added"] = datetime.date.today()
+        formfieldvalues["status"] = "Pending"
 
         if request.user.username == change.user:
             for c in ProvChange.objects.filter(changeid=change.changeid):
+                # all previous versions by same user become nonactive and nonbestversion
                 c.bestversion = False
+                c.status = "NonActive"
                 c.save()
             formfieldvalues["bestversion"] = True
         
