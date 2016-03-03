@@ -83,114 +83,10 @@ def contribute(request):
     html = render(request, 'provchanges/contribute.html', {'changelist': changelist})
     return html
 
-def browsechanges(request):
-    html = """
-		<table> 
-		
-			<style>
-			table {
-				border-collapse: collapse;
-				width: 100%;
-			}
-
-			th, td {
-				text-align: left;
-				padding: 8px;
-			}
-
-			tr:nth-child(even){background-color: #f2f2f2}
-
-			th {
-				background-color: orange;
-				color: white;
-			}
-			</style>
-		
-			<tr>
-				<th> 
-				</th>
-				
-				<th>
-                <b>Date</b>
-				</th>
-
-				<th>
-                <b>Type</b>
-				</th>
-			
-				<th>
-                <b>From Name</b>
-				</th>
-
-				<th>
-                <b>To Name</b>
-				</th>
-				
-				<th>
-                <b>Country</b>
-				</th>
-				
-				<th>
-                <b>User</b>
-				</th>
-				
-				<th>
-                <b>Added</b>
-				</th>
-				
-				<th>
-                <b>Status</b>
-				</th>
-			</tr>
-			</a>
-			
-			{% for change in changelist %}
-				<tr>
-					<td>
-					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
-					</td>
-					
-					<td>
-					{{ change.date }}
-					</td>
-
-					<td>
-					{{ change.type }}
-					</td>
-
-					<td>
-					{{ change.fromname }}
-					</td>
-					
-					<td>
-					{{ change.toname }}
-					</td>
-					
-					<td>
-					{{ change.country }}
-					</td>
-					
-					<td>
-					{{ change.user }}
-					</td>
-					
-					<td>
-					{{ change.added }}
-					</td>
-
-					<td>
-					{{ change.status }}
-					</td>
-					
-				</tr>
-			{% endfor %}
-		</table>
-                """
-    changelist = ProvChange.objects.all().order_by("-added") # the dash reverses the order
-    rendered = Template(html).render(Context({"request":request, "changelist":changelist}))
-    return rendered
-
 def contribute(request):
+    return contribute_accepted(request)
+
+def contribute_accepted(request):
     bannertitle = "Contributing is easy! Here is how:"
     bannerleft = """
                     <div style="text-align:left">
@@ -208,9 +104,239 @@ def contribute(request):
 			<b>Submit New Change...</b>
 			</a>
     """
+
+    changes = ProvChange.objects.filter(status="Accepted").order_by("-added") # the dash reverses the order
+    changestable = model2table(request, title="", objects=changes,
+                              fields=["date","type","fromname","toname","country","user","added","status"])
+
+    tabs = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+
+            <div class="curtab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="tab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
+            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
+
+            <br>
+            <br>
+            
+            """
+    content = tabs + changestable
+    
     grids = []
     grids.append(dict(title="Browse province changes:",
-                      content=browsechanges(request),
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def contribute_pending(request):
+    bannertitle = "Contributing is easy! Here is how:"
+    bannerleft = """
+                    <div style="text-align:left">
+                        <ol>
+			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
+			<li>Go to the submission form and fill in the information.</li>
+			<li>Send it and wait for a moderator to verify and accept your submission!</li>
+			</ol>
+			
+			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+		    </div>
+    """
+    bannerright = """
+			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+			<b>Submit New Change...</b>
+			</a>
+    """
+
+    changes = ProvChange.objects.filter(status="Pending").order_by("-added") # the dash reverses the order
+    changestable = model2table(request, title="", objects=changes,
+                              fields=["date","type","fromname","toname","country","user","added","status"])
+
+    tabs = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+
+            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="curtab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
+            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
+
+            <br>
+            <br>
+            
+            """
+    content = tabs + changestable
+    
+    grids = []
+    grids.append(dict(title="Browse province changes:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def contribute_countries(request):
+    bannertitle = "Contributing is easy! Here is how:"
+    bannerleft = """
+                    <div style="text-align:left">
+                        <ol>
+			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
+			<li>Go to the submission form and fill in the information.</li>
+			<li>Send it and wait for a moderator to verify and accept your submission!</li>
+			</ol>
+			
+			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+		    </div>
+    """
+    bannerright = """
+			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+			<b>Submit New Change...</b>
+			</a>
+    """
+
+    from django.db.models import Count,Max,Min
+    
+    fields = ["country","entries","mindate","maxdate"]
+    lists = []
+    for rowdict in ProvChange.objects.values("country").annotate(entries=Count('pk'),
+                                                             mindate=Min("date"),
+                                                             maxdate=Max("date") ):
+        row = [rowdict[f] for f in fields]
+        url = "/contribute/countries/%s" % rowdict["country"]
+        lists.append((url,row))
+    
+    countriestable = lists2table(request, lists=lists,
+                              fields=fields)
+
+    tabs = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+
+            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="tab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
+            <div class="curtab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
+
+            <br>
+            <br>
+            
+            """
+    content = tabs + countriestable
+    
+    grids = []
+    grids.append(dict(title="Browse province changes:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+
+def contribute_countries_country(request, country):
+    bannertitle = "Contributing is easy! Here is how:"
+    bannerleft = """
+                    <div style="text-align:left">
+                        <ol>
+			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
+			<li>Go to the submission form and fill in the information.</li>
+			<li>Send it and wait for a moderator to verify and accept your submission!</li>
+			</ol>
+			
+			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+		    </div>
+    """
+    bannerright = """
+			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+			<b>Submit New Change...</b>
+			</a>
+    """
+
+    changes = ProvChange.objects.filter(country=country).order_by("-added") # the dash reverses the order
+    changestable = model2table(request, title="", objects=changes,
+                              fields=["date","type","fromname","toname","country","user","added","status"])
+
+    tabs = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+
+            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="curtab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
+            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
+
+            <br>
+            <br>
+            
+            """
+    content = tabs + changestable
+    
+    grids = []
+    grids.append(dict(title="Browse province changes:",
+                      content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
@@ -251,9 +377,7 @@ def submitchange(request):
 
 def model2table(request, title, objects, fields):
     html = """
-                <h3>{{ title }}</h3>
-                
-		<table> 
+		<table class="modeltable"> 
 		
 			<style>
 			table {
@@ -303,6 +427,60 @@ def model2table(request, title, objects, fields):
                 """
     changelist = ((change.pk, [getattr(change,field) for field in fields]) for change in objects)
     rendered = Template(html).render(Context({"request":request, "fields":fields, "changelist":changelist, "title":title}))
+    return rendered
+
+
+def lists2table(request, lists, fields):
+    html = """
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+
+				{% for field in fields %}
+                                    <th>
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+			
+			{% for url,row in lists %}
+				<tr>
+					<td>
+					<a href="{{ url }}">View</a>
+					</td>
+					
+                                        {% for value in row %}
+                                            <td>{{ value }}</td>
+                                        {% endfor %}
+					
+				</tr>
+			{% endfor %}
+		</table>
+                """
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
     return rendered
 
 def viewchange(request, pk):

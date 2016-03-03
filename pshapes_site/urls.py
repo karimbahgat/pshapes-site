@@ -28,6 +28,10 @@ urlpatterns = [
     url('^interactive/$', "provshapes.views.interactive"),
 
     url('^contribute/$', "provchanges.views.contribute"),
+    url('^contribute/accepted/$', "provchanges.views.contribute_accepted"),
+    url('^contribute/pending/$', "provchanges.views.contribute_pending"),
+    url('^contribute/countries/$', "provchanges.views.contribute_countries"),
+    url('^(?i)contribute/countries/(?P<country>.*)/$', "provchanges.views.contribute_countries_country"),
     url('^submitchange/$', "provchanges.views.submitchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
