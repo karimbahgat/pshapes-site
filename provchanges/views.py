@@ -759,29 +759,30 @@ from django.contrib.gis.forms.widgets import OpenLayersWidget
 
 class CustomOLWidget(OpenLayersWidget):
     default_zoom = 1
+    wms = ""
     
     def render(self, name, value, attrs = None):
         output = super(CustomOLWidget, self).render(name, value, attrs)
         output += """
 <script>
 function syncwms() {
-var wmsurl = document.getElementById('id_3-transfer_source').value;
+var wmsurl = "%s";
 if (wmsurl.trim() != "") {
-    var layerlist = geodjango_3_transfer_geom.map.getLayersByName('Custom WMS');
+    var layerlist = geodjango_5_transfer_geom.map.getLayersByName('Custom WMS');
+    
     if (layerlist.length >= 1) 
         {
         // replace existing
-        geodjango_3_transfer_geom.map.removeLayer(layerlist[0]);
-        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
-        customwms.isBaseLayer = false;
-        geodjango_3_transfer_geom.map.addLayer(customwms);
-        } 
-    else {
-        // add as new
-        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
-        customwms.isBaseLayer = false;
-        geodjango_3_transfer_geom.map.addLayer(customwms);
+        geodjango_5_transfer_geom.map.removeLayer(layerlist[0]);
         };
+        
+    customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+    customwms.isBaseLayer = false;
+    geodjango_5_transfer_geom.map.addLayer(customwms);
+    geodjango_5_transfer_geom.map.setLayerIndex(customwms, 1);
+
+    // zoom to country bbox somehow
+    //geodjango_5_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
 };
 };
 
@@ -789,8 +790,100 @@ if (wmsurl.trim() != "") {
 syncwms();
 
 </script>
-"""
+""" % self.wms # NOTE REQUIRES THAT THE WIZARD SETS THE WIDGET'S WMS ATTRIBUTE BASED ON GEOREF FORM
+        
+##        output += """
+##<script>
+##function syncwms() {
+##var wmsurl = document.getElementById('id_3-transfer_source').value;
+##if (wmsurl.trim() != "") {
+##    var layerlist = geodjango_3_transfer_geom.map.getLayersByName('Custom WMS');
+##    if (layerlist.length >= 1) 
+##        {
+##        // replace existing
+##        geodjango_3_transfer_geom.map.removeLayer(layerlist[0]);
+##        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+##        customwms.isBaseLayer = false;
+##        geodjango_3_transfer_geom.map.addLayer(customwms);
+##        } 
+##    else {
+##        // add as new
+##        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+##        customwms.isBaseLayer = false;
+##        geodjango_3_transfer_geom.map.addLayer(customwms);
+##        };
+##};
+##};
+##
+##// at startup
+##syncwms();
+##
+##</script>
+##"""
         return output
+
+
+class HistoMapForm(forms.ModelForm):
+
+    step_title = "Historical Map"
+    step_descr = """
+                    Find a historical map from before the change. 
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ["transfer_reference"]
+
+    def as_p(self):
+        html = """
+                        The map should show the giving province as it was prior to the change.
+                        This can be either an image you find online or a physical map that you scan.
+                        In the field below identify and reference the source, author, and year of the
+                        map in as much detail as possible.
+
+                        <div style="padding:20px"><b>Map Reference: </b>{{ form.transfer_reference }}</div>
+
+                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
+                            <p style="font-size:large; font-weight:bold">Note:</p>
+                            <p style="font-size:medium; font-style:italic">
+                            Note: In accordance with the open-source
+                            nature of the Pshapes project, the map source must be free to share and use without any license restrictions.
+                            Submissions that are based on copyrighted map sources will not be used in the final data. 
+                            </p>
+                            </div>
+                """
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
+
+class GeorefForm(forms.ModelForm):
+
+    step_title = "Georeference"
+    step_descr = """
+                    Georeference the historical map image. 
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ["transfer_source"]
+        
+    def as_p(self):
+        html = """
+                        Georeferencing is as easy as matching a handful of control points on your historical map image with the equivalent
+                        locations on a real-world map.
+                        For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
+
+                        <img style="display:block" align="middle" height=300px src="http://dirtdirectory.org/sites/dirtdirectory.org/files/screenshots/mapwarper.PNG"/>
+
+                        Once finished with georeferencing, click on the "Export" tab of your MapWarper map page,
+                        right click the part that says "WMS Capabilities URL" and select "copy the link address".
+                        Paste this link address into the "Transfer source" field below.
+
+                        <div style="padding:20px"><b>Georeferenced WMS Link: </b>{{ form.transfer_source }}</div>
+                """
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
 
 class GeoChangeForm(forms.ModelForm):
 
@@ -801,7 +894,8 @@ class GeoChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ["transfer_source","transfer_reference","transfer_geom"]
+        fields = ["transfer_geom"]
+        #widgets = {"transfer_geom": CustomOLWidget() }
         
     def __init__(self, *args, **kwargs):
         super(GeoChangeForm, self).__init__(*args, **kwargs)
@@ -842,67 +936,28 @@ class GeoChangeForm(forms.ModelForm):
         self.fields['transfer_geom'].widget = CustomOLWidget()
 
         # also load wms on sourceurl input
-        self.fields['transfer_source'].widget.attrs.update({
-            'oninput': "syncwms();",
-
-            # http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png
-            #'onclick': """geodjango_changepart.map.layers.sourceurl = new OpenLayers.Layer.WMS("Custom WMS","http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png", {layers: 'basic'} ); geodjango_changepart.map.addLayer(geodjango_changepart.map.layers.sourceurl);"""
-            #'onclick': """window.open ("http://www.javascript-coder.com","mywindow","menubar=1,resizable=1,width=350,height=250");"""
-            #'onclick': """alert(geodjango_changepart.map)"""
-            #'onclick': """alert(Object.getOwnPropertyNames(geodjango_changepart.map))"""
-            
-        })
+##        self.fields['transfer_source'].widget.attrs.update({
+##            'oninput': "syncwms();",
+##
+##            # http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png
+##            #'onclick': """geodjango_changepart.map.layers.sourceurl = new OpenLayers.Layer.WMS("Custom WMS","http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png", {layers: 'basic'} ); geodjango_changepart.map.addLayer(geodjango_changepart.map.layers.sourceurl);"""
+##            #'onclick': """window.open ("http://www.javascript-coder.com","mywindow","menubar=1,resizable=1,width=350,height=250");"""
+##            #'onclick': """alert(geodjango_changepart.map)"""
+##            #'onclick': """alert(Object.getOwnPropertyNames(geodjango_changepart.map))"""
+##            
+##        })
 
     def as_p(self):
         html = """
-                    <style>li {margin-top:20px; font-weight:normal}</style>
-
-                    <ol>
-                        <li>
-                        First, find a historical map showing the borders of the giving province as it was prior to the change.
-                        This can be either an image you find online or a physical map that you scan.
-
-                        <div style="padding:20px"><b>Map Reference: </b>{{ form.transfer_reference }}</div>
-
-                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
-                            <p style="font-size:large; font-weight:bold">Note:</p>
-                            <p style="font-size:medium; font-style:italic">
-                            Note: In accordance with the open-source
-                            nature of the Pshapes project, the map source must be free to share and use without any license restrictions.
-                            Submissions that are based on copyrighted map sources will not be approved. 
-                            </p>
-                            </div>
-                        
-                        </li>
-
-                        <li>
-                        Next, georeference the map image file. 
-                        Georeferencing is as easy as matching a handful of control points on your historical map image with the equivalent
-                        locations on a real-world map.
-                        For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
-
-                        <img style="display:block" align="middle" height=300px src="http://dirtdirectory.org/sites/dirtdirectory.org/files/screenshots/mapwarper.PNG"/>
-
-                        Once finished with georeferencing, click on the "Export" tab of your MapWarper map page,
-                        right click the part that says "WMS Capabilities URL" and select "copy the link address".
-                        Paste this link address into the "Transfer source" field below.
-
-                        <div style="padding:20px"><b>Georeferenced WMS Link: </b>{{ form.transfer_source }}</div>
-                        
-                        </li>
-
-                        <li>
                         Finally, draw on the map. Identify the borders of the province that received the territory, drawing only the part of the territory that actually changed.
                         This is equivalent to drawing the areas that overlap/intersect between the pre-change giving province and the post-change receiving province.
 
                         <img style="display:block" align="middle" height=300px src="http://localnepaltoday.com/wp-content/uploads/2015/08/image8.jpg"/>
 
-                        <div style="padding:20px"><b>Territory:</b></div>
+                        <div style="padding:20px"><b>Transferred Territory:</b></div>
 
                         <div>{{ form.transfer_geom }}</div>
                         
-                        </li>
-                    </ol>
                     """
         rendered = Template(html).render(Context({"form":self}))
         return rendered
@@ -1033,6 +1088,8 @@ class SubmitChangeWizard(SessionWizardView):
     form_list = [TypeChangeForm,
                       GeneralChangeForm,
                       FromChangeForm,
+                     HistoMapForm,
+                     GeorefForm,
                       GeoChangeForm,
                       ToChangeForm,
                       ]
@@ -1067,11 +1124,20 @@ class SubmitChangeWizard(SessionWizardView):
     def get_form(self, step=None, data=None, files=None):
         # SKIP GEOFORM IF NOT NEEDED
         form = super(SubmitChangeWizard, self).get_form(step, data, files)
-        if isinstance(form, GeoChangeForm):
+        if isinstance(form, HistoMapForm):
             typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
             if not "Transfer" in typeformdata["type"]:
-                self.step = bytes(int(step)+1)
+                # skip til after geoform
+                self.step = bytes(int(step)+3)
                 form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
+        elif isinstance(form, GeoChangeForm):
+            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+            if "Transfer" in typeformdata["type"]:
+                wmsdata = self.get_cleaned_data_for_step("4") or {}
+                wms = wmsdata.get("transfer_source")
+                if wms:
+                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
+                    form.fields['transfer_geom'].widget.wms = wms
         return form
         
     def get_template_names(self):
@@ -1081,10 +1147,9 @@ class SubmitChangeWizard(SessionWizardView):
         # NOT YET DONE...
         print form_list, form_dict, kwargs
         
-        print "data",request.POST
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
-        formfieldvalues["user"] = request.user.username
+        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
+        formfieldvalues["user"] = self.request.user.username
         formfieldvalues["added"] = datetime.date.today()
         formfieldvalues["bestversion"] = True
         print formfieldvalues
