@@ -1,51 +1,99 @@
 
 {% extends 'pshapes_site/base.html' %}
 
+{% load i18n %}
+
 {% block content %}
-	<head>
-	{{ geochange.media }}
-	</head>
-	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
-    		<h3 style="color:black">
-		Submit New Province Change
-		</h3>
+{% block head %}
+	{{ wizard.form.media }}
+	{% for form in wizard.form.forms %}
+		{{ form.media }}
+	{% endfor %}
+{% endblock %}
 
-		<div>
+
+
+<style>
+.curstep {
+	background-color:null; color:orange; padding:1px; margins:1px; font-size:small; font-weight:bold
+	}
+.step {
+	background-color:white; color:orange; padding:1px; margins:1px; height:10px; border-style:none; font-size:small; font-weight:bold; text-decoration:underline; 
+	}
+.button {
+	background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;
+	}
+</style>
+
+
+
+<h2>Submitting new province change</h2>
+    
+<form action="" method="post">{% csrf_token %}
 		
-			<form action="/submitchange/" method="post">
-			
-				{% csrf_token %}
+	<table>
 
-				<fieldset>
-					<legend>Type of Change</legend>
-					{{ typechange.as_p }}
-				</fieldset>
-				
-				<fieldset>
-					<legend>General Information</legend>
-					{{ generalchange.as_p }}
-				</fieldset>
-				
-				<fieldset>
-					<legend>From Province</legend>
-					{{ fromchange.as_p }}
-				</fieldset>
+	<tr><td>
+		<table class="steps">
+		<tr>
+		{% for form in wizard_subclass %}
+			{% if forloop.counter0 < wizard.steps.current|add:"0" %}
+				<td style="content-align:center;">
+				<button class="step" name="wizard_goto_step" type="submit" value="{{ forloop.counter0 }}">{{ form.step_title }}</button>
+				</td>
+				<td style="content-align:center;"> > </td>
+			{% elif forloop.counter0 == wizard.steps.current|add:"0" %}
+				<td>
+				<a class="curstep">{{ wizard.form.step_title }}</a>
+				</td>
+			{% endif %}
+		{% endfor %}
+		</tr>
+		</table>
+	</tr></td>
+	
+	<tr><td>
+	<h3>{{ wizard.form.step_title }}</h3>
+	</tr></td>
 
-				<fieldset>
-					<legend>Geo Change</legend>
-					{{ geochange.as_p }}
-				</fieldset>
-				
-				<fieldset>
-					<legend>To Province</legend>
-					{{ tochange.as_p }}
-				</fieldset>
-				
-				<input type="submit" value="Submit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; float:right; margin:10px;">
-				
-			</form>
-			
-		</div>
+	<tr><td>
+			<p>
+			<b>{{ wizard.form.step_descr|safe }}</b>
+			</p>
+	</tr></td>
+
+	</table>
+
+
+
+	<div>
+	{{ wizard.management_form }}
+	{% if wizard.form.forms %}
+		{{ wizard.form.management_form }}
+		{% for form in wizard.form.forms %}
+			{{ form }}
+		{% endfor %}
+	{% else %}
+		{{ wizard.form.as_p }}
+	{% endif %}
 	</div>
+
+	
+
+	<div style="clear:both; text-align:center">
+		{% if wizard.steps.prev %}
+		<button class="button" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" style="display:inline-block">{% trans "Previous" %}</button>
+		{% endif %}
+
+		{% if step|add:"0" == wizard.steps.last|add:"0" %}
+		<input class="button" type="submit" value="{% trans "Submit" %}" style="display:inline-block"/>
+		{% else %}
+		<input class="button" type="submit" value="{% trans "Next" %}" style="display:inline-block"/>
+		{% endif %}
+	</div>
+
+</form>
+
+
 
 {% endblock %}

@@ -18,6 +18,8 @@ from django.contrib.gis import admin
 
 admin.site.site_header = "Pshapes Website Admin"
 
+from provchanges.views import SubmitChangeWizard
+
 urlpatterns = [
     url('^$', "pshapes_site.views.home"),
     url('^about/$', "pshapes_site.views.about"),
@@ -32,7 +34,7 @@ urlpatterns = [
     url('^contribute/pending/$', "provchanges.views.contribute_pending"),
     url('^contribute/countries/$', "provchanges.views.contribute_countries"),
     url('^(?i)contribute/countries/(?P<country>.*)/$', "provchanges.views.contribute_countries_country"),
-    url('^submitchange/$', "provchanges.views.submitchange"),
+    url('^submitchange/$', SubmitChangeWizard.as_view() ),
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
 

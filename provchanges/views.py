@@ -10,6 +10,8 @@ from django.core.paginator import Paginator
 from rest_framework import response
 from rest_framework.decorators import api_view
 
+from formtools.wizard.views import SessionWizardView
+
 from .models import ProvChange
 
 import datetime
@@ -363,7 +365,7 @@ def submitchange(request):
 
         # hmmmm # need to make get request to editchange to just return basic html of the get
 
-        html = redirect("/provchange/%s/view/" % obj.pk)
+        html = redirect("/provchanges/%s/view/" % obj.pk)
 
     elif request.method == "GET":
         args = {'typechange': TypeChangeForm(),
@@ -574,6 +576,8 @@ def editchange(request, pk):
 # Date...
 
 class CustomDateWidget(admin.widgets.AdminDateWidget):
+
+    ### WARNING: id_1-date is hacky for now, may not always work...
     
     def render(self, name, value, attrs = None):
         output = super(CustomDateWidget, self).render(name, value, attrs)
@@ -582,7 +586,7 @@ class CustomDateWidget(admin.widgets.AdminDateWidget):
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
 <script>
-$('#id_date').datepicker({
+$('#id_1-date').datepicker({
     changeMonth: true,
     changeYear: true,
     dateFormat: "yy-mm-dd",
@@ -632,13 +636,84 @@ class MetaChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ['user','added','status']
 
+from django.forms.widgets import RadioFieldRenderer
+
+class TypeChangeRenderer(RadioFieldRenderer):
+
+    def render(self):
+        extrainfo = {"NewInfo": {"label": "NewInfo",
+                                 "short": "A change was made to a province's name, codes, or capital.",
+                                  "descr": """
+                                            Most province changes are as simple as changes in their basic information. In addition, provinces splitting up, 
+                                            merging together, or experiencing other major territorial changes are often accompanied by changes
+                                            to their name and codes as well. 
+                                            """,
+                                  "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                                  },
+                      "PartTransfer": {"label": "PartTransfer",
+                                       "short": "Part of a province's territory was transferred to another province.",
+                                      "descr": """
+                                                The transferred territory can be
+                                                given to an existing province or serve as part of the foundation for an entirely new province.
+                                                (Requires a map showing the province outline prior to the transfer of territory)
+                                                """,
+                                      "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                                      },
+                     "FullTransfer": {"label": "FullTransfer",
+                                      "short": "An entire province ceased to exist and became part of another province.",
+                                      "descr": """
+                                                For instance, if multiple existing provinces merged together
+                                                you would register multiple 'fulltransfer' changes. The transferred territory can be
+                                                given to an existing province or serve as part of the foundation for an entirely new province.
+                                                (Requires a map showing the now defunct province) 
+                                                """,
+                                      "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                                      },
+                      "Breakaway": {"label": "Breakaway",
+                                    "short": "A new province was created by breaking away from an existing province.",
+                                      "descr": """
+                                                For instance, if a province split into multiple new provinces
+                                                you would register multiple 'breakaway' changes, one for each.
+                                                """,
+                                      "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                                      },
+                       }
+        choices = [(w,extrainfo[w.choice_label]) for w in self if "-" not in w.choice_label]
+        html = """
+            <table class="myradio">
+            {% for choice,extra in choices %}
+            <tr>
+                <td>{{ choice }}<td>
+                <td>{{ extra.img|safe }}</td>
+                <td>
+                    <h4>{{ extra.short|safe }}</h4>
+                    <p>{{ extra.descr|safe }}</p>
+                </td>
+            </tr>
+            {% endfor %}
+            </table>
+            """
+        rendered = Template(html).render(Context({"choices":choices }))
+        return rendered
+
 class TypeChangeForm(forms.ModelForm):
+
+    step_title = "Type of Change"
+    step_descr = """
+                    What type of province change do you want to register? (AcTUALLY sTART WITH FORM TO REgIsTER souRCE...)
+                   """
 
     class Meta:
         model = ProvChange
         fields = ['type']
+        widgets = {"type": forms.RadioSelect(renderer=TypeChangeRenderer) }
 
 class GeneralChangeForm(forms.ModelForm):
+
+    step_title = "Context"
+    step_descr = """
+                    What was the place and time of the change?
+                   """
 
     class Meta:
         model = ProvChange
@@ -647,11 +722,21 @@ class GeneralChangeForm(forms.ModelForm):
 
 class FromChangeForm(forms.ModelForm):
 
+    step_title = "From Province"
+    step_descr = """
+                    Please identify the province prior to the change or that transferred territory?
+                   """
+
     class Meta:
         model = ProvChange
         fields = 'fromname fromiso fromfips fromhasc fromcapital fromtype'.split()
 
 class ToChangeForm(forms.ModelForm):
+
+    step_title = "To Province"
+    step_descr = """
+                    Please identify the province after the change or that received territory?
+                   """
 
     class Meta:
         model = ProvChange
@@ -680,22 +765,22 @@ class CustomOLWidget(OpenLayersWidget):
         output += """
 <script>
 function syncwms() {
-var wmsurl = document.getElementById('id_transfer_source').value;
+var wmsurl = document.getElementById('id_3-transfer_source').value;
 if (wmsurl.trim() != "") {
-    var layerlist = geodjango_transfer_geom.map.getLayersByName('Custom WMS');
+    var layerlist = geodjango_3_transfer_geom.map.getLayersByName('Custom WMS');
     if (layerlist.length >= 1) 
         {
         // replace existing
-        geodjango_transfer_geom.map.removeLayer(layerlist[0]);
+        geodjango_3_transfer_geom.map.removeLayer(layerlist[0]);
         customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
         customwms.isBaseLayer = false;
-        geodjango_transfer_geom.map.addLayer(customwms);
+        geodjango_3_transfer_geom.map.addLayer(customwms);
         } 
     else {
         // add as new
         customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
         customwms.isBaseLayer = false;
-        geodjango_transfer_geom.map.addLayer(customwms);
+        geodjango_3_transfer_geom.map.addLayer(customwms);
         };
 };
 };
@@ -708,6 +793,11 @@ syncwms();
         return output
 
 class GeoChangeForm(forms.ModelForm):
+
+    step_title = "Territory"
+    step_descr = """
+                    What part of the province's territory was transferred?
+                   """
 
     class Meta:
         model = ProvChange
@@ -762,6 +852,60 @@ class GeoChangeForm(forms.ModelForm):
             #'onclick': """alert(Object.getOwnPropertyNames(geodjango_changepart.map))"""
             
         })
+
+    def as_p(self):
+        html = """
+                    <style>li {margin-top:20px; font-weight:normal}</style>
+
+                    <ol>
+                        <li>
+                        First, find a historical map showing the borders of the giving province as it was prior to the change.
+                        This can be either an image you find online or a physical map that you scan.
+
+                        <div style="padding:20px"><b>Map Reference: </b>{{ form.transfer_reference }}</div>
+
+                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
+                            <p style="font-size:large; font-weight:bold">Note:</p>
+                            <p style="font-size:medium; font-style:italic">
+                            Note: In accordance with the open-source
+                            nature of the Pshapes project, the map source must be free to share and use without any license restrictions.
+                            Submissions that are based on copyrighted map sources will not be approved. 
+                            </p>
+                            </div>
+                        
+                        </li>
+
+                        <li>
+                        Next, georeference the map image file. 
+                        Georeferencing is as easy as matching a handful of control points on your historical map image with the equivalent
+                        locations on a real-world map.
+                        For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
+
+                        <img style="display:block" align="middle" height=300px src="http://dirtdirectory.org/sites/dirtdirectory.org/files/screenshots/mapwarper.PNG"/>
+
+                        Once finished with georeferencing, click on the "Export" tab of your MapWarper map page,
+                        right click the part that says "WMS Capabilities URL" and select "copy the link address".
+                        Paste this link address into the "Transfer source" field below.
+
+                        <div style="padding:20px"><b>Georeferenced WMS Link: </b>{{ form.transfer_source }}</div>
+                        
+                        </li>
+
+                        <li>
+                        Finally, draw on the map. Identify the borders of the province that received the territory, drawing only the part of the territory that actually changed.
+                        This is equivalent to drawing the areas that overlap/intersect between the pre-change giving province and the post-change receiving province.
+
+                        <img style="display:block" align="middle" height=300px src="http://localnepaltoday.com/wp-content/uploads/2015/08/image8.jpg"/>
+
+                        <div style="padding:20px"><b>Territory:</b></div>
+
+                        <div>{{ form.transfer_geom }}</div>
+                        
+                        </li>
+                    </ol>
+                    """
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
 
 
 
@@ -882,3 +1026,75 @@ class GeoChangeForm(forms.ModelForm):
 ####                                """geodjango_transfer_geom.map.addLayer(customwms);""",
 ####                                ])
 ####            })
+
+
+
+class SubmitChangeWizard(SessionWizardView):
+    form_list = [TypeChangeForm,
+                      GeneralChangeForm,
+                      FromChangeForm,
+                      GeoChangeForm,
+                      ToChangeForm,
+                      ]
+        
+##    def __init__(self, *args, **kwargs):
+##        self.form_list = [TypeChangeForm,
+##                      GeneralChangeForm,
+##                      FromChangeForm,
+##                      GeoChangeForm,
+##                      ToChangeForm,
+##                      ]
+##        SessionWizardView.__init__(self, *args, **kwargs)
+
+##    @property
+##    def form_list(self):
+##        return [TypeChangeForm,
+##                      GeneralChangeForm,
+##                      FromChangeForm,
+##                      GeoChangeForm,
+##                      ToChangeForm,
+##                      ]
+
+    def __iter__(self):
+        for step in self.get_form_list():
+            yield self.get_form(step=step)
+
+    def get_context_data(self, form, **kwargs):
+        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
+        context.update({'wizard_subclass': self})
+        return context
+
+    def get_form(self, step=None, data=None, files=None):
+        # SKIP GEOFORM IF NOT NEEDED
+        form = super(SubmitChangeWizard, self).get_form(step, data, files)
+        if isinstance(form, GeoChangeForm):
+            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+            if not "Transfer" in typeformdata["type"]:
+                self.step = bytes(int(step)+1)
+                form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
+        return form
+        
+    def get_template_names(self):
+        return ["provchanges/submitchange.html"]
+
+    def done(self, form_list, form_dict, **kwargs):
+        # NOT YET DONE...
+        print form_list, form_dict, kwargs
+        
+        print "data",request.POST
+        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        formfieldvalues["user"] = request.user.username
+        formfieldvalues["added"] = datetime.date.today()
+        formfieldvalues["bestversion"] = True
+        print formfieldvalues
+
+        obj = ProvChange.objects.create(**formfieldvalues)
+        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
+        print obj
+        
+        obj.save()
+        html = redirect("/provchanges/%s/view/" % obj.pk)
+
+        return html
+

@@ -145,6 +145,8 @@ INSTALLED_APPS.append('cshapes')
 INSTALLED_APPS.append('rest_framework')
 #INSTALLED_APPS.append('rest_framework_gis')
 
+INSTALLED_APPS.append('formtools')
+
 REST_FRAMEWORK = {
     # other settings...
 
