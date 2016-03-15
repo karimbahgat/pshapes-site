@@ -603,7 +603,7 @@ $('#id_1-date').datepicker({
 
 # Auth forms
 
-from django.contrib.auth.models import User
+from .models import User
 
 class LoginForm(forms.ModelForm):
 
@@ -623,7 +623,7 @@ class UserInfoForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["first_name","last_name","email"]
+        fields = ["first_name","last_name","email","institution"]
 
         
 
@@ -635,6 +635,20 @@ class MetaChangeForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ['user','added','status']
+
+class SourceForm(forms.ModelForm):
+
+    step_title = "Source"
+    step_descr = """
+                    Find a documented third-party sources to base your submission on.
+                    <a href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+                    in great detail, and should be the first place to look. Go to the primary divisions page for a country of
+                    choice and insert the url into the field below.
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ['source']
 
 from django.forms.widgets import RadioFieldRenderer
 
@@ -700,7 +714,10 @@ class TypeChangeForm(forms.ModelForm):
 
     step_title = "Type of Change"
     step_descr = """
-                    What type of province change do you want to register? (AcTUALLY sTART WITH FORM TO REgIsTER souRCE...)
+                    You have now found a source and identified an event where a province changed. 
+                    What type of change was it? Remember that there may be multiple changes involved
+                    in a single event, for instance receiving territory from a neighbour, annexing
+                    another neighbour, and changing of province name and code. 
                    """
 
     class Meta:
@@ -768,22 +785,33 @@ class CustomOLWidget(OpenLayersWidget):
 function syncwms() {
 var wmsurl = "%s";
 if (wmsurl.trim() != "") {
-    var layerlist = geodjango_5_transfer_geom.map.getLayersByName('Custom WMS');
+    var layerlist = geodjango_6_transfer_geom.map.getLayersByName('Custom WMS');
     
     if (layerlist.length >= 1) 
         {
         // replace existing
-        geodjango_5_transfer_geom.map.removeLayer(layerlist[0]);
+        geodjango_6_transfer_geom.map.removeLayer(layerlist[0]);
         };
         
     customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
     customwms.isBaseLayer = false;
-    geodjango_5_transfer_geom.map.addLayer(customwms);
-    geodjango_5_transfer_geom.map.setLayerIndex(customwms, 1);
+    geodjango_6_transfer_geom.map.addLayer(customwms);
+    geodjango_6_transfer_geom.map.setLayerIndex(customwms, 1);
 
     // zoom to country bbox somehow
-    //geodjango_5_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
+    //geodjango_6_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
 };
+// layer switcher
+geodjango_6_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
+
+// other controls
+geodjango_6_transfer_geom.map.controls.forEach(function (contr){
+    //geodjango_6_transfer_geom.map.removeControl(contr);
+    if (contr.displayClass == "olControlDrawFeaturePath" || contr.displayClass == "olControlDrawFeaturePoint")
+        {
+        geodjango_6_transfer_geom.map.removeControl(contr);
+        };
+    });
 };
 
 // at startup
@@ -1085,7 +1113,8 @@ class GeoChangeForm(forms.ModelForm):
 
 
 class SubmitChangeWizard(SessionWizardView):
-    form_list = [TypeChangeForm,
+    form_list = [SourceForm,
+                     TypeChangeForm,
                       GeneralChangeForm,
                       FromChangeForm,
                      HistoMapForm,
@@ -1125,15 +1154,15 @@ class SubmitChangeWizard(SessionWizardView):
         # SKIP GEOFORM IF NOT NEEDED
         form = super(SubmitChangeWizard, self).get_form(step, data, files)
         if isinstance(form, HistoMapForm):
-            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
             if not "Transfer" in typeformdata["type"]:
                 # skip til after geoform
                 self.step = bytes(int(step)+3)
                 form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
         elif isinstance(form, GeoChangeForm):
-            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
             if "Transfer" in typeformdata["type"]:
-                wmsdata = self.get_cleaned_data_for_step("4") or {}
+                wmsdata = self.get_cleaned_data_for_step("5") or {}
                 wms = wmsdata.get("transfer_source")
                 if wms:
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency

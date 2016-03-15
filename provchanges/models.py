@@ -1,6 +1,12 @@
 from django.contrib.gis.db import models
+from django.contrib.auth.models import User as OrigUser
 
 # Create your models here.
+
+
+class User(OrigUser):
+    institution = models.CharField(max_length=400)
+                             
 
 class ProvChange(models.Model):
 
@@ -8,7 +14,7 @@ class ProvChange(models.Model):
     bestversion = models.BooleanField(default=False)
 
     user = models.CharField(max_length=200)
-    added = models.DateField()
+    added = models.DateTimeField()
     status = models.CharField(choices=[("Pending","Pending"),
                                        ("Accepted","Accepted"),
                                        ("NonActive","NonActive"),
@@ -17,6 +23,7 @@ class ProvChange(models.Model):
                               max_length=40)
 
     #import pycountries as pc
+    source = models.CharField(max_length=400)
     country = models.CharField(choices=[("Vietnam","Vietnam"),("Tanzania","Tanzania")], #(c.iso3,c.name) for c in pc.all_countries()],
                                 max_length=40)
     date = models.DateField()
