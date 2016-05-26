@@ -575,7 +575,7 @@ def editchange(request, pk):
 
 # Date...
 
-class CustomDateWidget(admin.widgets.AdminDateWidget):
+class CustomDateWidget(forms.TextInput):
 
     ### WARNING: id_1-date is hacky for now, may not always work...
     
@@ -586,7 +586,7 @@ class CustomDateWidget(admin.widgets.AdminDateWidget):
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
 <script>
-$('#id_1-date').datepicker({
+$('#id_2-date').datepicker({
     changeMonth: true,
     changeYear: true,
     dateFormat: "yy-mm-dd",
@@ -917,7 +917,7 @@ class GeoChangeForm(forms.ModelForm):
 
     step_title = "Territory"
     step_descr = """
-                    What part of the province's territory was transferred?
+                    What did the giving province look like before giving away parts of its territory?
                    """
 
     class Meta:
@@ -928,57 +928,14 @@ class GeoChangeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(GeoChangeForm, self).__init__(*args, **kwargs)
 
-        # autozoom map to country depending on country
-##        self.fields['country'].widget.attrs.update({
-##            'onchange': "".join(["var cntr = document.getElementById('id_country').value;",
-##                                 #"alert(cntr);",
-##                                 "var bbox = [0,0,180,90];", #%s[cntr];" % dict([(c.iso3,getbox(c)) for c in pc.all_countries() if getbox(c)]),
-##                                 #"alert(bbox);",
-##                                 "geodjango_transfer_geom.map.zoomToExtent(bbox);",
-##                                ])
-##            })
-
-        # TODO: Also alter required status dynamically
-
-##        # hide map widgets on startup
-##        self.fields['sourceurl'].widget.attrs.update({"style":"display:none"})
-##        self.fields['changepart'].widget.attrs.update({"style":"display:none"}) # grabbing wrong widget so not yet working
-##
-##        # show/hide map widget depending on changetype
-##        self.fields['changetype'].widget.attrs.update({
-##            'onchange': "".join(["var changetype = document.getElementById('id_changetype').value;",
-##                                "if (changetype == 'PartTransfer') ",
-##                                "{",
-##                                "document.getElementById('id_changepart_admin_map').style.display = 'block';",
-##                                "document.getElementById('id_sourceurl').style.display = 'block';",
-##                                "} ",
-##                                "else {",
-##                                "document.getElementById('id_changepart_admin_map').style.display = 'none';",
-##                                "document.getElementById('id_sourceurl').style.display = 'none';",
-##                                "};",
-##                                ])
-##            })
-
         # make wms auto add/update at startup
         # by overriding widget's render func and adding custom js
-        self.fields['transfer_geom'].widget = CustomOLWidget()
-
-        # also load wms on sourceurl input
-##        self.fields['transfer_source'].widget.attrs.update({
-##            'oninput': "syncwms();",
-##
-##            # http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png
-##            #'onclick': """geodjango_changepart.map.layers.sourceurl = new OpenLayers.Layer.WMS("Custom WMS","http://mapwarper.net/maps/wms/11512?request=GetMap&version=1.1.1&format=image/png", {layers: 'basic'} ); geodjango_changepart.map.addLayer(geodjango_changepart.map.layers.sourceurl);"""
-##            #'onclick': """window.open ("http://www.javascript-coder.com","mywindow","menubar=1,resizable=1,width=350,height=250");"""
-##            #'onclick': """alert(geodjango_changepart.map)"""
-##            #'onclick': """alert(Object.getOwnPropertyNames(geodjango_changepart.map))"""
-##            
-##        })
-
+        #self.fields['transfer_geom'].widget = CustomOLWidget()
+        
     def as_p(self):
         html = """
-                        Finally, draw on the map. Identify the borders of the province that received the territory, drawing only the part of the territory that actually changed.
-                        This is equivalent to drawing the areas that overlap/intersect between the pre-change giving province and the post-change receiving province.
+                        Finally, draw on the map. Identify the borders of the province that gave away the territory, as it looked like prior to giving away parts of its territory.
+                        This will be used to determine the part that changed hands and thus what the receiving province looked like before the change.
 
                         <img style="display:block" align="middle" height=300px src="http://localnepaltoday.com/wp-content/uploads/2015/08/image8.jpg"/>
 
@@ -1153,6 +1110,7 @@ class SubmitChangeWizard(SessionWizardView):
     def get_form(self, step=None, data=None, files=None):
         # SKIP GEOFORM IF NOT NEEDED
         form = super(SubmitChangeWizard, self).get_form(step, data, files)
+        print step,repr(form)
         if isinstance(form, HistoMapForm):
             typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
             if not "Transfer" in typeformdata["type"]:
@@ -1188,7 +1146,7 @@ class SubmitChangeWizard(SessionWizardView):
         print obj
         
         obj.save()
-        html = redirect("/provchanges/%s/view/" % obj.pk)
+        html = redirect("/provchange/%s/view/" % obj.pk)
 
         return html
 

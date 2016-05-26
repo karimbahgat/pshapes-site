@@ -85,10 +85,10 @@
 		<button class="button" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" style="display:inline-block">{% trans "Previous" %}</button>
 		{% endif %}
 
-		{% if step|add:"0" == wizard.steps.last|add:"0" %}
-		<input class="button" type="submit" value="{% trans "Submit" %}" style="display:inline-block"/>
+		{% if wizard.steps.current|add:"0" == wizard.steps.last|add:"0" %}
+		<input class="button" type="submit" value="Submit" style="display:inline-block"/>
 		{% else %}
-		<input class="button" type="submit" value="{% trans "Next" %}" style="display:inline-block"/>
+		<input class="button" type="submit" value="Next" style="display:inline-block"/>
 		{% endif %}
 	</div>
 
