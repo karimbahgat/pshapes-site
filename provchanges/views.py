@@ -89,22 +89,33 @@ def contribute(request):
     return contribute_accepted(request)
 
 def contribute_accepted(request):
-    bannertitle = "Contributing is easy! Here is how:"
+    bannertitle = "Welcome to the Pshapes Community Pages:"
     bannerleft = """
                     <div style="text-align:left">
-                        <ol>
-			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
-			<li>Go to the submission form and fill in the information.</li>
-			<li>Send it and wait for a moderator to verify and accept your submission!</li>
-			</ol>
-			
-			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+                        This is where the Pshapes community can contribute, discuss, and collaborate
+                        on the creation of the dataset. Here you can check on the status of the dataset and
+                        help expand it.
+                        
+                        <br><br>
+                        <b>How Does It Work?</b>
+                        <br>
+                        Users submit contributions, and after a vetting process
+                        the change will be included in the next version of the data available from the website.
+                        You can discuss, suggest edits, or vote for the contributions of others. 
+
+                        <br><br>
+                        <b>Who is it for?</b>
+                        <br>
+                        Whether you just want to track a recent change in your province, or map out the changes
+                        for an entire country, all contributions count!
 		    </div>
     """
     bannerright = """
-			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-			<b>Submit New Change...</b>
-			</a>
+			<b>Current Status:</b>
+			<br><br>
+			Misc statistics and metrics about users, contributions, edits, and votes...
+			Including countries and timeperiod covered...
+			Also size and stats of the most recent stable dataset version. 
     """
 
     changes = ProvChange.objects.filter(status="Accepted").order_by("-added") # the dash reverses the order

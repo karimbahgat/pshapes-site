@@ -128,8 +128,24 @@ def home(request):
 			</style>
 			<div class="shadow"></div>
     """
-    bannerright = """
-			Help keep track of our changing world.
+    if request.user.is_authenticated:
+        bannerright = """
+                        <p>Welcome, {username}!</p>
+                        Help keep track of our changing world:
+
+                        <ul style="list-style-type:none">
+                            <li><a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Submit New Change</b>
+                            </a></li>
+                            
+                            <li><a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Review Existing Changes</b>
+                            </a></li>
+                        </ul>
+                        """.format(username=request.user.username)
+    else:
+        bannerright = """
+                        Help keep track of our changing world.
 			<br>
 			<br>
 			<br>
@@ -140,7 +156,7 @@ def home(request):
 			<a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Login
 			</a>
-    """
+			"""
     grids = []
     grids.append(dict(title="What is Pshapes?",
                       content="""
