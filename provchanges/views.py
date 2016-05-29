@@ -86,9 +86,6 @@ def contribute(request):
     return html
 
 def contribute(request):
-    return contribute_accepted(request)
-
-def contribute_accepted(request):
     bannertitle = "Welcome to the Pshapes Community Pages:"
     bannerleft = """
                     <div style="text-align:left">
@@ -117,74 +114,46 @@ def contribute_accepted(request):
 			Including countries and timeperiod covered...
 			Also size and stats of the most recent stable dataset version. 
     """
-
-    changes = ProvChange.objects.filter(status="Accepted").order_by("-added") # the dash reverses the order
-    changestable = model2table(request, title="", objects=changes,
-                              fields=["date","type","fromname","toname","country","user","added","status"])
-
-    tabs = """
-            <style>
-            .curtab {
-                display:table-cell;
-                background-color:orange;
-                color:white;
-                border-radius:10px;
-                padding:10px; 
-                }
-            .tab {
-                display:table-cell;
-                background-color:null;
-                color:black;
-                border-radius:10px;
-                padding:10px;
-                }
-            </style>
-
-            <div class="curtab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
-            <div class="tab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
-            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
-
-            <br>
-            <br>
-            
-            """
-    content = tabs + changestable
-    
     grids = []
-    grids.append(dict(title="Browse province changes:",
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
+    grids.append(dict(title="Assess Needs:",
+                      content="""
+                            <a href="/contribute/countries" style="color:white;>
+                            <p style="color:black;">
+                            See which countries already have contributions, and where the greatest
+                            needs for data are. 
+                            </p>
+                            </a>
+                            """,
                       ))
-    
+    grids.append(dict(title="Submit Change:",
+                      content="""
+                            <a href="/contribute/submitchange" style="color:white;>
+                            <p style="color:black;">
+                            Help expand the data by submitting a new province change.
+                            </p>
+                            </a>
+                            """,
+                      ))
+    grids.append(dict(title="Quality Check:",
+                      content="""
+                            <a href="/contribute/browse" style="color:white;>
+                            <p style="color:black;">
+                            Browse, quality check, or suggest edits to
+                            existing province changes already registered by other users.
+                            </p>
+                            </a>
+                            """,
+                      ))
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
-def contribute_pending(request):
-    bannertitle = "Contributing is easy! Here is how:"
-    bannerleft = """
-                    <div style="text-align:left">
-                        <ol>
-			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
-			<li>Go to the submission form and fill in the information.</li>
-			<li>Send it and wait for a moderator to verify and accept your submission!</li>
-			</ol>
-			
-			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
-		    </div>
-    """
-    bannerright = """
-			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-			<b>Submit New Change...</b>
-			</a>
-    """
-
-    changes = ProvChange.objects.filter(status="Pending").order_by("-added") # the dash reverses the order
+def contribute_browse(request):
+    status = request.GET.get("status", "Accepted")
+    changes = ProvChange.objects.filter(status=status).order_by("-added") # the dash reverses the order
     changestable = model2table(request, title="", objects=changes,
                               fields=["date","type","fromname","toname","country","user","added","status"])
-
-    tabs = """
+    tabstyle = """
             <style>
             .curtab {
                 display:table-cell;
@@ -201,45 +170,38 @@ def contribute_pending(request):
                 padding:10px;
                 }
             </style>
-
-            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
-            <div class="curtab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
-            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
+            """
+    
+    tabs = """
+            <div class="{Accepted}"><h4><a href="/contribute/browse?status=Accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="{Pending}"><h4><a href="/contribute/browse?status=Pending" style="color:inherit">Pending</a></h4></div>
 
             <br>
             <br>
             
-            """
-    content = tabs + changestable
+            """.format(Accepted="curtab" if status=="Accepted" else "tab",
+                        Pending="curtab" if status=="Pending" else "tab")
+    content = tabstyle + tabs + changestable
     
     grids = []
-    grids.append(dict(title="Browse province changes:",
+    grids.append(dict(title="Browse all province changes:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"nomainbanner":True}
                   )
 
 def contribute_countries(request):
-    bannertitle = "Contributing is easy! Here is how:"
+    bannertitle = "Countries Covered by Data:"
     bannerleft = """
                     <div style="text-align:left">
-                        <ol>
-			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
-			<li>Go to the submission form and fill in the information.</li>
-			<li>Send it and wait for a moderator to verify and accept your submission!</li>
-			</ol>
-			
-			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+                        [INSERT MAP HERE]
 		    </div>
     """
     bannerright = """
-			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-			<b>Submit New Change...</b>
-			</a>
+			Maybe some global country stats...
     """
 
     from django.db.models import Count,Max,Min
@@ -255,37 +217,10 @@ def contribute_countries(request):
     
     countriestable = lists2table(request, lists=lists,
                               fields=fields)
-
-    tabs = """
-            <style>
-            .curtab {
-                display:table-cell;
-                background-color:orange;
-                color:white;
-                border-radius:10px;
-                padding:10px; 
-                }
-            .tab {
-                display:table-cell;
-                background-color:null;
-                color:black;
-                border-radius:10px;
-                padding:10px;
-                }
-            </style>
-
-            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
-            <div class="tab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
-            <div class="curtab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
-
-            <br>
-            <br>
-            
-            """
-    content = tabs + countriestable
+    content = countriestable
     
     grids = []
-    grids.append(dict(title="Browse province changes:",
+    grids.append(dict(title="List of Countries:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -297,22 +232,14 @@ def contribute_countries(request):
 
 
 def contribute_countries_country(request, country):
-    bannertitle = "Contributing is easy! Here is how:"
+    bannertitle = "%s:"%country
     bannerleft = """
                     <div style="text-align:left">
-                        <ol>
-			<li>Find a source documenting a province change, eg <a href="http://www.statoids.com">the Statoids website</a>.</li>
-			<li>Go to the submission form and fill in the information.</li>
-			<li>Send it and wait for a moderator to verify and accept your submission!</li>
-			</ol>
-			
-			Your submitted information will be included in the next updated version of the downloadable Pshapes dataset.
+                        [INSERT MAP HERE]
 		    </div>
     """
     bannerright = """
-			<a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-			<b>Submit New Change...</b>
-			</a>
+			Maybe some country stats...
     """
 
     changes = ProvChange.objects.filter(country=country).order_by("-added") # the dash reverses the order
@@ -339,7 +266,6 @@ def contribute_countries_country(request, country):
 
             <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
             <div class="curtab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
-            <div class="tab"><h4><a href="/contribute/countries" style="color:inherit">Countries</a></h4></div>
 
             <br>
             <br>
@@ -725,7 +651,6 @@ class TypeChangeForm(forms.ModelForm):
 
     step_title = "Type of Change"
     step_descr = """
-                    You have now found a source and identified an event where a province changed. 
                     What type of change was it? Remember that there may be multiple changes involved
                     in a single event, for instance receiving territory from a neighbour, annexing
                     another neighbour, and changing of province name and code. 
@@ -789,8 +714,8 @@ class CustomOLWidget(OpenLayersWidget):
     default_zoom = 1
     wms = ""
     
-    def render(self, name, value, attrs = None):
-        output = super(CustomOLWidget, self).render(name, value, attrs)
+    def render(self, name, value, attrs=None):
+        output = super(CustomOLWidget, self).render(name, value, attrs=attrs)
         output += """
 <script>
 function syncwms() {
@@ -816,13 +741,16 @@ if (wmsurl.trim() != "") {
 geodjango_6_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
 
 // other controls
+/*
 geodjango_6_transfer_geom.map.controls.forEach(function (contr){
+    alert(contr.displayClass)
     //geodjango_6_transfer_geom.map.removeControl(contr);
-    if (contr.displayClass == "olControlDrawFeaturePath" || contr.displayClass == "olControlDrawFeaturePoint")
+    if (contr.displayClass != "olControlDrawFeaturePolygon")
         {
         geodjango_6_transfer_geom.map.removeControl(contr);
         };
     });
+*/
 };
 
 // at startup
@@ -1090,6 +1018,13 @@ class SubmitChangeWizard(SessionWizardView):
                       GeoChangeForm,
                       ToChangeForm,
                       ]
+    def _geomode(wiz):
+        typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
+        return "Transfer" in typeformdata["type"]
+    
+    condition_dict = {"4": _geomode,
+                      "5": _geomode,
+                      "6": _geomode,}
         
 ##    def __init__(self, *args, **kwargs):
 ##        self.form_list = [TypeChangeForm,
@@ -1100,11 +1035,13 @@ class SubmitChangeWizard(SessionWizardView):
 ##                      ]
 ##        SessionWizardView.__init__(self, *args, **kwargs)
 
-##    @property
-##    def form_list(self):
-##        return [TypeChangeForm,
+##    def get_form_list(self):
+##        return [SourceForm,
+##                     TypeChangeForm,
 ##                      GeneralChangeForm,
 ##                      FromChangeForm,
+##                     HistoMapForm,
+##                     GeorefForm,
 ##                      GeoChangeForm,
 ##                      ToChangeForm,
 ##                      ]
@@ -1112,23 +1049,17 @@ class SubmitChangeWizard(SessionWizardView):
     def __iter__(self):
         for step in self.get_form_list():
             yield self.get_form(step=step)
-
-    def get_context_data(self, form, **kwargs):
-        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
-        context.update({'wizard_subclass': self})
-        return context
+ 
+##    def get_context_data(self, form, **kwargs):
+##        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
+##        context.update({'wizard_subclass': self})
+##        return context
 
     def get_form(self, step=None, data=None, files=None):
-        # SKIP GEOFORM IF NOT NEEDED
         form = super(SubmitChangeWizard, self).get_form(step, data, files)
         print step,repr(form)
-        if isinstance(form, HistoMapForm):
-            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-            if not "Transfer" in typeformdata["type"]:
-                # skip til after geoform
-                self.step = bytes(int(step)+3)
-                form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
-        elif isinstance(form, GeoChangeForm):
+        if isinstance(form, GeoChangeForm):
+            # ADD CUSTOM WMS
             typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
             if "Transfer" in typeformdata["type"]:
                 wmsdata = self.get_cleaned_data_for_step("5") or {}
@@ -1137,13 +1068,33 @@ class SubmitChangeWizard(SessionWizardView):
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
                     form.fields['transfer_geom'].widget.wms = wms
         return form
+
+##    def get_form(self, step=None, data=None, files=None):
+##        # SKIP GEOFORM IF NOT NEEDED
+##        form = super(SubmitChangeWizard, self).get_form(step, data, files)
+##        print step,repr(form)
+##        if isinstance(form, HistoMapForm):
+##            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
+##            if not "Transfer" in typeformdata["type"]:
+##                # skip til after geoform
+##                self.step = bytes(int(step)+3)
+##                form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
+##        elif isinstance(form, GeoChangeForm):
+##            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
+##            if "Transfer" in typeformdata["type"]:
+##                wmsdata = self.get_cleaned_data_for_step("5") or {}
+##                wms = wmsdata.get("transfer_source")
+##                if wms:
+##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
+##                    form.fields['transfer_geom'].widget.wms = wms
+##        return form
         
     def get_template_names(self):
         return ["provchanges/submitchange.html"]
 
     def done(self, form_list, form_dict, **kwargs):
         # NOT YET DONE...
-        print form_list, form_dict, kwargs
+        print "DONE!", form_list, form_dict, kwargs
         
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))

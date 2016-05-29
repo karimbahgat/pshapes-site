@@ -134,11 +134,11 @@ def home(request):
                         Help keep track of our changing world:
 
                         <ul style="list-style-type:none">
-                            <li><a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <li><a href="/contribute/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Submit New Change</b>
                             </a></li>
                             
-                            <li><a href="/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <li><a href="/contribute/accepted/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Review Existing Changes</b>
                             </a></li>
                         </ul>
