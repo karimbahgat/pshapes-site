@@ -862,14 +862,11 @@ class GeoChangeForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ["transfer_geom"]
-        #widgets = {"transfer_geom": CustomOLWidget() }
+        widgets = {"transfer_geom": CustomOLWidget() }
         
     def __init__(self, *args, **kwargs):
         super(GeoChangeForm, self).__init__(*args, **kwargs)
-
-        # make wms auto add/update at startup
-        # by overriding widget's render func and adding custom js
-        #self.fields['transfer_geom'].widget = CustomOLWidget()
+        print 999, self.fields["transfer_geom"].widget
         
     def as_p(self):
         html = """
