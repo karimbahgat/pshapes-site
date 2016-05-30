@@ -128,7 +128,7 @@ def home(request):
 			</style>
 			<div class="shadow"></div>
     """
-    if request.user.is_authenticated:
+    if request.user.is_authenticated():
         bannerright = """
                         <br>
                         <p>Welcome, {username}!</p>

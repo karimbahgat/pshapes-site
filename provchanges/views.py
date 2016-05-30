@@ -86,7 +86,7 @@ def contribute(request):
     return html
 
 def contribute(request):  
-    if request.user.is_authenticated:
+    if request.user.is_authenticated():
         bannertitle = "Welcome, %s" % request.user.username
         bannerleft = """
                     <div style="text-align:left">
@@ -115,6 +115,12 @@ def contribute(request):
                             
                             <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Review Existing Changes</b>
+                            </a></li>
+
+                            <br>
+                            
+                            <li><a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
                             </a></li>
                         </ul>
                         """
