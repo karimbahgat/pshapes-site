@@ -283,9 +283,10 @@ def contribute_countries(request):
     
     fields = ["country","entries","mindate","maxdate"]
     lists = []
-    for rowdict in ProvChange.objects.values("country").annotate(entries=Count('pk'),
-                                                             mindate=Min("date"),
-                                                             maxdate=Max("date") ):
+    rowdicts = (rowdict for rowdict in ProvChange.objects.values("country").annotate(entries=Count('pk'),
+                                                                                     mindate=Min("date"),
+                                                                                     maxdate=Max("date") ))
+    for rowdict in sorted(rowdicts, key=lambda rd:rd["country"]):
         row = [rowdict[f] for f in fields]
         url = "/contribute/countries/%s" % rowdict["country"]
         lists.append((url,row))
@@ -613,8 +614,11 @@ $('#id_0-date').datepicker({
     dateFormat: "yy-mm-dd",
     defaultDate: "2014-12-31",
     yearRange: '1946:2014',
-
+    showOn: "both",
+    buttonImage: 'http://jqueryui.com/resources/demos/datepicker/images/calendar.gif',
+    buttonImageOnly: true,
 });
+$(".ui-datepicker-trigger").css("margin-bottom","-3px");
 </script>
 """
         return output
@@ -735,9 +739,9 @@ class TypeChangeForm(forms.ModelForm):
 
     step_title = "Type of Change"
     step_descr = """
-                    What type of change was it? Remember that there may be multiple changes involved
-                    in a single event, for instance receiving territory from a neighbour, annexing
-                    another neighbour, and changing of province name and code. 
+                    What type of change was it? Multiple changes may have to be submitted for the same date.
+                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
+                    a third neighbour, and change its name and ISO code. 
                    """
 
     class Meta:
@@ -749,21 +753,41 @@ class GeneralChangeForm(forms.ModelForm):
 
     step_title = "Basic Information"
     step_descr = """
-                    Find a documented third-party source to base your submission on. 
-                    <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-                    in great detail, and should be the first place to look. Go to the "Primary" divisions page for a country of
-                    choice and insert the url into the field below.
-                    The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                    can sometimes also be a useful reference. 
+                    Welcome to the step-by-step wizard for submitting historical
+                    changes to the "primary" or "level-1" sub-administrative units of countries.
+                    For what country and at what date did the province change? 
+                    <br><br>
 
-                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
-                            <p style="font-size:large; font-weight:bold">Note:</p>
-                            <p style="font-size:medium; font-style:italic">
-                            It can be a good idea to start by looking at
-                            <a target="_blank" href="/contribute/countries">this list of countries and changes already submitted by other users</a>
-                            to avoid double-registering. 
-                            </p>
-                            </div>
+                    <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
+                    <p style="font-size:large; font-weight:bold">Note:</p>
+                    <p style="font-size:medium; font-style:italic">
+                    There are several types of sources you can use:
+                    <ul>
+                        <li>
+                        <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+                        in great detail, and should be the first place to look.
+                        </li>
+
+                        <li>
+                        The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                        can sometimes also be a useful reference.
+                        </li>
+
+                        <li>
+                        You can also use offline sources such as a book or an article.
+                        </li>
+                    </ul>
+                    </p>
+                    </div>
+
+                    <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
+                    <p style="font-size:large; font-weight:bold">Note:</p>
+                    <p style="font-size:medium; font-style:italic">
+                    It can be a good idea to start by looking at
+                    <a target="_blank" href="/contribute/countries">this list of countries and changes already submitted by other users</a>
+                    to avoid double-registering. 
+                    </p>
+                    </div>
                    """
 
     class Meta:
@@ -965,7 +989,7 @@ class GeoChangeForm(forms.ModelForm):
 
     step_title = "Territory"
     step_descr = """
-                    What did the giving province look like before giving away parts of its territory?
+                    What did the giving province look like before giving away territory?
                    """
 
     class Meta:
@@ -979,8 +1003,8 @@ class GeoChangeForm(forms.ModelForm):
         
     def as_p(self):
         html = """
-                        Finally, draw on the map. Identify the borders of the province that gave away the territory, as it looked like prior to giving away parts of its territory.
-                        This will be used to determine the part that changed hands and thus what the receiving province looked like before the change.
+                        Finally, draw on the map. Identify the borders of the province that gave away the territory, as it looked like prior to giving away territory.
+                        This will be used to determine the extent of the territory that changed hands.
 
                         <img style="display:block" align="middle" height=300px src="http://localnepaltoday.com/wp-content/uploads/2015/08/image8.jpg"/>
 
@@ -1155,10 +1179,10 @@ class SubmitChangeWizard(SessionWizardView):
         for step in self.get_form_list():
             yield self.get_form(step=step)
  
-##    def get_context_data(self, form, **kwargs):
-##        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
-##        context.update({'wizard_subclass': self})
-##        return context
+    def get_context_data(self, form, **kwargs):
+        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
+        context.update({'wizard_subclass': self})
+        return context
 
     def get_form(self, step=None, data=None, files=None):
         form = super(SubmitChangeWizard, self).get_form(step, data, files)
