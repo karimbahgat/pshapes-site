@@ -85,65 +85,134 @@ def contribute(request):
     html = render(request, 'provchanges/contribute.html', {'changelist': changelist})
     return html
 
-def contribute(request):
-    bannertitle = "Welcome to the Pshapes Community Pages:"
-    bannerleft = """
+def contribute(request):  
+    if request.user.is_authenticated:
+        bannertitle = "Welcome, %s" % request.user.username
+        bannerleft = """
                     <div style="text-align:left">
-                        This is where the Pshapes community can contribute, discuss, and collaborate
-                        on the creation of the dataset. Here you can check on the status of the dataset and
-                        help expand it.
-                        
-                        <br><br>
-                        <b>How Does It Work?</b>
-                        <br>
-                        Users submit contributions, and after a vetting process
-                        the change will be included in the next version of the data available from the website.
-                        You can discuss, suggest edits, or vote for the contributions of others. 
+                        This is where you contribute, discuss, and collaborate with the Pshapes community.
 
                         <br><br>
-                        <b>Who is it for?</b>
+                        <b>Your most recent notifications:</b>
                         <br>
-                        Whether you just want to track a recent change in your province, or map out the changes
-                        for an entire country, all contributions count!
-		    </div>
-    """
-    bannerright = """
-			<b>Current Status:</b>
-			<br><br>
-			Misc statistics and metrics about users, contributions, edits, and votes...
-			Including countries and timeperiod covered...
-			Also size and stats of the most recent stable dataset version. 
-    """
+                        <ul>
+                            <li>...</li>
+                            <li>...</li>
+                        </ul>
+                    </div>
+        """
+        bannerright = """
+                        <br><br>
+                        Help keep track of our changing world:
+
+                        <br><br>
+                        <ul style="list-style-type:none">
+                            <li><a href="/contribute/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Submit New Change</b>
+                            </a></li>
+
+                            <br>
+                            
+                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Review Existing Changes</b>
+                            </a></li>
+                        </ul>
+                        """
+        
+    else:
+        bannertitle = "Welcome to the Pshapes Community Pages:"
+        bannerleft = """
+                        <div style="text-align:left">
+                            This is where the Pshapes community can contribute, discuss, and collaborate.
+                            Here you can check on the progress made and activities of the community, and
+                            help expand the data.
+
+                            <br><br>
+                            <b>How Does It Work?</b>
+                            <br>
+                            Users submit contributions, and after a vetting process
+                            the change will be included in the next version of the data available from the website.
+                            You can also browse, quality check, and suggest edits to existing province changes already
+                            submitted by other users.
+
+                            <br><br>
+                            <b>Who is it for?</b>
+                            <br>
+                            Whether you just want to track a recent change in your province, or map out the changes
+                            for an entire country, all contributions count!
+
+                        </div>
+        """
+        bannerright = """
+                        <br><br><br><br>
+                        Help keep track of our changing world.
+                        <br>
+                        <br>
+                        <br>
+                        <a href="/registration" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Sign Up
+                        </a>
+                        or
+                        <a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Login
+                        </a>
+        """
     grids = []
-    grids.append(dict(title="Assess Needs:",
+
+    changes = ProvChange.objects.all()
+    accepted = ProvChange.objects.filter(status="Accepted")
+    pending = ProvChange.objects.filter(status="Pending")
+    users = User.objects.all()
+    grids.append(dict(title="Quick Stats:",
                       content="""
-                            <a href="/contribute/countries" style="color:white;>
-                            <p style="color:black;">
+                            <div style="color:white;">
+                                Total Contributions:
+                                {changes}
+
+                                <br>
+                                Accepted:
+                                {accepted}
+
+                                <br>
+                                Pending:
+                                {pending}
+                                
+                                <br>
+                                Registered Users:
+                                {users}
+                            </div>
+                            """.format(changes=len(changes), users=len(users),
+                                       accepted=len(accepted), pending=len(pending)),
+                      ))
+    grids.append(dict(title="Country Coverage:",
+                      content="""
+                            <a href="/contribute/countries" style="color:white;">
+                            <p style="color:white;">
                             See which countries already have contributions, and where the greatest
                             needs for data are. 
                             </p>
                             </a>
                             """,
                       ))
-    grids.append(dict(title="Submit Change:",
-                      content="""
-                            <a href="/contribute/submitchange" style="color:white;>
-                            <p style="color:black;">
-                            Help expand the data by submitting a new province change.
-                            </p>
-                            </a>
-                            """,
-                      ))
-    grids.append(dict(title="Quality Check:",
-                      content="""
-                            <a href="/contribute/browse" style="color:white;>
-                            <p style="color:black;">
-                            Browse, quality check, or suggest edits to
-                            existing province changes already registered by other users.
-                            </p>
-                            </a>
-                            """,
-                      ))
+##    grids.append(dict(title="Submit Change:",
+##                      content="""
+##                            <a href="/contribute/submitchange" style="color:white;>
+##                            <p style="color:black;">
+##                            Help expand the data by submitting a new province change.
+##                            </p>
+##                            </a>
+##                            """,
+##                      ))
+##    grids.append(dict(title="Quality Check:",
+##                      content="""
+##                            <a href="/contribute/browse" style="color:white;>
+##                            <p style="color:black;">
+##                            Browse, quality check, or suggest edits to
+##                            existing province changes already registered by other users.
+##                            </p>
+##                            </a>
+##                            """,
+##                      ))
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
@@ -232,6 +301,7 @@ def contribute_countries(request):
 
 
 def contribute_countries_country(request, country):
+    status = request.GET.get("status", "Accepted")
     bannertitle = "%s:"%country
     bannerleft = """
                     <div style="text-align:left">
@@ -242,11 +312,11 @@ def contribute_countries_country(request, country):
 			Maybe some country stats...
     """
 
-    changes = ProvChange.objects.filter(country=country).order_by("-added") # the dash reverses the order
+    changes = ProvChange.objects.filter(country=country,status=status).order_by("-added") # the dash reverses the order
     changestable = model2table(request, title="", objects=changes,
                               fields=["date","type","fromname","toname","country","user","added","status"])
 
-    tabs = """
+    tabstyle = """
             <style>
             .curtab {
                 display:table-cell;
@@ -263,15 +333,19 @@ def contribute_countries_country(request, country):
                 padding:10px;
                 }
             </style>
-
-            <div class="tab"><h4><a href="/contribute/accepted" style="color:inherit">Accepted</a></h4></div>
-            <div class="curtab"><h4><a href="/contribute/pending" style="color:inherit">Pending</a></h4></div>
+            """
+    
+    tabs = """
+            <div class="{Accepted}"><h4><a href="/contribute/countries/{country}?status=Accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="{Pending}"><h4><a href="/contribute/countries/{country}?status=Pending" style="color:inherit">Pending</a></h4></div>
 
             <br>
             <br>
             
-            """
-    content = tabs + changestable
+            """.format(Accepted="curtab" if status=="Accepted" else "tab",
+                        Pending="curtab" if status=="Pending" else "tab",
+                       country=country)
+    content = tabstyle + tabs + changestable
     
     grids = []
     grids.append(dict(title="Browse province changes:",
@@ -451,6 +525,8 @@ def viewchange(request, pk):
             'metachange': MetaChangeForm(instance=change),
             'typechange': TypeChangeForm(instance=change),
             'generalchange': GeneralChangeForm(instance=change),
+            'histomap': HistoMapForm(instance=change),
+            'georef': GeorefForm(instance=change),
             'fromchange': FromChangeForm(instance=change),
             'geochange': GeoChangeForm(instance=change),
             'tochange': ToChangeForm(instance=change),
@@ -499,6 +575,8 @@ def editchange(request, pk):
                 'typechange': TypeChangeForm(instance=change),
                 'generalchange': GeneralChangeForm(instance=change),
                 'fromchange': FromChangeForm(instance=change),
+                'histomap': HistoMapForm(instance=change),
+                'georef': GeorefForm(instance=change),
                 'geochange': GeoChangeForm(instance=change),
                 'tochange': ToChangeForm(instance=change),}
         html = render(request, 'provchanges/editchange.html', args)
@@ -523,7 +601,7 @@ class CustomDateWidget(forms.TextInput):
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
 <script>
-$('#id_2-date').datepicker({
+$('#id_0-date').datepicker({
     changeMonth: true,
     changeYear: true,
     dateFormat: "yy-mm-dd",
@@ -573,19 +651,19 @@ class MetaChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ['user','added','status']
 
-class SourceForm(forms.ModelForm):
-
-    step_title = "Source"
-    step_descr = """
-                    Find a documented third-party sources to base your submission on.
-                    <a href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-                    in great detail, and should be the first place to look. Go to the primary divisions page for a country of
-                    choice and insert the url into the field below.
-                   """
-
-    class Meta:
-        model = ProvChange
-        fields = ['source']
+##class SourceForm(forms.ModelForm):
+##
+##    step_title = "Source"
+##    step_descr = """
+##                    Find a documented third-party sources to base your submission on.
+##                    <a href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+##                    in great detail, and should be the first place to look. Go to the primary divisions page for a country of
+##                    choice and insert the url into the field below.
+##                   """
+##
+##    class Meta:
+##        model = ProvChange
+##        fields = ['source']
 
 from django.forms.widgets import RadioFieldRenderer
 
@@ -663,14 +741,28 @@ class TypeChangeForm(forms.ModelForm):
 
 class GeneralChangeForm(forms.ModelForm):
 
-    step_title = "Context"
+    step_title = "Basic Information"
     step_descr = """
-                    What was the place and time of the change?
+                    Find a documented third-party source to base your submission on. 
+                    <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+                    in great detail, and should be the first place to look. Go to the "Primary" divisions page for a country of
+                    choice and insert the url into the field below.
+                    The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                    can sometimes also be a useful reference. 
+
+                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
+                            <p style="font-size:large; font-weight:bold">Note:</p>
+                            <p style="font-size:medium; font-style:italic">
+                            It can be a good idea to start by looking at
+                            <a target="_blank" href="/contribute/countries">this list of countries and changes already submitted by other users</a>
+                            to avoid double-registering. 
+                            </p>
+                            </div>
                    """
 
     class Meta:
         model = ProvChange
-        fields = ['country', 'date']
+        fields = ['country', 'date', 'source']
         widgets = {"date": CustomDateWidget()}
 
 class FromChangeForm(forms.ModelForm):
@@ -721,33 +813,33 @@ class CustomOLWidget(OpenLayersWidget):
 function syncwms() {
 var wmsurl = "%s";
 if (wmsurl.trim() != "") {
-    var layerlist = geodjango_6_transfer_geom.map.getLayersByName('Custom WMS');
+    var layerlist = geodjango_5_transfer_geom.map.getLayersByName('Custom WMS');
     
     if (layerlist.length >= 1) 
         {
         // replace existing
-        geodjango_6_transfer_geom.map.removeLayer(layerlist[0]);
+        geodjango_5_transfer_geom.map.removeLayer(layerlist[0]);
         };
         
     customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
     customwms.isBaseLayer = false;
-    geodjango_6_transfer_geom.map.addLayer(customwms);
-    geodjango_6_transfer_geom.map.setLayerIndex(customwms, 1);
+    geodjango_5_transfer_geom.map.addLayer(customwms);
+    geodjango_5_transfer_geom.map.setLayerIndex(customwms, 1);
 
     // zoom to country bbox somehow
-    //geodjango_6_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
+    //geodjango_5_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
 };
 // layer switcher
-geodjango_6_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
+geodjango_5_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
 
 // other controls
 /*
-geodjango_6_transfer_geom.map.controls.forEach(function (contr){
+geodjango_5_transfer_geom.map.controls.forEach(function (contr){
     alert(contr.displayClass)
-    //geodjango_6_transfer_geom.map.removeControl(contr);
+    //geodjango_5_transfer_geom.map.removeControl(contr);
     if (contr.displayClass != "olControlDrawFeaturePolygon")
         {
-        geodjango_6_transfer_geom.map.removeControl(contr);
+        geodjango_5_transfer_geom.map.removeControl(contr);
         };
     });
 */
@@ -833,6 +925,15 @@ class GeorefForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ["transfer_source"]
+
+    def clean(self):
+        data = super(GeorefForm, self).clean()
+        if "mapwarper.net" in data['transfer_source']:
+            pass
+        else:
+            mapwarpid = data['transfer_source']
+            data['transfer_source'] = "http://mapwarper.net/maps/wms/%s" % mapwarpid
+        return data
         
     def as_p(self):
         html = """
@@ -840,13 +941,15 @@ class GeorefForm(forms.ModelForm):
                         locations on a real-world map.
                         For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
 
+                        <br><br>
                         <img style="display:block" align="middle" height=300px src="http://dirtdirectory.org/sites/dirtdirectory.org/files/screenshots/mapwarper.PNG"/>
+                        <br>
 
-                        Once finished with georeferencing, click on the "Export" tab of your MapWarper map page,
-                        right click the part that says "WMS Capabilities URL" and select "copy the link address".
-                        Paste this link address into the "Transfer source" field below.
+                        Once finished with georeferencing, simply insert the MapWarper ID of your georeferenced map
+                        (a short number near the top of the MapWarper page)
+                        into the field below. 
 
-                        <div style="padding:20px"><b>Georeferenced WMS Link: </b>{{ form.transfer_source }}</div>
+                        <div style="padding:20px"><b>MapWarper Map ID: </b>{{ form.transfer_source }}</div>
                 """
         rendered = Template(html).render(Context({"form":self}))
         return rendered
@@ -1006,9 +1109,8 @@ class GeoChangeForm(forms.ModelForm):
 
 
 class SubmitChangeWizard(SessionWizardView):
-    form_list = [SourceForm,
+    form_list = [   GeneralChangeForm,
                      TypeChangeForm,
-                      GeneralChangeForm,
                       FromChangeForm,
                      HistoMapForm,
                      GeorefForm,
@@ -1019,9 +1121,9 @@ class SubmitChangeWizard(SessionWizardView):
         typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
         return "Transfer" in typeformdata["type"]
     
-    condition_dict = {"4": _geomode,
-                      "5": _geomode,
-                      "6": _geomode,}
+    condition_dict = {"3": _geomode,
+                      "4": _geomode,
+                      "5": _geomode,}
         
 ##    def __init__(self, *args, **kwargs):
 ##        self.form_list = [TypeChangeForm,
@@ -1059,7 +1161,7 @@ class SubmitChangeWizard(SessionWizardView):
             # ADD CUSTOM WMS
             typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
             if "Transfer" in typeformdata["type"]:
-                wmsdata = self.get_cleaned_data_for_step("5") or {}
+                wmsdata = self.get_cleaned_data_for_step("4") or {}
                 wms = wmsdata.get("transfer_source")
                 if wms:
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency

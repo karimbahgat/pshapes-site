@@ -103,7 +103,7 @@ def home(request):
     return render(request, 'pshapes_site/home.html', {"shortdescr":shortdescr, "changelist":changelist})
 
 def home(request):
-    bannertitle = "Crowdsourcing Historical Province Boundaries, 1946-2014"
+    bannertitle = "Crowdsourcing Historical Province Boundaries, 1946-2014 (Beta)"
     bannerleft = """
 			<style>
 			.shadow
@@ -130,15 +130,21 @@ def home(request):
     """
     if request.user.is_authenticated:
         bannerright = """
+                        <br>
                         <p>Welcome, {username}!</p>
+
+                        <br>
                         Help keep track of our changing world:
 
+                        <br><br>
                         <ul style="list-style-type:none">
                             <li><a href="/contribute/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Submit New Change</b>
                             </a></li>
+
+                            <br>
                             
-                            <li><a href="/contribute/accepted/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Review Existing Changes</b>
                             </a></li>
                         </ul>

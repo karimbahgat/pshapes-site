@@ -21,13 +21,13 @@
 				{% csrf_token %}
 
 				<fieldset>
-					<legend>Type of Change</legend>
-					{{ typechange.as_p }}
+					<legend>General Information</legend>
+					{{ generalchange.as_p }}
 				</fieldset>
 				
 				<fieldset>
-					<legend>General Information</legend>
-					{{ generalchange.as_p }}
+					<legend>Type of Change</legend>
+					{{ typechange.as_p }}
 				</fieldset>
 				
 				<fieldset>
@@ -35,6 +35,16 @@
 					{{ fromchange.as_p }}
 				</fieldset>
 
+				<fieldset>
+					<legend>Historical Map Source</legend>
+					{{ histomap.as_p }}
+				</fieldset>
+
+				<fieldset>
+					<legend>Georeferenced Map</legend>
+					{{ georef.as_p }}
+				</fieldset>
+				
 				<fieldset>
 					<legend>Geo Change</legend>
 					{{ geochange.as_p }}
