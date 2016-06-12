@@ -138,7 +138,7 @@ def home(request):
 
                         <br><br>
                         <ul style="list-style-type:none">
-                            <li><a href="/contribute/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <li><a href="/contribute/countries" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Submit New Change</b>
                             </a></li>
 
@@ -147,7 +147,20 @@ def home(request):
                             <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Review Existing Changes</b>
                             </a></li>
+
+                            <br>
+
+                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Account Settings</b>
+                            </a></li>
+
+                            <br>
+
+                            <li><a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                            </a></li>
                         </ul>
+
                         """.format(username=request.user.username)
     else:
         bannerright = """

@@ -85,14 +85,43 @@ def contribute(request):
     html = render(request, 'provchanges/contribute.html', {'changelist': changelist})
     return html
 
-def contribute(request):  
+def contribute(request):
+    changes = ProvChange.objects.all()
+    accepted = ProvChange.objects.filter(status="Accepted")
+    pending = ProvChange.objects.filter(status="Pending")
+    users = User.objects.all()
+    
     if request.user.is_authenticated():
-        bannertitle = "Welcome, %s" % request.user.username
+        bannertitle = "Welcome to the Pshapes Community Pages"
         bannerleft = """
                     <div style="text-align:left">
-                        This is where you contribute, discuss, and collaborate with the Pshapes community.
+                        Here you can check on the progress made and activities of the community, and
+                        help expand the data.
 
                         <br><br>
+                        <b>Community Stats:</b>
+                            <div style="color:white;">
+                                Total Contributions:
+                                {changes}
+
+                                <br>
+                                Accepted:
+                                {accepted}
+
+                                <br>
+                                Pending:
+                                {pending}
+                                
+                                <br>
+                                Registered Users:
+                                {users}
+                            </div>
+                    </div>
+                            """.format(changes=len(changes), users=len(users),
+                                       accepted=len(accepted), pending=len(pending))
+        bannerright = """
+                    <div style="text-align:left">
+                        <br>
                         <b>Your most recent notifications:</b>
                         <br>
                         <ul>
@@ -100,29 +129,6 @@ def contribute(request):
                             <li>...</li>
                         </ul>
                     </div>
-        """
-        bannerright = """
-                        <br><br>
-                        Help keep track of our changing world:
-
-                        <br><br>
-                        <ul style="list-style-type:none">
-                            <li><a href="/contribute/submitchange" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Submit New Change</b>
-                            </a></li>
-
-                            <br>
-                            
-                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Review Existing Changes</b>
-                            </a></li>
-
-                            <br>
-                            
-                            <li><a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Logout</b>
-                            </a></li>
-                        </ul>
                         """
         
     else:
@@ -165,41 +171,12 @@ def contribute(request):
         """
     grids = []
 
-    changes = ProvChange.objects.all()
-    accepted = ProvChange.objects.filter(status="Accepted")
-    pending = ProvChange.objects.filter(status="Pending")
-    users = User.objects.all()
-    grids.append(dict(title="Quick Stats:",
+    grids.append(dict(title="Recent discussions:",
                       content="""
-                            <div style="color:white;">
-                                Total Contributions:
-                                {changes}
-
-                                <br>
-                                Accepted:
-                                {accepted}
-
-                                <br>
-                                Pending:
-                                {pending}
-                                
-                                <br>
-                                Registered Users:
-                                {users}
-                            </div>
-                            """.format(changes=len(changes), users=len(users),
-                                       accepted=len(accepted), pending=len(pending)),
-                      ))
-    grids.append(dict(title="Country Coverage:",
-                      content="""
-                            <a href="/contribute/countries" style="color:white;">
-                            <p style="color:white;">
-                            See which countries already have contributions, and where the greatest
-                            needs for data are. 
-                            </p>
-                            </a>
+                            ...
                             """,
                       ))
+
 ##    grids.append(dict(title="Submit Change:",
 ##                      content="""
 ##                            <a href="/contribute/submitchange" style="color:white;>
@@ -365,6 +342,186 @@ def contribute_countries_country(request, country):
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
+
+def contribute_countries_country(request, country):
+    # TODO: Add "new-event" button
+    status = request.GET.get("status", "Accepted")
+    bannertitle = "%s:"%country
+    bannerleft = """
+                    <div style="text-align:left">
+                        [INSERT MAP HERE]
+		    </div>
+    """
+    bannerright = """
+			Maybe some country stats...
+    """
+
+    changes = ProvChange.objects.filter(country=country,status=status).order_by("-added") # the dash reverses the order
+    import itertools
+    def typeprov(obj):
+        typ = obj.type
+        if "Transfer" in typ:
+            prov = obj.toname
+            return "Expansion",prov
+        elif typ == "Breakaway":
+            prov = obj.fromname
+            return "Split",prov
+        elif typ == "NewInfo":
+            prov = obj.toname
+            return typ,prov
+    sortkey = lambda o:(o.date,typeprov(o))
+    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
+    def getlinkrow(date,prov,typ,items):
+        if typ == "NewInfo":
+            link = "/provchange/{pk}/view/?status={status}".format(pk=next(items).pk, status=status)
+        elif typ == "Split":
+            link = "/event/view?" + "&".join(['country="%s"'%country,'date="%s"'%date,'prov="%s"'%prov,'type="Split"',"status=%s"%status])
+        elif typ == "Expansion":
+            link = "/event/view?" + "&".join(['country="%s"'%country,'date="%s"'%date,'prov="%s"'%prov,'type="Expansion"',"status=%s"%status])
+        return link,(date,prov,typ)
+    events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
+    eventstable = lists2table(request, events, ["Date", "Province", "EventType"])
+
+    tabstyle = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+            """
+    
+    tabs = """
+            <div class="{Accepted}"><h4><a href="/contribute/countries/{country}?status=Accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="{Pending}"><h4><a href="/contribute/countries/{country}?status=Pending" style="color:inherit">Pending</a></h4></div>
+
+            <br>
+            <br>
+            
+            """.format(Accepted="curtab" if status=="Accepted" else "tab",
+                        Pending="curtab" if status=="Pending" else "tab",
+                       country=country)
+    content = tabstyle + tabs + eventstable
+    
+    grids = []
+    grids.append(dict(title="List of events:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def viewevent(request):
+    # TODO: add "edit-event" button in main banner
+    # and "add-change" button down by the table
+    status = request.GET.get("status", "Accepted")
+    assert all((param in request.GET for param in "country date prov type".split()))
+    country = request.GET["country"].strip('"').strip("'").strip()
+    y,m,d = map(int,request.GET["date"].strip('"').strip("'").strip().split("-"))
+    date = datetime.date(year=y,month=m,day=d)
+    prov = request.GET["prov"].strip('"').strip("'").strip()
+    typ = request.GET["type"].strip('"').strip("'").strip()
+    
+    bannertitle = "%s Event:" % typ
+    bannerleft = """
+                    <div style="text-align:left">
+                        <b>Name of province:</b> {prov}
+                        <br><br>
+                        <b>Date:</b> {date}
+                        <br><br>
+                        <b>Country:</b> {country}
+                        <br><br>
+		    </div>
+    """.format(country=country,date=date,prov=prov)
+    bannerright = """
+                        <br><br><br><br>
+			What else... Maybe image for type of event, and quick stats of how many changes etc in this event...
+    """
+    print "TYPE",repr(typ)
+    if typ == "Newinfo":
+        fields = ["fromname","type"]
+        changes = ProvChange.objects.filter(country=country,date=date,status=status,type="NewInfo",toname=prov)
+    elif typ == "Split":
+        fields = ["toname","type"]
+        changes = ProvChange.objects.filter(country=country,date=date,status=status,type="Breakaway",fromname=prov)
+    elif typ == "Expansion":
+        fields = ["fromname","type"]
+        changes = ProvChange.objects.filter(country=country,date=date,status=status,type__contains="Transfer",toname=prov)
+    changes = changes.order_by("-added") # the dash reverses the order
+    changestable = model2table(request, title="", objects=changes, fields=fields)
+
+    tabstyle = """
+            <style>
+            .curtab {
+                display:table-cell;
+                background-color:orange;
+                color:white;
+                border-radius:10px;
+                padding:10px; 
+                }
+            .tab {
+                display:table-cell;
+                background-color:null;
+                color:black;
+                border-radius:10px;
+                padding:10px;
+                }
+            </style>
+            """
+
+    params = request.GET.copy()
+    params.pop("status",None)
+    url = request.path + "?" + params.urlencode()
+    print "URL",url
+    tabs = """
+            <div class="{Accepted}"><h4><a href="{url}&status=Accepted" style="color:inherit">Accepted</a></h4></div>
+            <div class="{Pending}"><h4><a href="{url}&status=Pending" style="color:inherit">Pending</a></h4></div>
+
+            <br>
+            <br>
+            
+            """.format(Accepted="curtab" if status=="Accepted" else "tab",
+                        Pending="curtab" if status=="Pending" else "tab",
+                       url=url)
+    content = tabstyle + tabs + changestable
+    
+    grids = []
+    grids.append(dict(title="Event changes:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+@login_required
+def editevent(request):
+    # wizard with one screen for editing prov info
+    pass
+
+@login_required
+def addevent(request):
+    # wizard that lets you add the type of event
+    # then from or to prov info, and maybe source (or maybe source should get listbox to choose from previous)
+    # then requires inputting at least one breakaway for splitevents (self is added automatically), and at least one for expansion events, and only one for newinfo
+    # after first change added, goto viewevent screen to potentially add more...
+    pass
+
 @login_required
 def submitchange(request):
     
@@ -519,11 +676,11 @@ def viewchange(request, pk):
     else:
         note = ""
 
-    pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").order_by("-added") # the dash reverses the order
+    pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
     pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
                               fields=["date","type","fromname","toname","country","user","added","status"])
 
-    oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").order_by("-added") # the dash reverses the order
+    oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
     oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
                               fields=["date","type","fromname","toname","country","user","added","status"])
 

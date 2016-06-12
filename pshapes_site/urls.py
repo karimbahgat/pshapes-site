@@ -36,6 +36,8 @@ urlpatterns = [
     url('^contribute/countries/$', "provchanges.views.contribute_countries"),
     url('^(?i)contribute/countries/(?P<country>.*)/$', "provchanges.views.contribute_countries_country"),
     url('^contribute/submitchange/$', SubmitChangeWizard.as_view() ),
+    url(r'^event/view/$', "provchanges.views.viewevent", name="viewevent"),
+    url(r'^event/edit/$', "provchanges.views.editevent", name="editevent"),
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
 
