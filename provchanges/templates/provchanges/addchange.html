@@ -1,0 +1,99 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+{% block head %}
+	{{ wizard.form.media }}
+	{% for form in wizard.form.forms %}
+		{{ form.media }}
+	{% endfor %}
+{% endblock %}
+
+
+
+<style>
+.curstep {
+	background-color:null; color:orange; padding:1px; margins:1px; font-size:small; font-weight:bold
+	}
+.step {
+	background-color:white; color:orange; padding:1px; margins:1px; height:10px; border-style:none; font-size:small; font-weight:bold; text-decoration:underline; 
+	}
+.button {
+	background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;
+	}
+</style>
+
+
+
+<h2>Submitting new event change</h2>
+    
+<form action="" method="post">{% csrf_token %}
+		
+	<table>
+
+	<tr><td>
+		<table class="steps">
+		<tr>
+		{% for form in wizard_subclass %}
+			{% if forloop.counter0 < wizard.steps.current|add:"0" %}
+				<td style="content-align:center;">
+				<button class="step" name="wizard_goto_step" type="submit" value="{{ forloop.counter0 }}">{{ form.step_title }}</button>
+				</td>
+				<td style="content-align:center;"> > </td>
+			{% elif forloop.counter0 == wizard.steps.current|add:"0" %}
+				<td>
+				<a class="curstep">{{ wizard.form.step_title }}</a>
+				</td>
+			{% endif %}
+		{% endfor %}
+		</tr>
+		</table>
+	</tr></td>
+	
+	<tr><td>
+	<h3>{{ wizard.form.step_title }}</h3>
+	</tr></td>
+
+	<tr><td>
+			<p>
+			<b>{{ wizard.form.step_descr|safe }}</b>
+			</p>
+	</tr></td>
+
+	</table>
+
+
+
+	<div>
+	{{ wizard.management_form }}
+	{% if wizard.form.forms %}
+		{{ wizard.form.management_form }}
+		{% for form in wizard.form.forms %}
+			{{ form }}
+		{% endfor %}
+	{% else %}
+		{{ wizard.form.as_p }}
+	{% endif %}
+	</div>
+
+	
+
+	<div style="clear:both; text-align:center">
+		{% if wizard.steps.prev %}
+		<button class="button" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" style="display:inline-block">{% trans "Previous" %}</button>
+		{% endif %}
+
+		{% if wizard.steps.current|add:"0" == wizard.steps.last|add:"0" %}
+		<input class="button" type="submit" value="Submit" style="display:inline-block"/>
+		{% else %}
+		<input class="button" type="submit" value="Next" style="display:inline-block"/>
+		{% endif %}
+	</div>
+
+</form>
+
+
+
+{% endblock %}

@@ -18,35 +18,64 @@ from django.contrib.gis import admin
 
 admin.site.site_header = "Pshapes Website Admin"
 
-from provchanges.views import SubmitChangeWizard
-
 urlpatterns = [
-    url('^$', "pshapes_site.views.home"),
-    url('^about/$', "pshapes_site.views.about"),
 
-    url('^testgrid/$', "pshapes_site.views.testgrid"),
-    
-    url('^data/$', "provshapes.views.data"),
+    # -----
+    # HOME
+    url('^$', "pshapes_site.views.home"),
+
+
+    # ------------
+    # INTERACTIVE
     url('^interactive/$', "provshapes.views.interactive"),
 
+
+    # -----------
+    # CONTRIBUTE
     url('^contribute/$', "provchanges.views.contribute"),
-    url('^contribute/browse/$', "provchanges.views.contribute_browse"),
-    #url('^contribute/accepted/$', "provchanges.views.contribute_accepted"),
-    #url('^contribute/pending/$', "provchanges.views.contribute_pending"),
-    url('^contribute/countries/$', "provchanges.views.contribute_countries"),
-    url('^(?i)contribute/countries/(?P<country>.*)/$', "provchanges.views.contribute_countries_country"),
-    url('^contribute/submitchange/$', SubmitChangeWizard.as_view() ),
-    url(r'^event/view/$', "provchanges.views.viewevent", name="viewevent"),
-    url(r'^event/edit/$', "provchanges.views.editevent", name="editevent"),
+
+    # country
+    url('^contribute/view/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.viewcountry"),
+    url('^contribute/add/$', "provchanges.views.addcountry"),
+    url('^contribute/edit/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.editcountry"),
+
+    # province (event or change depending on get params)
+    url('^contribute/view/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.viewprov"), # event
+    url('^contribute/add/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.addprov"),
+    url('^contribute/add/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.addprov"),
+    url('^contribute/edit/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.editprov"), # event
+
+    # provchange (should be phased out, maybe allow via get param instead?)
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
 
+
+    # ------
+    # ABOUT
+    url('^about/$', "pshapes_site.views.about"),
+
+
+    # -----
+    # DATA
+    url('^data/$', "provshapes.views.data"),
+
+
+
+    # --------
+    # (USERS)
     url('^registration/$', "provchanges.views.registration"),
     url('^login/$', "provchanges.views.login"),
     url('^logout/$', "provchanges.views.logout"),
-    
+
+
+    # -------
+    # (TESTING)
+    url('^testgrid/$', "pshapes_site.views.testgrid"),
     url('^timetest/$', "cshapes.views.mapview"),
     url(r'^admin/$', include(admin.site.urls)),
+
+
+    
 ]
 
 # Wire up our API using automatic URL routing.

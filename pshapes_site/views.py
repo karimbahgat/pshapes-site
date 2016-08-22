@@ -138,19 +138,13 @@ def home(request):
 
                         <br><br>
                         <ul style="list-style-type:none">
-                            <li><a href="/contribute/countries" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Submit New Change</b>
-                            </a></li>
-
-                            <br>
-                            
-                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Review Existing Changes</b>
+                            <li><a href="/contribute" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Contribute Now</b>
                             </a></li>
 
                             <br>
 
-                            <li><a href="/contribute/browse/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <li><a href="/account/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Account Settings</b>
                             </a></li>
 
