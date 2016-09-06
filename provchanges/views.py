@@ -424,11 +424,44 @@ def viewcountry(request, country):
         elif typ == "NewInfo":
             prov = obj.toname
             return typ,prov
-    sortkey = lambda o:(o.date,typeprov(o))
-    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
+    def events():
+        datekey = lambda o: o.date
+        for date,dategroup in itertools.groupby(sorted(changes,key=datekey), key=datekey):
+            dategroup = list(dategroup)
+            #splits
+            subkey = lambda o: o.fromname
+            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+                splitgroup = list(splitgroup)
+                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
+                if splits:
+                    splits.extend((ch for ch in splitgroup if ch.type == "NewInfo"))
+                    yield (date,("Split",splitfrom)), splits
+            # mergers
+            subkey = lambda o: o.toname
+            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+                mergegroup = list(mergegroup)
+                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
+                if mergers:
+                    mergers.extend((ch for ch in mergegroup if ch.type == "NewInfo"))
+                    yield (date,("Expansion",mergeto)), mergers
+            # newinfos
+            subkey = lambda o: o.fromname
+            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type and ch not in splits and ch not in mergers]
+                if newinfos:
+                    yield (date,("NewInfo",fromname)), newinfos
+
+    events = events()
+    
+##    sortkey = lambda o:(o.date,typeprov(o))
+##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
+    
     def getlinkrow(date,prov,typ,items):
-        firstitem = next(items)
+        items = list(items)
+        firstitem = items[0]
         if typ == "NewInfo":
+            if len(set((i.type for i in items))) > 1:
+                return None # if items has NewInfo and some other type that means it should be part of that other type and not listed as a separate newinfo event
             link = "/provchange/{pk}/view/".format(pk=firstitem.pk)
         elif typ == "Split":
             fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
@@ -463,17 +496,12 @@ def addcountry(request):
 
 
 def viewprov(request, country, province):
-    if all((k in request.GET for k in "date type".split())) and len(request.GET) <= 10:
+    if all((k in request.GET for k in "date type".split())):
         # view event, ensure enough params
         return viewevent(request, country, province)
 
-    elif len(request.GET) > 10:
-        # view individual change, ensure enough params are provided
-        kjhlihkjlkjkljlj
-        return viewchange(request)
-
     else:
-        raise Exception("Either set date and type params to view an event, or full set of params to view specific change")
+        raise Exception("You must set at least the date and type GET params to view an event")
 
 def editprov(request):
     pass
@@ -514,14 +542,15 @@ def viewevent(request, country, province):
     """
     print "TYPE",repr(typ)
     if typ == "NewInfo":
+        # shouldnt happen...
         fields = ["fromname","type"]
         changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",toname=prov)
     elif typ == "Split":
-        fields = ["toname","type"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
+        fields = ["fromname","toname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type__in=["Breakaway","NewInfo"],fromname=prov)
     elif typ == "Expansion":
-        fields = ["fromname","type"]
-        changes = ProvChange.objects.filter(country=country,date=date,type__contains="Transfer",toname=prov)
+        fields = ["fromname","toname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov) | ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
     changes = changes.order_by("-added") # the dash reverses the order
     changestable = model2table(request, title="", objects=changes, fields=fields)
 
@@ -1344,33 +1373,33 @@ class CustomOLWidget(OpenLayersWidget):
 function syncwms() {
 var wmsurl = "%s";
 if (wmsurl.trim() != "") {
-    var layerlist = geodjango_4_transfer_geom.map.getLayersByName('Custom WMS');
+    var layerlist = geodjango_5_transfer_geom.map.getLayersByName('Custom WMS');
     
     if (layerlist.length >= 1) 
         {
         // replace existing
-        geodjango_4_transfer_geom.map.removeLayer(layerlist[0]);
+        geodjango_5_transfer_geom.map.removeLayer(layerlist[0]);
         };
         
     customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
     customwms.isBaseLayer = false;
-    geodjango_4_transfer_geom.map.addLayer(customwms);
-    geodjango_4_transfer_geom.map.setLayerIndex(customwms, 1);
+    geodjango_5_transfer_geom.map.addLayer(customwms);
+    geodjango_5_transfer_geom.map.setLayerIndex(customwms, 1);
 
     // zoom to country bbox somehow
-    //geodjango_4_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
+    //geodjango_5_transfer_geom.map.zoomToExtent(customwms.getDataExtent());
 };
 // layer switcher
-geodjango_4_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
+geodjango_5_transfer_geom.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
 
 // other controls
 /*
-geodjango_4_transfer_geom.map.controls.forEach(function (contr){
+geodjango_5_transfer_geom.map.controls.forEach(function (contr){
     alert(contr.displayClass)
-    //geodjango_4_transfer_geom.map.removeControl(contr);
+    //geodjango_5_transfer_geom.map.removeControl(contr);
     if (contr.displayClass != "olControlDrawFeaturePolygon")
         {
-        geodjango_4_transfer_geom.map.removeControl(contr);
+        geodjango_5_transfer_geom.map.removeControl(contr);
         };
     });
 */
@@ -1882,6 +1911,12 @@ class AddChangeWizard(SessionWizardView):
         eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
         print eventvalues
 
+        if eventvalues["type"].strip('"') == "Expansion" and formfieldvalues["type"].strip('"') == "NewInfo":
+            # all tos become froms when newinfo for expansion event
+            trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
+            eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
+            eventvalues.update(trans)
+
         objvalues = dict(eventvalues)
         objvalues.update(formfieldvalues)
         print objvalues
@@ -1921,6 +1956,7 @@ class AddExpansionChangeWizard(AddChangeWizard):
 
     form_list = [   ExpansionTypeChangeForm,
                     FromChangeForm,
+                    ToChangeForm,
                      HistoMapForm,
                      GeorefForm,
                       GeoChangeForm,
@@ -1930,12 +1966,13 @@ class AddExpansionChangeWizard(AddChangeWizard):
         typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
         print wiz.get_cleaned_data_for_step("0")
         return "Transfer" in typeformdata["type"]
-    
+
     condition_dict = {"0": lambda wiz: True,
-                      "1": lambda wiz: True,
-                      "2": _geomode,
+                      "1": lambda wiz: wiz.get_cleaned_data_for_step("0")["type"] != "NewInfo" if wiz.get_cleaned_data_for_step("0") else None,
+                      "2": lambda wiz: wiz.get_cleaned_data_for_step("0")["type"] == "NewInfo" if wiz.get_cleaned_data_for_step("0") else None,
                       "3": _geomode,
-                      "4": _geomode,}
+                      "4": _geomode,
+                      "5": _geomode,}
 
     country = None
     province = None
@@ -1955,7 +1992,7 @@ class AddExpansionChangeWizard(AddChangeWizard):
             # ADD CUSTOM WMS
             typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
             if "Transfer" in typeformdata["type"]:
-                wmsdata = self.get_cleaned_data_for_step("3") or {}
+                wmsdata = self.get_cleaned_data_for_step("4") or {}
                 wms = wmsdata.get("transfer_source")
                 if wms:
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
