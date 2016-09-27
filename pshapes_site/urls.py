@@ -35,15 +35,15 @@ urlpatterns = [
     url('^contribute/$', "provchanges.views.contribute"),
 
     # country
-    url('^contribute/view/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.viewcountry"),
+    url('^contribute/view/(?P<country>[^/]+)/$', "provchanges.views.viewcountry"),
     url('^contribute/add/$', "provchanges.views.addcountry"),
-    url('^contribute/edit/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.editcountry"),
+    url('^contribute/edit/(?P<country>[^/]+)/$', "provchanges.views.editcountry"),
 
     # province (event or change depending on get params)
-    url('^contribute/view/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.viewprov"), # event
-    url('^contribute/add/(?P<country>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.addprov"),
-    url('^contribute/add/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.addprov"),
-    url('^contribute/edit/(?P<country>[a-zA-Z0-9\-\_]*)/(?P<province>[a-zA-Z0-9\-\_]*)/$', "provchanges.views.editprov"), # event
+    url('^contribute/view/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.viewprov"), # event
+    url('^contribute/add/(?P<country>[^/]+)/$', "provchanges.views.addprov"),
+    url('^contribute/add/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.addprov"),
+    url('^contribute/edit/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.editprov"), # event
 
     # provchange (should be phased out, maybe allow via get param instead?)
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),

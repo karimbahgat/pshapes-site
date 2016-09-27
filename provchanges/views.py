@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import admin
 
+from django.utils.http import urlquote, urlencode
+
 from django.core.paginator import Paginator
 
 from rest_framework import response
@@ -323,7 +325,7 @@ def contribute(request):
         rowdict = rowdicts[country]
         print rowdict
         row = [rowdict[f] for f in fields]
-        url = "/contribute/view/%s" % rowdict["country"]
+        url = "/contribute/view/%s" % urlquote(rowdict["country"])
         lists.append((url,row))
     
     countriestable = lists2table(request, lists=lists,
@@ -401,7 +403,7 @@ def contribute(request):
 
 def viewcountry(request, country):
     # TODO: Add "new-event" button
-    bannertitle = "%s:"%country
+    bannertitle = "%s:"%country.encode("utf8")
     bannerleft = """
                     <div style="text-align:left">
                         [INSERT MAP HERE]
@@ -465,12 +467,12 @@ def viewcountry(request, country):
             link = "/provchange/{pk}/view/".format(pk=firstitem.pk)
         elif typ == "Split":
             fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
-            params = ["%s=%s" % (field,getattr(firstitem,field)) for field in fields]
-            link = "/contribute/view/{country}/{prov}?".format(country=country, prov=prov) + "&".join(params+['type="Split"'])
+            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
         elif typ == "Expansion":
             fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
-            params = ["%s=%s" % (field,getattr(firstitem,field)) for field in fields]
-            link = "/contribute/view/{country}/{prov}?".format(country=country, prov=prov) + "&".join(params+['type="Expansion"'])
+            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
         return link,(date,prov,typ)
     events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
     eventstable = lists2table(request, events, ["Date", "Province", "EventType"])
@@ -478,7 +480,7 @@ def viewcountry(request, country):
     content = eventstable
     
     grids = []
-    grids.append(dict(title='List of events: <a href="/contribute/add/%s">Add event</a>' % country,
+    grids.append(dict(title='List of events: <a href="/contribute/add/%s">Add event</a>' % urlquote(country),
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -526,7 +528,7 @@ def viewevent(request, country, province):
     prov = province #request.GET["prov"].strip('"').strip("'").strip()
     typ = request.GET["type"].strip('"').strip("'").strip()
     
-    bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{country}</a>, {prov}:'.format(country=country,prov=prov)
+    bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
     bannerleft = """
                     <div style="text-align:left">
                         <b>Event type:</b> {typ}
@@ -557,7 +559,7 @@ def viewevent(request, country, province):
     content = changestable
     
     grids = []
-    grids.append(dict(title='Event changes: <a href="/contribute/add/{country}/{province}?{params}">Add change</a>'.format(country=country, province=prov, params=request.GET.urlencode()),
+    grids.append(dict(title='Event changes: <a href="/contribute/add/{country}/{province}?{params}">Add change</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -758,15 +760,16 @@ def viewchange(request, pk):
         note = ""
 
     if change.type == "Breakaway":
-        params = ["%s=%s" %(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]
-        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=change.country, prov=change.fromname) + "&".join(params)
-    elif change.type == "Expansion":
-        params = ["%s=%s" %(k,getattr(change,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]
-        eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=change.country, prov=change.fromname) + "&".join(params)
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
+    elif "Transfer" in change.type:
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
     elif change.type == "NewInfo":
         eventlink = None
         pass # ...
-    print eventlink
+    print 99999,change.type, change
+    print 1111,eventlink
 
     pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
     pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
@@ -1078,9 +1081,9 @@ class AddEventWizard(SessionWizardView):
             # ....
             
         keys = data.keys() #["date","source","type"]
-        params = ["%s=%s" % (key,data[key]) for key in keys]
-        params += ["country=%s" % country]
-        url = "/contribute/view/{country}/{prov}?".format(country=country, prov=prov) + "&".join(params)
+        params = urlencode( [(key,data[key]) for key in keys] + [("country",country)] )
+        print params
+        url = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params
         html = redirect(url)
 
         return html
