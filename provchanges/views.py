@@ -436,7 +436,6 @@ def viewcountry(request, country):
                 splitgroup = list(splitgroup)
                 splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
                 if splits:
-                    splits.extend((ch for ch in splitgroup if ch.type == "NewInfo"))
                     yield (date,("Split",splitfrom)), splits
             # mergers
             subkey = lambda o: o.toname
@@ -444,12 +443,11 @@ def viewcountry(request, country):
                 mergegroup = list(mergegroup)
                 mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
                 if mergers:
-                    mergers.extend((ch for ch in mergegroup if ch.type == "NewInfo"))
                     yield (date,("Expansion",mergeto)), mergers
             # newinfos
             subkey = lambda o: o.fromname
             for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type and ch not in splits and ch not in mergers]
+                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
                 if newinfos:
                     yield (date,("NewInfo",fromname)), newinfos
 
@@ -462,9 +460,9 @@ def viewcountry(request, country):
         items = list(items)
         firstitem = items[0]
         if typ == "NewInfo":
-            if len(set((i.type for i in items))) > 1:
-                return None # if items has NewInfo and some other type that means it should be part of that other type and not listed as a separate newinfo event
-            link = "/provchange/{pk}/view/".format(pk=firstitem.pk)
+            fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
         elif typ == "Split":
             fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
             params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
@@ -544,22 +542,24 @@ def viewevent(request, country, province):
     """
     print "TYPE",repr(typ)
     if typ == "NewInfo":
-        # shouldnt happen...
-        fields = ["fromname","type"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",toname=prov)
+        tabletitle = "Information changes"
+        fields = ["toname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
     elif typ == "Split":
-        fields = ["fromname","toname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type__in=["Breakaway","NewInfo"],fromname=prov)
+        tabletitle = "Breakaway provinces"
+        fields = ["toname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
     elif typ == "Expansion":
-        fields = ["fromname","toname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov) | ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
+        tabletitle = "Transfers of territory"
+        fields = ["fromname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
     changes = changes.order_by("-added") # the dash reverses the order
     changestable = model2table(request, title="", objects=changes, fields=fields)
 
     content = changestable
     
     grids = []
-    grids.append(dict(title='Event changes: <a href="/contribute/add/{country}/{province}?{params}">Add change</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
+    grids.append(dict(title=tabletitle + ': <a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -592,6 +592,8 @@ def addchange(request, country, province):
         print 888,func
     elif request.GET["type"].lower().strip('"') == "expansion":
         func = AddExpansionChangeWizard.as_view(country=country, province=province)
+    elif request.GET["type"].lower().strip('"') == "newinfo":
+        func = AddNewInfoChangeWizard.as_view(country=country, province=province)
     return func(request)
 
 ##    if request.method == "POST":
@@ -766,8 +768,8 @@ def viewchange(request, pk):
         params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
     elif change.type == "NewInfo":
-        eventlink = None
-        pass # ...
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
     print 99999,change.type, change
     print 1111,eventlink
 
@@ -1047,7 +1049,7 @@ class AddEventWizard(SessionWizardView):
     condition_dict = {"0": lambda wiz: True,
                       "1": lambda wiz: True,
                       "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
-                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Expansion","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
+                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] == "Expansion" if wiz.get_cleaned_data_for_step("1") else False,
                       }
 
     country = None
@@ -1077,30 +1079,7 @@ class AddEventWizard(SessionWizardView):
         elif data["type"] == "Split":
             prov = data["fromname"]
         elif data["type"] == "NewInfo":
-            # NOT YET DONE...
-            print "DONE!", form_list, form_dict, kwargs
-            
-            fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-            formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-            formfieldvalues["user"] = self.request.user.username
-            formfieldvalues["added"] = datetime.date.today()
-            formfieldvalues["bestversion"] = True
-            print formfieldvalues
-
-            eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
-            print eventvalues
-
-            objvalues = dict(eventvalues)
-            objvalues.update(formfieldvalues)
-            print objvalues
-            obj = ProvChange.objects.create(**objvalues)
-            obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-            print obj
-            
-            obj.save()
-            html = redirect("/provchange/%s/view/" % obj.pk)
-
-            return html
+            prov = data["fromname"]
             
         keys = data.keys() #["date","source","type"]
         params = urlencode( [(key,data[key]) for key in keys] + [("country",country)] )
@@ -1950,10 +1929,35 @@ class AddChangeWizard(SessionWizardView):
         print obj
         
         obj.save()
-        html = redirect("/provchange/%s/view/" % obj.pk)
+
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
 
         return html
 
+
+class AddNewInfoChangeWizard(AddChangeWizard):
+
+    form_list = [   
+                    ToChangeForm,
+                      ]
+
+    country = None
+    province = None
+    
+    def get_form(self, step=None, data=None, files=None):
+        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+        if data:
+            print data
+            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+        else:
+            data = {}
+        print data
+
+        form = super(AddNewInfoChangeWizard, self).get_form(step, data=data, files=files)        
+
+        return form
 
 class AddSplitChangeWizard(AddChangeWizard):
 
