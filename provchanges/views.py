@@ -1047,7 +1047,7 @@ class AddEventWizard(SessionWizardView):
     condition_dict = {"0": lambda wiz: True,
                       "1": lambda wiz: True,
                       "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
-                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] == "Expansion" if wiz.get_cleaned_data_for_step("1") else False,
+                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Expansion","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
                       }
 
     country = None
@@ -1077,8 +1077,30 @@ class AddEventWizard(SessionWizardView):
         elif data["type"] == "Split":
             prov = data["fromname"]
         elif data["type"] == "NewInfo":
-            sfafdsafdas
-            # ....
+            # NOT YET DONE...
+            print "DONE!", form_list, form_dict, kwargs
+            
+            fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+            formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
+            formfieldvalues["user"] = self.request.user.username
+            formfieldvalues["added"] = datetime.date.today()
+            formfieldvalues["bestversion"] = True
+            print formfieldvalues
+
+            eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
+            print eventvalues
+
+            objvalues = dict(eventvalues)
+            objvalues.update(formfieldvalues)
+            print objvalues
+            obj = ProvChange.objects.create(**objvalues)
+            obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
+            print obj
+            
+            obj.save()
+            html = redirect("/provchange/%s/view/" % obj.pk)
+
+            return html
             
         keys = data.keys() #["date","source","type"]
         params = urlencode( [(key,data[key]) for key in keys] + [("country",country)] )
