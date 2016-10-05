@@ -402,34 +402,37 @@ def contribute(request):
 
 
 def viewcountry(request, country):
-    # TODO: Add "new-event" button
-    bannertitle = "%s:"%country.encode("utf8")
-    bannerleft = """
-                    <div style="text-align:left">
-                        [INSERT MAP HERE]
-		    </div>
-    """
-    bannerright = """
-			Maybe some country stats...
-    """
 
-    changes = ProvChange.objects.filter(country=country).order_by("-added") # the dash reverses the order
-    import itertools
-    def typeprov(obj):
-        typ = obj.type
-        if "Transfer" in typ:
-            prov = obj.toname
-            return "Expansion",prov
-        elif typ == "Breakaway":
-            prov = obj.fromname
-            return "Split",prov
-        elif typ == "NewInfo":
-            prov = obj.toname
-            return typ,prov
-    def events():
-        datekey = lambda o: o.date
-        for date,dategroup in itertools.groupby(sorted(changes,key=datekey), key=datekey):
-            dategroup = list(dategroup)
+    if "date" in request.GET:
+        # date given, show all events on that date
+        date = request.GET["date"]
+        bannertitle = "{country}, {date}:".format(country=country.encode("utf8"),
+                                                date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
+        bannerleft = """
+                        <div style="text-align:left">
+                            [INSERT MAP HERE]
+                        </div>
+        """
+        bannerright = """
+                        Insert something...
+        """
+        
+        changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
+        import itertools
+        
+        def typeprov(obj):
+            typ = obj.type
+            if "Transfer" in typ:
+                prov = obj.toname
+                return "Expansion",prov
+            elif typ == "Breakaway":
+                prov = obj.fromname
+                return "Split",prov
+            elif typ == "NewInfo":
+                prov = obj.toname
+                return typ,prov
+        def events():
+            dategroup = list(changes)
             #splits
             subkey = lambda o: o.fromname
             for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
@@ -451,42 +454,97 @@ def viewcountry(request, country):
                 if newinfos:
                     yield (date,("NewInfo",fromname)), newinfos
 
-    events = events()
-    
-##    sortkey = lambda o:(o.date,typeprov(o))
-##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
-    
-    def getlinkrow(date,prov,typ,items):
-        items = list(items)
-        firstitem = items[0]
-        if typ == "NewInfo":
-            fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
-            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
-        elif typ == "Split":
-            fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
-            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
-        elif typ == "Expansion":
-            fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
-            params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-            link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
-        return link,(date,prov,typ)
-    events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
-    eventstable = lists2table(request, events, ["Date", "Province", "EventType"])
+        events = events()
+        
+    ##    sortkey = lambda o:(o.date,typeprov(o))
+    ##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
+        
+        def getlinkrow(date,prov,typ,items):
+            items = list(items)
+            firstitem = items[0]
+            if typ == "NewInfo":
+                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
+            elif typ == "Split":
+                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
+            elif typ == "Expansion":
+                fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
+                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
+            return link,(prov,typ)
+        events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
+        eventstable = lists2table(request, events, ["Province", "EventType"])
 
-    content = eventstable
-    
-    grids = []
-    grids.append(dict(title='List of events: <a href="/contribute/add/%s">Add event</a>' % urlquote(country),
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
-    
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-                  )
+        content = eventstable
+        
+        grids = []
+        grids.append(dict(title='Events: <a href="/contribute/add/{country}?date={date}">Add new</a>'.format(country=urlquote(country), date=urlquote(date)),
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+        
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+                      )
+
+    else:
+        bannertitle = "Timeline for %s" % country.encode("utf8")
+        bannerleft = """
+                        <div style="text-align:left">
+                            [INSERT MAP HERE]
+                        </div>
+        """
+        bannerright = """
+                        <div style="background-color:rgb(248,234,150); outline: black solid thick;">
+                        <p style="font-size:large; font-weight:bold">Note:</p>
+                        <p style="font-size:medium; font-style:italic">
+                        There are several types of sources you can use:
+                        <ul>
+                            <li>
+                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+                            in great detail, and should be the first place to look.
+                            </li>
+
+                            <li>
+                            The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                            can sometimes also be a useful reference.
+                            </li>
+
+                            <li>
+                            You can also use offline sources such as a book or an article.
+                            </li>
+                        </ul>
+                        </p>
+                        </div>
+        """
+
+
+        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
+        print dates
+
+        def getlinkrow(date):
+            link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
+            return link, (date,)
+
+        daterows = [getlinkrow(date) for date in dates]
+        datestable = lists2table(request, daterows, ["Date"])
+
+        content = datestable
+        
+        grids = []
+        grids.append(dict(title='Dates: <a href="/contribute/add/%s">Add new</a>' % urlquote(country),
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+        
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+                      )
 
 def editcountry(request):
     pass
@@ -508,12 +566,22 @@ def editprov(request):
 
 def addprov(request, country, province=None):
     if len(request.GET) == 0:
+        # add date
+        return adddate(request, country)
+
+    if len(request.GET) == 1 and "date" in request.GET:
         # add event, ensure enough params
         return addevent(request, country)
 
     else:
         # add individual change (preferably to existing event), ensure enough params are provided
         return addchange(request, country, province)
+
+@login_required
+def adddate(request, country):
+    func = AddDateWizard.as_view(country=country)
+    return func(request)
+
 
 
 def viewevent(request, country, province):
@@ -525,17 +593,20 @@ def viewevent(request, country, province):
     date = datetime.date(year=y,month=m,day=d)
     prov = province #request.GET["prov"].strip('"').strip("'").strip()
     typ = request.GET["type"].strip('"').strip("'").strip()
-    
-    bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
+
+    if typ == "Split":
+        bannertitle = "{provtext} province split into new provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+    elif typ == "Expansion":
+        bannertitle = "{provtext} province received territory from existing provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+    elif typ == "NewInfo":
+        bannertitle = "{provtext} province changed some of its information on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+    else:
+        raise Exception()
+    #bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
     bannerleft = """
-                    <div style="text-align:left">
-                        <b>Event type:</b> {typ}
-                        <br><br>
-                        <b>Date:</b> {date}
-                        <br><br>
-                        
+                    <div style="text-align:left">                 
 		    </div>
-    """.format(typ=typ,date=date)
+    """
     bannerright = """
                         <br><br><br><br>
 			What else... Maybe image for type of event, and quick stats of how many changes etc in this event...
@@ -921,43 +992,18 @@ class UserInfoForm(forms.ModelForm):
 
 # Event forms
 
-class GeneralEventForm(forms.ModelForm):
+class SourceEventForm(forms.ModelForm):
 
-    step_title = "Basic Information"
+    step_title = "Source of Information"
     step_descr = """
-                    Welcome to the step-by-step wizard for submitting historical
-                    changes to the "primary" or "level-1" sub-administrative units of countries.
-                    At what date did the event occur, and where are you getting the information from? 
-                    <br><br>
-
-                    <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
-                    <p style="font-size:large; font-weight:bold">Note:</p>
-                    <p style="font-size:medium; font-style:italic">
-                    There are several types of sources you can use:
-                    <ul>
-                        <li>
-                        <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-                        in great detail, and should be the first place to look.
-                        </li>
-
-                        <li>
-                        The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                        can sometimes also be a useful reference.
-                        </li>
-
-                        <li>
-                        You can also use offline sources such as a book or an article.
-                        </li>
-                    </ul>
-                    </p>
-                    </div>
+                   Where are you getting the information from? 
+                
                    """
 
     class Meta:
         model = ProvChange
-        fields = ['date', 'source']
-        widgets = {"date": CustomDateWidget()}
-
+        fields = ['source']
+        
 from django.forms.widgets import RadioFieldRenderer
 
 EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
@@ -1037,9 +1083,51 @@ class ToEventForm(forms.ModelForm):
         model = ProvChange
         fields = 'toname toiso tofips tohasc tocapital totype'.split()
 
+class DateForm(forms.Form):
+
+    step_title = "Date"
+    step_descr = """
+                    On what date did the changes occur? 
+                   """
+    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1946, 2014+1)])
+    month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
+    day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
+
+
+class AddDateWizard(SessionWizardView):
+    form_list = [   DateForm,
+                      ]
+
+    country = None
+
+    def __iter__(self):
+        for step in self.get_form_list():
+            yield self.get_form(step=step)
+ 
+    def get_context_data(self, form, **kwargs):
+        context = super(AddDateWizard, self).get_context_data(form=form, **kwargs)
+        context.update({'wizard_subclass': self})
+        return context
+
+    def get_template_names(self):
+        return ["provchanges/adddate.html"]
+
+    def done(self, form_list, form_dict, **kwargs):
+        # NOT YET DONE...
+        print "DONE!", form_list, form_dict, kwargs
+
+        data = form_list[0].cleaned_data
+        data = dict(((k,int(v)) for k,v in data.items()))
+        date = datetime.date(**data)
+        country = self.country
+
+        url = "/contribute/view/{country}?date={date}".format(country=urlquote(country), date=urlquote(date))
+        html = redirect(url)
+
+        return html
 
 class AddEventWizard(SessionWizardView):
-    form_list = [   GeneralEventForm,
+    form_list = [   SourceEventForm,
                      TypeEventForm,
                       FromEventForm,
                       ToEventForm,
@@ -1071,6 +1159,7 @@ class AddEventWizard(SessionWizardView):
         print "DONE!", form_list, form_dict, kwargs
         
         data = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items()))
+        data["date"] = self.request.GET["date"]
         print "DATA",data
         country = self.country
         
@@ -1203,7 +1292,7 @@ class TypeChangeRenderer(RadioFieldRenderer):
 class ExpansionTypeChangeRenderer(RadioFieldRenderer):
 
     def render(self):
-        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in ["NewInfo","PartTransfer","FullTransfer"]]
+        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in ["PartTransfer","FullTransfer"]]
         html = """
             <table class="myradio">
             {% for choice,extra in choices %}
@@ -1224,7 +1313,7 @@ class ExpansionTypeChangeRenderer(RadioFieldRenderer):
 class SplitTypeChangeRenderer(RadioFieldRenderer):
 
     def render(self):
-        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in ["NewInfo","Breakaway"]]
+        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in ["Breakaway"]]
         html = """
             <table class="myradio">
             {% for choice,extra in choices %}
@@ -1929,10 +2018,7 @@ class AddChangeWizard(SessionWizardView):
         print obj
         
         obj.save()
-
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
-        html = redirect(eventlink)
+        html = self.done_redirect(obj)
 
         return html
 
@@ -1959,6 +2045,12 @@ class AddNewInfoChangeWizard(AddChangeWizard):
 
         return form
 
+    def done_redirect(self, obj):
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+
 class AddSplitChangeWizard(AddChangeWizard):
 
     form_list = [   SplitTypeChangeForm,
@@ -1981,6 +2073,12 @@ class AddSplitChangeWizard(AddChangeWizard):
 
         return form
 
+    def done_redirect(self, obj):
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+    
 class AddExpansionChangeWizard(AddChangeWizard):
 
     form_list = [   ExpansionTypeChangeForm,
@@ -2028,7 +2126,12 @@ class AddExpansionChangeWizard(AddChangeWizard):
                     form.fields['transfer_geom'].widget.wms = wms
         return form
     
-
+    def done_redirect(self, obj):
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+    
 ##class SubmitChangeWizard(SessionWizardView):
 ##    form_list = [   GeneralChangeForm,
 ##                     TypeChangeForm,
