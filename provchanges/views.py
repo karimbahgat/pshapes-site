@@ -401,22 +401,154 @@ def contribute(request):
 ##                  )
 
 
+##def viewcountry(request, country):
+##
+##    if "date" in request.GET:
+##        # date given, show all events on that date
+##        date = request.GET["date"]
+##        bannertitle = "{country}, {date}:".format(country=country.encode("utf8"),
+##                                                date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
+##        bannerleft = """
+##                        <div style="text-align:left">
+##                            [INSERT MAP HERE]
+##                        </div>
+##        """
+##        bannerright = """
+##                        Insert something...
+##        """
+##        
+##        changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
+##        import itertools
+##        
+##        def typeprov(obj):
+##            typ = obj.type
+##            if "Transfer" in typ:
+##                prov = obj.toname
+##                return "Expansion",prov
+##            elif typ == "Breakaway":
+##                prov = obj.fromname
+##                return "Split",prov
+##            elif typ == "NewInfo":
+##                prov = obj.toname
+##                return typ,prov
+##        def events():
+##            dategroup = list(changes)
+##            #splits
+##            subkey = lambda o: o.fromname
+##            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                splitgroup = list(splitgroup)
+##                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
+##                if splits:
+##                    yield (date,("Split",splitfrom)), splits
+##            # mergers
+##            subkey = lambda o: o.toname
+##            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                mergegroup = list(mergegroup)
+##                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
+##                if mergers:
+##                    yield (date,("Expansion",mergeto)), mergers
+##            # newinfos
+##            subkey = lambda o: o.fromname
+##            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
+##                if newinfos:
+##                    yield (date,("NewInfo",fromname)), newinfos
+##
+##        events = events()
+##        
+##    ##    sortkey = lambda o:(o.date,typeprov(o))
+##    ##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
+##        
+##        def getlinkrow(date,prov,typ,items):
+##            items = list(items)
+##            firstitem = items[0]
+##            if typ == "NewInfo":
+##                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
+##            elif typ == "Split":
+##                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
+##            elif typ == "Expansion":
+##                fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
+##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
+##            return link,(prov,typ)
+##        events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
+##        eventstable = lists2table(request, events, ["Province", "EventType"])
+##
+##        content = eventstable
+##        
+##        grids = []
+##        grids.append(dict(title='Events: <a href="/contribute/add/{country}?date={date}">Add new</a>'.format(country=urlquote(country), date=urlquote(date)),
+##                          content=content,
+##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                          width="99%",
+##                          ))
+##        
+##        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+##                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+##                      )
+##
+##    else:
+##        bannertitle = "Timeline for %s" % country.encode("utf8")
+##        bannerleft = """
+##                        <div style="text-align:left">
+##                            [INSERT MAP HERE]
+##                        </div>
+##        """
+##        bannerright = """
+##                        <div style="background-color:rgb(248,234,150); outline: black solid thick;">
+##                        <p style="font-size:large; font-weight:bold">Note:</p>
+##                        <p style="font-size:medium; font-style:italic">
+##                        There are several types of sources you can use:
+##                        <ul>
+##                            <li>
+##                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
+##                            in great detail, and should be the first place to look.
+##                            </li>
+##
+##                            <li>
+##                            The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+##                            can sometimes also be a useful reference.
+##                            </li>
+##
+##                            <li>
+##                            You can also use offline sources such as a book or an article.
+##                            </li>
+##                        </ul>
+##                        </p>
+##                        </div>
+##        """
+##
+##
+##        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
+##        print dates
+##
+##        def getlinkrow(date):
+##            link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
+##            return link, (date,)
+##
+##        daterows = [getlinkrow(date) for date in dates]
+##        datestable = lists2table(request, daterows, ["Date"])
+##
+##        content = datestable
+##        
+##        grids = []
+##        grids.append(dict(title='Dates: <a href="/contribute/add/%s">Add new</a>' % urlquote(country),
+##                          content=content,
+##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                          width="99%",
+##                          ))
+##        
+##        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+##                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+##                      )
+
 def viewcountry(request, country):
 
-    if "date" in request.GET:
-        # date given, show all events on that date
-        date = request.GET["date"]
-        bannertitle = "{country}, {date}:".format(country=country.encode("utf8"),
-                                                date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
-        bannerleft = """
-                        <div style="text-align:left">
-                            [INSERT MAP HERE]
-                        </div>
-        """
-        bannerright = """
-                        Insert something...
-        """
-        
+    def getdateeventstable(date):        
         changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
         import itertools
         
@@ -456,9 +588,6 @@ def viewcountry(request, country):
 
         events = events()
         
-    ##    sortkey = lambda o:(o.date,typeprov(o))
-    ##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
-        
         def getlinkrow(date,prov,typ,items):
             items = list(items)
             firstitem = items[0]
@@ -480,7 +609,24 @@ def viewcountry(request, country):
 
         content = eventstable
         
+        return content
+
+    if "date" in request.GET:
+        # date given, show all events on that date
+        date = request.GET["date"]
+        bannertitle = "{country} events for {date}:".format(country=country.encode("utf8"),
+                                                            date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
+        bannerleft = """
+                        <div style="text-align:left">
+                            [INSERT MAP HERE]
+                        </div>
+        """
+        bannerright = """
+                        Insert something...
+        """
+    
         grids = []
+        content = getdateeventstable(date)
         grids.append(dict(title='Events: <a href="/contribute/add/{country}?date={date}">Add new</a>'.format(country=urlquote(country), date=urlquote(date)),
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -494,15 +640,22 @@ def viewcountry(request, country):
     else:
         bannertitle = "Timeline for %s" % country.encode("utf8")
         bannerleft = """
-                        <div style="text-align:left">
+                        <div id="blackbackground" style="text-align:left">
                             [INSERT MAP HERE]
+                            <br><br><br><br><br><br><br><br><br><br>
+                            Can't find the date you are looking for? <a href="/contribute/add/{country}">Add date</a>
                         </div>
-        """
+        """.format(country=urlquote(country))
         bannerright = """
-                        <div style="background-color:rgb(248,234,150); outline: black solid thick;">
-                        <p style="font-size:large; font-weight:bold">Note:</p>
+                        <style>
+                            #blackbackground a { color:white }
+                            #blackbackground a:visited { color:grey }
+                        </style>
+                        
+                        <div id="blackbackground" style="text-align: left">
+                        <br><br>
+                        <p style="font-size:large; font-weight:bold">Useful Sources:</p>
                         <p style="font-size:medium; font-style:italic">
-                        There are several types of sources you can use:
                         <ul>
                             <li>
                             <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
@@ -526,25 +679,28 @@ def viewcountry(request, country):
         dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
         print dates
 
-        def getlinkrow(date):
-            link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
-            return link, (date,)
+    ##    def getlinkrow(date):
+    ##        link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
+    ##        return link, (date,)
 
-        daterows = [getlinkrow(date) for date in dates]
-        datestable = lists2table(request, daterows, ["Date"])
+    ##    daterows = [getlinkrow(date) for date in dates]
+    ##    datestable = lists2table(request, daterows, ["Date"])
 
-        content = datestable
+    ##    content = datestable
         
         grids = []
-        grids.append(dict(title='Dates: <a href="/contribute/add/%s">Add new</a>' % urlquote(country),
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="99%",
-                          ))
+        for date in dates:
+            content = getdateeventstable(date)
+            grids.append(dict(title='{date}: <a href="/contribute/add/{country}?date={date}">Add event</a>'.format(date=date, country=urlquote(country)),
+                              content=content,
+                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                              width="99%",
+                              ))
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                                "bannerleft":bannerleft, "bannerright":bannerright}
                       )
+
 
 def editcountry(request):
     pass
@@ -594,49 +750,109 @@ def viewevent(request, country, province):
     prov = province #request.GET["prov"].strip('"').strip("'").strip()
     typ = request.GET["type"].strip('"').strip("'").strip()
 
-    if typ == "Split":
-        bannertitle = "{provtext} province split into new provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
-    elif typ == "Expansion":
-        bannertitle = "{provtext} province received territory from existing provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
-    elif typ == "NewInfo":
-        bannertitle = "{provtext} province changed some of its information on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
-    else:
-        raise Exception()
+##    if typ == "Split":
+##        bannertitle = "{provtext} province split into new provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+##    elif typ == "Expansion":
+##        bannertitle = "{provtext} province received territory from existing provinces on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+##    elif typ == "NewInfo":
+##        bannertitle = "{provtext} province changed some of its information on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
+##    else:
+##        raise Exception()
     #bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
-    bannerleft = """
-                    <div style="text-align:left">                 
-		    </div>
-    """
-    bannerright = """
-                        <br><br><br><br>
-			What else... Maybe image for type of event, and quick stats of how many changes etc in this event...
-    """
+    bannertitle = ""
+    
     print "TYPE",repr(typ)
     if typ == "NewInfo":
-        tabletitle = "Information changes"
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
+        oldinfo = '<li style="list-style:none">'+changes[0].fromname.encode("utf8")+"</li>"
+        oldinfo += '<li style="list-style:none">ISO: '+changes[0].fromiso+"</li>"
+        oldinfo += '<li style="list-style:none">FIPS: '+changes[0].fromfips+"</li>"
+        oldinfo += '<li style="list-style:none">HASC: '+changes[0].fromhasc+"</li>"
+        oldinfo += '<li style="list-style:none">Capital: '+changes[0].fromcapital.encode("utf8")+"</li>"
+        oldinfo += '<li style="list-style:none">Type: '+changes[0].fromtype.encode("utf8")+"</li>"
+        bannerleft = """
+                        <br>
+                        <div style="text-align: left">
+                        <h2 style="float:left">{oldinfo}</h2>
+                        <h2 style="float:right"><em>Changed info to:</em></h2>
+                        </div>
+        """.format(oldinfo=oldinfo)
+        newinfo = '<li style="list-style:none">'+changes[0].toname.encode("utf8")+"</li>"
+        newinfo += '<li style="list-style:none">ISO: '+changes[0].toiso+"</li>"
+        newinfo += '<li style="list-style:none">FIPS: '+changes[0].tofips+"</li>"
+        newinfo += '<li style="list-style:none">HASC: '+changes[0].tohasc+"</li>"
+        newinfo += '<li style="list-style:none">Capital: '+changes[0].tocapital.encode("utf8")+"</li>"
+        newinfo += '<li style="list-style:none">Type: '+changes[0].totype.encode("utf8")+"</li>"
+        bannerright = """
+                        <style>
+                            #blackbackground a {{ color:white }}
+                            #blackbackground a:visited {{ color:grey }}
+                        </style>
+                        
+                        <div id="blackbackground" style="text-align: center">
+                        <br><br>
+                        <h2>{newinfo}</h2>
+                        </div>  
+        """.format(newinfo=newinfo)
     elif typ == "Split":
-        tabletitle = "Breakaway provinces"
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
+        changes = changes.order_by("-added") # the dash reverses the order
+        bannerleft = """
+                        <br><br><br><br>
+                        <div style="text-align: left">
+                        <h2 style="float:left">{provtext} province</h2>
+                        <h2 style="float:right"><em>Split into:</em></h2>
+                        </div>
+        """.format(provtext=prov.encode("utf8"))
+        splitlist = "".join(('<li style="list-style:none">&rarr; '+change.toname.encode("utf8")+"</li>" for change in changes))
+        splitlist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        bannerright = """
+                        <style>
+                            #blackbackground a {{ color:white }}
+                            #blackbackground a:visited {{ color:grey }}
+                        </style>
+                        
+                        <div id="blackbackground" style="text-align: center">
+                        <br><br>
+                        <h2>{splitlist}</h2>
+                        </div>  
+        """.format(splitlist=splitlist)
     elif typ == "Expansion":
-        tabletitle = "Transfers of territory"
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
-    changes = changes.order_by("-added") # the dash reverses the order
-    changestable = model2table(request, title="", objects=changes, fields=fields)
-
-    content = changestable
+        changes = changes.order_by("-added") # the dash reverses the order
+        givelist = "".join(('<li style="list-style:none">&rarr; '+change.fromname.encode("utf8")+"</li>" for change in changes))
+        givelist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        bannerleft = """
+                        <style>
+                            #blackbackground a {{ color:white }}
+                            #blackbackground a:visited {{ color:grey }}
+                        </style>
+                        
+                        <div style="text-align: left">
+                        <br><br>
+                        <h2 id="blackbackground" style="float:left">{givelist}</h2>
+                        <br>
+                        <h2 style="float:right"><em>Gave territory to:</em></h2>
+                        </div>  
+        """.format(givelist=givelist)
+        bannerright = """
+                        <br><br><br><br>
+                        <div style="text-align: center">
+                        <h2>{provtext} province</h2>
+                        </div>
+        """.format(provtext=prov.encode("utf8"))
     
     grids = []
-    grids.append(dict(title=tabletitle + ': <a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
+##    grids.append(dict(title=tabletitle + ': <a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
+##                      content=content,
+##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="99%",
+##                      ))
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
@@ -1092,6 +1308,12 @@ class DateForm(forms.Form):
     year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1946, 2014+1)])
     month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
     day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
+
+    def __init__(self, *args, **kwargs):
+        super(DateForm, self).__init__(*args, **kwargs)
+        self.fields['year'].widget.attrs.update({'style' : 'font-size: x-large'})
+        self.fields['month'].widget.attrs.update({'style' : 'font-size: x-large'})
+        self.fields['day'].widget.attrs.update({'style' : 'font-size: x-large'})
 
 
 class AddDateWizard(SessionWizardView):
