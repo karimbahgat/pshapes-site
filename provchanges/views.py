@@ -638,14 +638,21 @@ def viewcountry(request, country):
                       )
 
     else:
-        bannertitle = "Timeline for %s" % country.encode("utf8")
+        bannertitle = "" #"Timeline for %s" % country.encode("utf8")
         bannerleft = """
+                        <a href="/contribute/" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			Back to World
+			</a>
+			
+			<br>
+			<h3 style="clear:both">Timeline for {country}</h3>
+			
                         <div id="blackbackground" style="text-align:left">
                             [INSERT MAP HERE]
                             <br><br><br><br><br><br><br><br><br><br>
                             Can't find the date you are looking for? <a href="/contribute/add/{country}">Add date</a>
                         </div>
-        """.format(country=urlquote(country))
+        """.format(country=country.encode("utf8"))
         bannerright = """
                         <style>
                             #blackbackground a { color:white }
@@ -766,24 +773,28 @@ def viewevent(request, country, province):
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
         oldinfo = '<li style="list-style:none">'+changes[0].fromname.encode("utf8")+"</li>"
-        oldinfo += '<li style="list-style:none">ISO: '+changes[0].fromiso+"</li>"
-        oldinfo += '<li style="list-style:none">FIPS: '+changes[0].fromfips+"</li>"
-        oldinfo += '<li style="list-style:none">HASC: '+changes[0].fromhasc+"</li>"
-        oldinfo += '<li style="list-style:none">Capital: '+changes[0].fromcapital.encode("utf8")+"</li>"
-        oldinfo += '<li style="list-style:none">Type: '+changes[0].fromtype.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+changes[0].fromiso.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+changes[0].fromfips.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+changes[0].fromhasc.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+changes[0].fromcapital.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+changes[0].fromtype.encode("utf8")+"</li>"
         bannerleft = """
+                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			Back to {countrytext}
+			</a>
+			
                         <br>
-                        <div style="text-align: left">
+                        <div style="clear:both; text-align: left">
                         <h2 style="float:left">{oldinfo}</h2>
                         <h2 style="float:right"><em>Changed info to:</em></h2>
                         </div>
-        """.format(oldinfo=oldinfo)
-        newinfo = '<li style="list-style:none">'+changes[0].toname.encode("utf8")+"</li>"
-        newinfo += '<li style="list-style:none">ISO: '+changes[0].toiso+"</li>"
-        newinfo += '<li style="list-style:none">FIPS: '+changes[0].tofips+"</li>"
-        newinfo += '<li style="list-style:none">HASC: '+changes[0].tohasc+"</li>"
-        newinfo += '<li style="list-style:none">Capital: '+changes[0].tocapital.encode("utf8")+"</li>"
-        newinfo += '<li style="list-style:none">Type: '+changes[0].totype.encode("utf8")+"</li>"
+        """.format(oldinfo=oldinfo, country=urlquote(country), countrytext=country.encode("utf8"))
+        newinfo = '<li style="font-size:smaller; list-style:none">'+changes[0].toname.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+changes[0].toiso.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+changes[0].tofips.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+changes[0].tohasc.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+changes[0].tocapital.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+changes[0].totype.encode("utf8")+"</li>"
         bannerright = """
                         <style>
                             #blackbackground a {{ color:white }}
@@ -794,19 +805,23 @@ def viewevent(request, country, province):
                         <br><br>
                         <h2>{newinfo}</h2>
                         </div>  
-        """.format(newinfo=newinfo)
+        """.format(newinfo=newinfo, country=urlquote(country))
     elif typ == "Split":
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
         bannerleft = """
+                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			Back to {countrytext}
+			</a>
+			
                         <br><br><br><br>
-                        <div style="text-align: left">
+                        <div style="clear:both; text-align: left">
                         <h2 style="float:left">{provtext} province</h2>
                         <h2 style="float:right"><em>Split into:</em></h2>
                         </div>
-        """.format(provtext=prov.encode("utf8"))
-        splitlist = "".join(('<li style="list-style:none">&rarr; '+change.toname.encode("utf8")+"</li>" for change in changes))
+        """.format(provtext=prov.encode("utf8"), country=urlquote(country), countrytext=country.encode("utf8"))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{province}</a></li>'.format(pk=change.pk, province=urlquote(change.toname)) for change in changes))
         splitlist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         bannerright = """
                         <style>
@@ -823,21 +838,25 @@ def viewevent(request, country, province):
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none">&rarr; '+change.fromname.encode("utf8")+"</li>" for change in changes))
+        givelist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{province}</a></li>'.format(pk=change.pk, province=urlquote(change.fromname)) for change in changes))
         givelist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         bannerleft = """
+                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			Back to {countrytext}
+			</a>
+			
                         <style>
                             #blackbackground a {{ color:white }}
                             #blackbackground a:visited {{ color:grey }}
                         </style>
                         
-                        <div style="text-align: left">
+                        <div style="clear:both; text-align: left">
                         <br><br>
                         <h2 id="blackbackground" style="float:left">{givelist}</h2>
                         <br>
                         <h2 style="float:right"><em>Gave territory to:</em></h2>
                         </div>  
-        """.format(givelist=givelist)
+        """.format(givelist=givelist, country=urlquote(country), countrytext=country.encode("utf8"))
         bannerright = """
                         <br><br><br><br>
                         <div style="text-align: center">
