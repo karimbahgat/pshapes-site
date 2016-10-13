@@ -549,7 +549,9 @@ def contribute(request):
 def viewcountry(request, country):
 
     def getdateeventstable(date):        
-        changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
+        changes = ProvChange.objects.filter(country=country, date=date).exclude(status="NonActive").order_by("-added") # the dash reverses the order
+        for c in changes:
+            print c.pk, c.__dict__
         import itertools
         
         def typeprov(obj):
@@ -561,30 +563,44 @@ def viewcountry(request, country):
                 prov = obj.fromname
                 return "Split",prov
             elif typ == "NewInfo":
-                prov = obj.toname
-                return typ,prov
+                return typ,obj.changeid
         def events():
             dategroup = list(changes)
-            #splits
-            subkey = lambda o: o.fromname
-            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                splitgroup = list(splitgroup)
-                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
-                if splits:
-                    yield (date,("Split",splitfrom)), splits
-            # mergers
-            subkey = lambda o: o.toname
-            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                mergegroup = list(mergegroup)
-                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
-                if mergers:
-                    yield (date,("Expansion",mergeto)), mergers
-            # newinfos
-            subkey = lambda o: o.fromname
-            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
-                if newinfos:
-                    yield (date,("NewInfo",fromname)), newinfos
+            # final
+            for _,changegroup in itertools.groupby(sorted(dategroup,key=typeprov), key=typeprov):
+                changegroup = list(changegroup)
+                typ = changegroup[0].type.strip('"')
+                if "Transfer" in typ:
+                    prov = changegroup[0].toname
+                    typ = "Expansion"
+                elif typ == "Breakaway":
+                    prov = changegroup[0].fromname
+                    typ = "Split"
+                elif typ == "NewInfo":
+                    prov = changegroup[0].fromname
+                    typ = typ
+                yield (date, (typ,prov)), changegroup
+                
+##            # splits
+##            subkey = lambda o: o.fromname
+##            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                splitgroup = list(splitgroup)
+##                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
+##                if splits:
+##                    yield (date,("Split",splitfrom)), splits
+##            # mergers
+##            subkey = lambda o: o.toname
+##            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                mergegroup = list(mergegroup)
+##                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
+##                if mergers:
+##                    yield (date,("Expansion",mergeto)), mergers
+##            # newinfos
+##            subkey = lambda o: o.fromname
+##            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
+##                if newinfos:
+##                    yield (date,("NewInfo",fromname)), newinfos
 
         events = events()
         
@@ -649,8 +665,6 @@ def viewcountry(request, country):
 			
                         <div id="blackbackground" style="text-align:left">
                             [INSERT MAP HERE]
-                            <br><br><br><br><br><br><br><br><br><br>
-                            Can't find the date you are looking for? <a href="/contribute/add/{country}">Add date</a>
                         </div>
         """.format(country=country.encode("utf8"))
         bannerright = """
@@ -683,7 +697,7 @@ def viewcountry(request, country):
         """
 
 
-        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
+        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("-date").values('date').distinct()]
         print dates
 
     ##    def getlinkrow(date):
@@ -703,6 +717,11 @@ def viewcountry(request, country):
                               style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                               width="99%",
                               ))
+        grids.append(dict(title="""+ <a href="/contribute/add/{country}">New date</a>""",
+                          content='',
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                                "bannerleft":bannerleft, "bannerright":bannerright}
@@ -767,17 +786,23 @@ def viewevent(request, country, province):
 ##        raise Exception()
     #bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
     bannertitle = ""
+    grids = []
     
     print "TYPE",repr(typ)
     if typ == "NewInfo":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        oldinfo = '<li style="list-style:none">'+changes[0].fromname.encode("utf8")+"</li>"
-        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+changes[0].fromiso.encode("utf8")+"</li>"
-        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+changes[0].fromfips.encode("utf8")+"</li>"
-        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+changes[0].fromhasc.encode("utf8")+"</li>"
-        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+changes[0].fromcapital.encode("utf8")+"</li>"
-        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+changes[0].fromtype.encode("utf8")+"</li>"
+        #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
+        changes = ProvChange.objects.filter(country=country, date=date, type="NewInfo", fromname=prov, bestversion=True)
+        for c in changes:
+            print c.pk, c.__dict__
+        change = next((c for c in changes.order_by("-date") ))
+        
+        oldinfo = '<li style="list-style:none">'+change.fromname.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+change.fromiso.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+change.fromfips.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+change.fromhasc.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+change.fromcapital.encode("utf8")+"</li>"
+        oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+change.fromtype.encode("utf8")+"</li>"
         bannerleft = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
@@ -789,12 +814,12 @@ def viewevent(request, country, province):
                         <h2 style="float:right"><em>Changed info to:</em></h2>
                         </div>
         """.format(oldinfo=oldinfo, country=urlquote(country), countrytext=country.encode("utf8"))
-        newinfo = '<li style="font-size:smaller; list-style:none">'+changes[0].toname.encode("utf8")+"</li>"
-        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+changes[0].toiso.encode("utf8")+"</li>"
-        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+changes[0].tofips.encode("utf8")+"</li>"
-        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+changes[0].tohasc.encode("utf8")+"</li>"
-        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+changes[0].tocapital.encode("utf8")+"</li>"
-        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+changes[0].totype.encode("utf8")+"</li>"
+        newinfo = '<li style="font-size:smaller; list-style:none"><a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8"))
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+change.toiso.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+change.tofips.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+change.tohasc.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+change.tocapital.encode("utf8")+"</li>"
+        newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+change.totype.encode("utf8")+"</li>"
         bannerright = """
                         <style>
                             #blackbackground a {{ color:white }}
@@ -806,6 +831,27 @@ def viewevent(request, country, province):
                         <h2>{newinfo}</h2>
                         </div>  
         """.format(newinfo=newinfo, country=urlquote(country))
+
+        pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+        pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
+                                  fields=["date","type","fromname","toname","country","user","added","status"])
+
+        grids.append(dict(title="Pending Edits",
+                          content=pendingeditstable,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+
+        oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+        oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
+                                  fields=["date","type","fromname","toname","country","user","added","status"])
+
+        grids.append(dict(title="Revision History",
+                          content=oldversionstable,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+        
     elif typ == "Split":
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
@@ -821,7 +867,7 @@ def viewevent(request, country, province):
                         <h2 style="float:right"><em>Split into:</em></h2>
                         </div>
         """.format(provtext=prov.encode("utf8"), country=urlquote(country), countrytext=country.encode("utf8"))
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{province}</a></li>'.format(pk=change.pk, province=urlquote(change.toname)) for change in changes))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8")) for change in changes))
         splitlist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         bannerright = """
                         <style>
@@ -838,7 +884,7 @@ def viewevent(request, country, province):
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{province}</a></li>'.format(pk=change.pk, province=urlquote(change.fromname)) for change in changes))
+        givelist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.fromname.encode("utf8")) for change in changes))
         givelist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         bannerleft = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -863,13 +909,6 @@ def viewevent(request, country, province):
                         <h2>{provtext} province</h2>
                         </div>
         """.format(provtext=prov.encode("utf8"))
-    
-    grids = []
-##    grids.append(dict(title=tabletitle + ': <a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()),
-##                      content=content,
-##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="99%",
-##                      ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
