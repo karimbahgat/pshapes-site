@@ -247,6 +247,16 @@ def logout(request):
 ##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"nomainbanner":True}
 ##                  )
 
+@login_required
+def account(request):
+    """User account screen to edit info, and check stats etc..."""
+    logoutbut = """
+                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                            </a>
+                        """
+    pass
+
 def contribute(request):
     bannertitle = "Contributions at a Glance:"
 
@@ -256,9 +266,8 @@ def contribute(request):
     users = User.objects.all()
     
     bannerleft = """
-                    <br><br>
                     <div style="text-align:center">
-                        [INSERT MAP HERE]
+                        <img style="width:450px" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
 		    </div>
     """
     
@@ -617,8 +626,8 @@ def viewcountry(request, country):
         bannertitle = "{country} events for {date}:".format(country=country.encode("utf8"),
                                                             date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
         bannerleft = """
-                        <div style="text-align:left">
-                            [INSERT MAP HERE]
+                        <div style="">
+                            <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
                         </div>
         """
         bannerright = """
@@ -647,8 +656,8 @@ def viewcountry(request, country):
 			<br>
 			<h3 style="clear:both">Timeline for {country}</h3>
 			
-                        <div id="blackbackground" style="text-align:left">
-                            [INSERT MAP HERE]
+                        <div id="blackbackground" style="">
+                            <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
                         </div>
         """.format(country=country.encode("utf8"))
         bannerright = """
@@ -701,7 +710,7 @@ def viewcountry(request, country):
                               style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                               width="99%",
                               ))
-        grids.append(dict(title="""+ <a href="/contribute/add/{country}">New date</a>""",
+        grids.append(dict(title="""+ <a href="/contribute/add/{country}">New date</a>""".format(country=urlquote(country)),
                           content='',
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                           width="99%",

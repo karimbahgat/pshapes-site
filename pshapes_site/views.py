@@ -131,31 +131,9 @@ def home(request):
     if request.user.is_authenticated():
         bannerright = """
                         <br>
-                        <p>Welcome, {username}!</p>
-
-                        <br>
-                        Help keep track of our changing world:
-
-                        <br><br>
-                        <ul style="list-style-type:none">
-                            <li><a href="/contribute" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Contribute Now</b>
-                            </a></li>
-
-                            <br>
-
-                            <li><a href="/account/" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Account Settings</b>
-                            </a></li>
-
-                            <br>
-
-                            <li><a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Logout</b>
-                            </a></li>
-                        </ul>
-
-                        """.format(username=request.user.username)
+                        <p>Not sure what to put here...</p>
+                        <p>Maybe slideshow of stepbystep instructions...</p>
+                        """
     else:
         bannerright = """
                         Help keep track of our changing world.
