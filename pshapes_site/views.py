@@ -216,6 +216,85 @@ def about(request):
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
+def data(request):
+    grids = []
+    bannertitle = "Download the Data:"
+    bannerleft = """
+                <div style="text-align:left">
+                The current version of the pShapes dataset is ...
+                <br>It covers the years ... and includes data on ...
+                <br>We offer the data in shapefile format, the standard for opening in GIS mapping software.
+                <br>The data is completely open-source and is free of charge for commercial and academic use (see the license for more details). 
+                </div>
+                """ 
+    bannerright = """
+                    <div style="text-align:left">
+                    <br><br><br>
+                    Download links:
+                    <ul>
+                    <li>Shapefile...</li>
+                    <li>Codebook...</li>
+                    <li>Methodology...</li>
+                    <li>License...</li>
+                    </ul>
+                    </div>
+                    """
+    grids.append(dict(title="Methodology",
+                      content="""
+                            <p>
+                            One of the novelties of the pShapes project is that it uses a unique reverse
+                            polygon geocoding algorithm that requires minimal detail and input from
+                            contributors to be able to reverse geocode the exact shapes of
+                            provinces in the distant past. This lowers the cost for contributors and allows
+                            virtually anyone to contribute, regardless of technical know-how.
+                            </p>
+                            <a href="">
+                            Click to learn more about the reverse polygon geocoding algorithm...
+                            </a>
+                            """,
+                      width="46%",
+                      ))
+    grids.append(dict(title="Advanced Use",
+                      content="""
+                            New versions of the pShapes dataset is based on the raw data on province changes that
+                            users contribute. 
+                            Some users may be interesting in exploring this raw change data directly, for instance to build
+                            the data on your own if you want to use it immediately without waiting for the next version.
+
+                            <ul>
+                                <li><a href="/download/raw">Download the raw data as CSV</a></li>
+                                <li><a href="">Instructions on how to build the data from scratch</a></li>
+                            </ul>
+                            """,
+                      width="46%",
+                      ))
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def download_raw(request):
+    from django.http import HttpResponse
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pshapes_raw.csv"'
+    import csv, datetime
+    fields = "source status country date type fromname fromiso fromfips fromhasc fromtype fromcapital toname toiso tofips tohasc totype tocapital transfer_source transfer_reference transfer_geom".split()
+    writer = csv.writer(response)
+    writer.writerow(fields)
+    def encode(val):
+        if isinstance(val, datetime.date):
+            return val.isoformat()
+        elif "Polygon" in str(type(val)):
+            return val.json
+        elif val is None:
+            return None
+        else:
+            return val.encode("utf8")
+    for obj in ProvChange.objects.all():
+        row = [encode(getattr(obj, f)) for f in fields]
+        writer.writerow(row)
+        
+    return response
+
 def testgrid(request):
     grids = tuple([("title%s"%i, "content%s"%i) for i in range(5)])
     bannertitle = "Banner Title"

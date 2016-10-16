@@ -57,7 +57,8 @@ urlpatterns = [
 
     # -----
     # DATA
-    url('^data/$', "provshapes.views.data"),
+    url('^data/$', "pshapes_site.views.data"),
+    url('^download/raw/$', "pshapes_site.views.download_raw"),
 
 
 
