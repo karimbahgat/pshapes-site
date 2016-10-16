@@ -1683,24 +1683,28 @@ class TypeEventForm(forms.Form):
 class FromEventForm(forms.ModelForm):
 
     step_title = "From Province"
-    step_descr = """
-                    Please identify the province that split.
-                   """
+    step_descr = ""
 
     class Meta:
         model = ProvChange
         fields = 'fromname fromiso fromfips fromhasc fromcapital fromtype'.split()
 
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(FromEventForm, self).__init__(*args, **kwargs)
+
 class ToEventForm(forms.ModelForm):
 
     step_title = "To Province"
-    step_descr = """
-                    Please identify the province that expanded / received territory?
-                   """
+    step_descr = ""
 
     class Meta:
         model = ProvChange
         fields = 'toname toiso tofips tohasc tocapital totype'.split()
+
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(ToEventForm, self).__init__(*args, **kwargs)
 
 class DateForm(forms.Form):
 
@@ -1770,7 +1774,22 @@ class AddEventWizard(SessionWizardView):
     def __iter__(self):
         for step in self.get_form_list():
             yield self.get_form(step=step)
- 
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step in "23": # from or to form
+            typ = self.get_cleaned_data_for_step("1").get("type")
+            if typ == "Split":
+                kwargs["step_descr"] = "Please identify the province that split?"
+            elif typ == "NewInfo":
+                kwargs["step_descr"] = "Please identify the province that changed information? Only the parts that have changed will be registered. "
+            elif typ == "Transfer":
+                kwargs["step_descr"] = "Please identify the province that transferred part of its territory?"
+            elif typ == "Merge":
+                kwargs["step_descr"] = "Please identify the province that gained territory after all the mergers?"
+
+        return kwargs 
+
     def get_context_data(self, form, **kwargs):
         context = super(AddEventWizard, self).get_context_data(form=form, **kwargs)
         context.update({'wizard_subclass': self})
@@ -1797,7 +1816,7 @@ class AddEventWizard(SessionWizardView):
         elif data["type"] == "NewInfo":
             prov = data["fromname"]
 
-        # if transfer, have to set 3 geom vals and save to session
+        # if transfer, have to set the 3 geom vals and save to session
         # then, in addtransferchange, get the 3 geom vals from session, and set to the submit data
         # ...
             
@@ -1987,9 +2006,7 @@ class TypeChangeForm(forms.ModelForm):
 
     step_title = "Type of Change"
     step_descr = """
-                    What type of change was it? Multiple changes may have to be submitted for the same date.
-                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
-                    a third neighbour, and change its name and ISO code. 
+                    What type of change was it? 
                    """
 
     class Meta:
@@ -2001,9 +2018,7 @@ class TypeChangeForm(forms.ModelForm):
 class MergeTypeChangeForm(forms.ModelForm):
     step_title = "Type of Change"
     step_descr = """
-                    What type of change was it? Multiple changes may have to be submitted for the same date.
-                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
-                    a third neighbour, and change its name and ISO code. 
+                    What type of change was it? 
                    """
 
     class Meta:
@@ -2014,9 +2029,7 @@ class MergeTypeChangeForm(forms.ModelForm):
 class TransferTypeChangeForm(forms.ModelForm):
     step_title = "Type of Change"
     step_descr = """
-                    What type of change was it? Multiple changes may have to be submitted for the same date.
-                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
-                    a third neighbour, and change its name and ISO code. 
+                    What type of change was it? 
                    """
 
     class Meta:
@@ -2027,9 +2040,7 @@ class TransferTypeChangeForm(forms.ModelForm):
 class SplitTypeChangeForm(forms.ModelForm):
     step_title = "Type of Change"
     step_descr = """
-                    What type of change was it? Multiple changes may have to be submitted for the same date.
-                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
-                    a third neighbour, and change its name and ISO code. 
+                    What type of change was it? 
                    """
 
     class Meta:
@@ -2038,6 +2049,10 @@ class SplitTypeChangeForm(forms.ModelForm):
         widgets = {"type": forms.RadioSelect(renderer=SplitTypeChangeRenderer) }
 
 class GeneralChangeForm(forms.ModelForm):
+
+    # USED TO SHOW INDIVIDUAL CHANGES
+    # THE DESCRIPTIONS DONT ACTUALLY SHOW, SO SHOULD BE REMOVED
+    # ...
 
     step_title = "Basic Information"
     step_descr = """
@@ -2086,24 +2101,28 @@ class GeneralChangeForm(forms.ModelForm):
 class FromChangeForm(forms.ModelForm):
 
     step_title = "From Province"
-    step_descr = """
-                    Please identify the province prior to the change or that transferred territory?
-                   """
+    step_descr = ""
 
     class Meta:
         model = ProvChange
         fields = 'fromname fromiso fromfips fromhasc fromcapital fromtype'.split()
 
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(FromChangeForm, self).__init__(*args, **kwargs)
+
 class ToChangeForm(forms.ModelForm):
 
     step_title = "To Province"
-    step_descr = """
-                    Please identify the province after the change or that received territory?
-                   """
+    step_descr = ""
 
     class Meta:
         model = ProvChange
         fields = 'toname toiso tofips tohasc tocapital totype'.split()
+
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(ToChangeForm, self).__init__(*args, **kwargs)
 
 
 
@@ -2712,6 +2731,12 @@ class AddNewInfoChangeWizard(AddChangeWizard):
 
         return form
 
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "0": # from or to form
+            kwargs["step_descr"] = "Fill in the province information after the change. Only the parts that have changed will be registered." 
+        return kwargs 
+
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
@@ -2739,6 +2764,12 @@ class AddSplitChangeWizard(AddChangeWizard):
         form = super(AddSplitChangeWizard, self).get_form(step, data=data, files=files)        
 
         return form
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that broke away?"
+        return kwargs 
 
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
@@ -2792,6 +2823,12 @@ class AddMergeChangeWizard(AddChangeWizard):
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
                     form.fields['transfer_geom'].widget.wms = wms
         return form
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that merged and ceased to exist?"
+        return kwargs 
     
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
@@ -2846,6 +2883,12 @@ class AddTransferChangeWizard(AddChangeWizard):
                     wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
                     form.fields['transfer_geom'].widget.wms = wms
         return form
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "2": # from or to form
+            kwargs["step_descr"] = "Please identify the province that received territory?"
+        return kwargs 
     
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
