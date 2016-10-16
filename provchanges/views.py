@@ -21,6 +21,77 @@ import datetime
 
 # Create your views here.
 
+def slideshow():
+    # from https://codepen.io/anon/pen/RGYPjP
+    html = """
+            //how many images we have
+            $slides: 4;
+
+            // how much we want each slide to show
+            $time_per_slide: 4;
+
+            // total time needed for full animation
+            $total_animation_time: $time_per_slide * $slides;
+
+            body{
+              background:#000;
+            }
+            .container{
+              margin:50px auto;
+              width:500px;
+              height:300px;
+              overflow:hidden;
+              border:10px solid;
+              border-top-color:#856036;
+              border-left-color:#5d4426;
+              border-bottom-color:#856036;
+              border-right-color:#5d4426;
+              position:relative;
+
+            }
+            .photo{
+              position:absolute;
+              animation:round #{$total_animation_time}s infinite;
+              opacity:0;
+              
+            }
+            @keyframes round{   
+              25%{
+                opacity:1;
+              }
+              40%{
+                opacity:0;
+              }
+            } 
+
+            @for $index from 1 to $slides + 1{
+              img:nth-child(#{$index}){
+                animation-delay:#{$total_animation_time - $time_per_slide * $index}s
+              }
+            }
+               
+            <div class="container">
+              <img class='photo'  src="http://farm9.staticflickr.com/8320/8035372009_7075c719d9.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8517/8562729616_35b1384aa1.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8465/8113424031_72048dd887.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8241/8562523343_9bb49b7b7b.jpg" alt="" />
+
+            </div>
+            """
+    return html
+
+class Grid:
+    html = ""
+    def add_cell(self, title, content, style="border-style:none", width="30%"):
+        self.html += """
+                    <div class="gridcell" style="float:left; width:{width}; padding-right:3%">
+                            <h4>{title}</h4>
+                            <div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; {style}">
+                            {content}
+                            </div>
+                    </div>
+                    """.format(title=title.encode("utf8"), content=content.encode("utf8"), style=style.encode("utf8"), width=width.encode("utf8"))
+
 def registration(request):
     
     if request.method == "POST":
@@ -623,16 +694,39 @@ def viewcountry(request, country):
     if "date" in request.GET:
         # date given, show all events on that date
         date = request.GET["date"]
-        bannertitle = "{country} events for {date}:".format(country=country.encode("utf8"),
-                                                            date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
-        bannerleft = """
+        top = """
+                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Back to {countrytext}
+                        </a>
+                        """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+        left = """
+                        <h3 style="clear:both">{country} events for {date}:</h3>
                         <div style="">
                             <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
                         </div>
-        """
-        bannerright = """
+        """.format(country=country.encode("utf8"), date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
+        right = """
                         Insert something...
         """
+
+        custombanner = """
+
+                        {top}
+                        
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+                        
+                        <td style="width:48%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:top">
+                        {left}
+                        </td>
+                        
+                        <td style="width:48%; padding:1%; padding:0px; margin:0px; vertical-align:top; text-align:center">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, right=right)
     
         grids = []
         content = getdateeventstable(date)
@@ -642,32 +736,30 @@ def viewcountry(request, country):
                           width="99%",
                           ))
         
-        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )
 
     else:
         bannertitle = "" #"Timeline for %s" % country.encode("utf8")
-        bannerleft = """
+        top = """
                         <a href="/contribute/" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to World
 			</a>
-			
-			<br>
+			"""
+        left = """	
 			<h3 style="clear:both">Timeline for {country}</h3>
 			
                         <div id="blackbackground" style="">
                             <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
                         </div>
         """.format(country=country.encode("utf8"))
-        bannerright = """
+        right = """
                         <style>
                             #blackbackground a { color:white }
                             #blackbackground a:visited { color:grey }
                         </style>
                         
                         <div id="blackbackground" style="text-align: left">
-                        <br><br>
                         <p style="font-size:large; font-weight:bold">Useful Sources:</p>
                         <p style="font-size:medium; font-style:italic">
                         <ul>
@@ -689,6 +781,24 @@ def viewcountry(request, country):
                         </div>
         """
 
+        custombanner = """
+
+                        {top}
+                        
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+                        
+                        <td style="width:48%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:top">
+                        {left}
+                        </td>
+                        
+                        <td style="width:48%; padding:1%; padding:0px; margin:0px">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, right=right)
 
         dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
         print dates
@@ -716,8 +826,7 @@ def viewcountry(request, country):
                           width="99%",
                           ))
         
-        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                               "bannerleft":bannerleft, "bannerright":bannerright}
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )
 
 
@@ -790,40 +899,69 @@ def viewevent(request, country, province):
 
         if change:
             oldinfo = '<li style="list-style:none">'+change.fromname.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+change.fromiso.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+change.fromfips.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+change.fromhasc.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+change.fromcapital.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+change.fromtype.encode("utf8")+"</li>"
-            bannerleft = """
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.fromiso.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.fromfips.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.fromhasc.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapital.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.fromtype.encode("utf8")+"</li>"
+            top = """
                             <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                             Back to {countrytext}
                             </a>
-                            
-                            <br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
-                            <h2 style="float:right"><em>Changed info to:</em></h2>
                             </div>
-            """.format(oldinfo=oldinfo, country=urlquote(country), countrytext=country.encode("utf8"))
+            """.format(oldinfo=oldinfo)
+
+            mid = """
+                    <h2><em>Changed info to:</em></h2>
+                    """
         
             newinfo = '<li style="font-size:smaller; list-style:none"><a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8"))
-            newinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+change.toiso.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+change.tofips.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+change.tohasc.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+change.tocapital.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+change.totype.encode("utf8")+"</li>"
-            bannerright = """
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.tohasc.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.tocapital.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.totype.encode("utf8")+"</li>"
+            right = """
                             <style>
                                 #blackbackground a {{ color:white }}
                                 #blackbackground a:visited {{ color:grey }}
                             </style>
                             
-                            <div id="blackbackground" style="text-align: center">
-                            <br><br>
+                            <div id="blackbackground">
                             <h2>{newinfo}</h2>
                             </div>  
-            """.format(newinfo=newinfo, country=urlquote(country))
+            """.format(newinfo=newinfo)
+            custombanner = """
+
+                            {top}
+
+                            <style>
+                            td {{vertical-align:top}}
+                            </style>
+                            
+                            <table width="99%" style="clear:both">
+                            <tr>
+                            
+                            <td style="width:31%; padding:1%">
+                            {left}
+                            </td>
+
+                            <td style="width:31%; padding:1%">
+                            {mid}
+                            </td>
+                            
+                            <td style="width:31%; padding:1%">
+                            {right}
+                            </td>
+
+                            </tr>
+                            </table>
+                            """.format(top=top, left=left, mid=mid, right=right)
+
 
             pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
             pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
@@ -858,95 +996,180 @@ def viewevent(request, country, province):
         else:
             # newinfo event just added, so no change objects yet
             oldinfo = '<li style="list-style:none">'+request.GET["fromname"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; ISO: '+request.GET["fromiso"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; FIPS: '+request.GET["fromfips"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; HASC: '+request.GET["fromhasc"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Capital: '+request.GET["fromcapital"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&rarr; Type: '+request.GET["fromtype"].encode("utf8")+"</li>"
-            bannerleft = """
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+request.GET["fromiso"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+request.GET["fromfips"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+request.GET["fromhasc"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+request.GET["fromcapital"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+request.GET["fromtype"].encode("utf8")+"</li>"
+            top = """
                             <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                             Back to {countrytext}
                             </a>
-                            
-                            <br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
-                            <h2 style="float:right"><em>Changed info to:</em></h2>
                             </div>
-            """.format(oldinfo=oldinfo, country=urlquote(country), countrytext=country.encode("utf8"))
-            setinfobutton = '<br><br><li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Set info</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
-            bannerright = """
+            """.format(oldinfo=oldinfo)
+            mid = """
+                    <h2><em>Changed info to:</em></h2>
+                    """
+            setinfobutton = '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Set info</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+            right = """
                             <style>
                                 #blackbackground a {{ color:white }}
                                 #blackbackground a:visited {{ color:grey }}
                             </style>
                             
-                            <div id="blackbackground" style="text-align: center">
-                            <br><br>
+                            <div id="blackbackground">
                             <h2>{setinfobutton}</h2>
                             </div>  
-            """.format(setinfobutton=setinfobutton, country=urlquote(country))
+            """.format(setinfobutton=setinfobutton)
+            custombanner = """
+
+                            {top}
+
+                            <style>
+                            td {{vertical-align:top}}
+                            </style>
+                            
+                            <table width="99%" style="clear:both">
+                            <tr>
+                            
+                            <td style="width:31%; padding:1%">
+                            {left}
+                            </td>
+
+                            <td style="width:31%; padding:1%">
+                            {mid}
+                            </td>
+                            
+                            <td style="width:31%; padding:1%">
+                            {right}
+                            </td>
+
+                            </tr>
+                            </table>
+                            """.format(top=top, left=left, mid=mid, right=right)
         
     elif typ == "Split":
         fields = ["toname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        bannerleft = """
+
+        top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
 			</a>
-			
-                        <br><br><br><br>
+			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        
+        left = """
                         <div style="clear:both; text-align: left">
                         <h2 style="float:left">{provtext} province</h2>
-                        <h2 style="float:right"><em>Split into:</em></h2>
                         </div>
-        """.format(provtext=prov.encode("utf8"), country=urlquote(country), countrytext=country.encode("utf8"))
+        """.format(provtext=prov.encode("utf8"))
+
+        mid = """
+                <h2><em>Split into:</em></h2>
+                """
+        
         splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8")) for change in changes))
-        splitlist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
-        bannerright = """
+        splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        right = """
                         <style>
                             #blackbackground a {{ color:white }}
                             #blackbackground a:visited {{ color:grey }}
                         </style>
                         
-                        <div id="blackbackground" style="text-align: center">
-                        <br><br>
+                        <div id="blackbackground">
                         <h2>{splitlist}</h2>
                         </div>  
         """.format(splitlist=splitlist)
+
+        custombanner = """
+
+                        {top}
+
+                        <style>
+                        td {{vertical-align:top}}
+                        </style>
+                        
+                        <table width="99%" style="clear:both">
+                        <tr>
+                        
+                        <td style="width:31%; padding:1%">
+                        {left}
+                        </td>
+
+                        <td style="width:31%; padding:1%">
+                        {mid}
+                        </td>
+                        
+                        <td style="width:31%; padding:1%">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, mid=mid, right=right)
+
     elif typ == "Expansion":
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.fromname.encode("utf8")) for change in changes))
-        givelist += '<li style="list-style:none">&rarr; ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
-        bannerleft = """
+        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=change.fromname.encode("utf8")) for change in changes))
+        givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
 			</a>
-			
+			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        left = """			
                         <style>
                             #blackbackground a {{ color:white }}
                             #blackbackground a:visited {{ color:grey }}
                         </style>
                         
-                        <div style="clear:both; text-align: left">
-                        <br><br>
+                        <div style="clear:both; text-align:left">
                         <h2 id="blackbackground" style="float:left">{givelist}</h2>
-                        <br>
-                        <h2 style="float:right"><em>Gave territory to:</em></h2>
                         </div>  
-        """.format(givelist=givelist, country=urlquote(country), countrytext=country.encode("utf8"))
-        bannerright = """
-                        <br><br><br><br>
-                        <div style="text-align: center">
+        """.format(givelist=givelist)
+        mid = """
+                <h2><em>Gave territory to:</em></h2>
+                """
+        right = """
+                        <div>
                         <h2>{provtext} province</h2>
                         </div>
         """.format(provtext=prov.encode("utf8"))
+        custombanner = """
+
+                        {top}
+
+                        <style>
+                        td {{vertical-align:top}}
+                        </style>
+                        
+                        <table width="99%" style="clear:both">
+                        <tr>
+                        
+                        <td style="width:31%; padding:1%">
+                        {left}
+                        </td>
+
+                        <td style="width:31%; padding:1%">
+                        {mid}
+                        </td>
+                        
+                        <td style="width:31%; padding:1%">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, mid=mid, right=right)
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
 
 
