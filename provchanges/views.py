@@ -634,9 +634,12 @@ def viewcountry(request, country):
         
         def typeprov(obj):
             typ = obj.type
-            if "Transfer" in typ:
+            if typ == "FullTransfer":
                 prov = obj.toname
-                return "Expansion",prov
+                return "Merge",prov
+            elif typ == "PartTransfer":
+                prov = obj.fromname
+                return "Transfer",prov
             elif typ == "Breakaway":
                 prov = obj.fromname
                 return "Split",prov
@@ -656,9 +659,16 @@ def viewcountry(request, country):
             subkey = lambda o: o.toname
             for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
                 mergegroup = list(mergegroup)
-                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
+                mergers = [ch for ch in mergegroup if ch.type == "FullTransfer"]
                 if mergers:
-                    yield (date,("Expansion",mergeto)), mergers
+                    yield (date,("Merge",mergeto)), mergers
+            # transfers
+            subkey = lambda o: o.fromname
+            for transfrom,transgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+                transgroup = list(transgroup)
+                transfers = [ch for ch in transgroup if ch.type == "PartTransfer"]
+                if transfers:
+                    yield (date,("Transfer",transfrom)), transfers
             # newinfos
             subkey = lambda o: o.fromname
             for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
@@ -679,10 +689,14 @@ def viewcountry(request, country):
                 fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
-            elif typ == "Expansion":
+            elif typ == "Merge":
                 fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Merge"'
+            elif typ == "Transfer":
+                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
             return link,(prov,typ)
         events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType"])
@@ -1113,9 +1127,9 @@ def viewevent(request, country, province):
                         </table>
                         """.format(top=top, left=left, mid=mid, right=right)
 
-    elif typ == "Expansion":
+    elif typ == "Merge":
         fields = ["fromname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type__in=["FullTransfer","PartTransfer"],toname=prov)
+        changes = ProvChange.objects.filter(country=country,date=date,type="FullTransfer",toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
         givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=change.fromname.encode("utf8")) for change in changes))
         givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
@@ -1135,13 +1149,74 @@ def viewevent(request, country, province):
                         </div>  
         """.format(givelist=givelist)
         mid = """
-                <h2><em>Gave territory to:</em></h2>
+                <h2><em>Merged into:</em></h2>
                 """
         right = """
                         <div>
                         <h2>{provtext} province</h2>
                         </div>
         """.format(provtext=prov.encode("utf8"))
+        custombanner = """
+
+                        {top}
+
+                        <style>
+                        td {{vertical-align:top}}
+                        </style>
+                        
+                        <table width="99%" style="clear:both">
+                        <tr>
+                        
+                        <td style="width:31%; padding:1%">
+                        {left}
+                        </td>
+
+                        <td style="width:31%; padding:1%">
+                        {mid}
+                        </td>
+                        
+                        <td style="width:31%; padding:1%">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, mid=mid, right=right)
+
+    elif typ == "Transfer":
+        fields = ["toname","type","status"]
+        changes = ProvChange.objects.filter(country=country,date=date,type="PartTransfer",fromname=prov)
+        changes = changes.order_by("-added") # the dash reverses the order
+
+        top = """
+                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			Back to {countrytext}
+			</a>
+			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        
+        left = """
+                        <div style="clear:both; text-align: left">
+                        <h2 style="float:left">{provtext} province</h2>
+                        </div>
+        """.format(provtext=prov.encode("utf8"))
+
+        mid = """
+                <h2><em>Gave territory to:</em></h2>
+                """
+        
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8")) for change in changes))
+        splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        right = """
+                        <style>
+                            #blackbackground a {{ color:white }}
+                            #blackbackground a:visited {{ color:grey }}
+                        </style>
+                        
+                        <div id="blackbackground">
+                        <h2>{splitlist}</h2>
+                        </div>  
+        """.format(splitlist=splitlist)
+
         custombanner = """
 
                         {top}
@@ -1193,8 +1268,10 @@ def addchange(request, country, province):
     if request.GET["type"].lower().strip('"') == "split":
         func = AddSplitChangeWizard.as_view(country=country, province=province)
         print 888,func
-    elif request.GET["type"].lower().strip('"') == "expansion":
-        func = AddExpansionChangeWizard.as_view(country=country, province=province)
+    elif request.GET["type"].lower().strip('"') == "merge":
+        func = AddMergeChangeWizard.as_view(country=country, province=province)
+    elif request.GET["type"].lower().strip('"') == "transfer":
+        func = AddTransferChangeWizard.as_view(country=country, province=province)
     elif request.GET["type"].lower().strip('"') == "newinfo":
         func = AddNewInfoChangeWizard.as_view(country=country, province=province)
     return func(request)
@@ -1367,9 +1444,12 @@ def viewchange(request, pk):
     if change.type == "Breakaway":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
-    elif "Transfer" in change.type:
+    elif change.type == "FullTransfer":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=urlquote(change.country), prov=urlquote(change.toname)) + params
+        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.country), prov=urlquote(change.toname)) + params
+    elif change.type == "PartTransfer":
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
     elif change.type == "NewInfo":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
@@ -1552,8 +1632,15 @@ EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
-             "Expansion": {"label": "Expansion",
-                              "short": "A province received territory from or merged entirely with other provinces.",
+             "Merge": {"label": "Merge",
+                              "short": "One or more provinces merged entirely into another province.",
+                              "descr": """
+                                        Description...
+                                        """,
+                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              },
+             "Transfer": {"label": "Transfer",
+                              "short": "A province gave parts of its territory to one or more provinces.",
                               "descr": """
                                         Description...
                                         """,
@@ -1588,7 +1675,7 @@ class TypeEventForm(forms.Form):
     step_descr = """
                     What type of event was it? 
                    """
-    type = forms.ChoiceField(choices=[("NewInfo","NewInfo"),("Split","Split"),("Expansion","Expansion")], widget=forms.RadioSelect(renderer=TypeEventRenderer))
+    type = forms.ChoiceField(choices=[("NewInfo","NewInfo"),("Split","Split"),("Merge","Merge"),("Transfer","Transfer")], widget=forms.RadioSelect(renderer=TypeEventRenderer))
 
 ##    class Meta:
 ##        widgets = {"type": forms.RadioSelect(renderer=TypeEventRenderer) }
@@ -1674,8 +1761,8 @@ class AddEventWizard(SessionWizardView):
     # NOTE: MUST BE EITHER EXPANSION OR SPLIT OR NEWINFO EVENT, WITH GET PARAMS FOR ALL CONSTANT EVENTINFO
     condition_dict = {"0": lambda wiz: True,
                       "1": lambda wiz: True,
-                      "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
-                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] == "Expansion" if wiz.get_cleaned_data_for_step("1") else False,
+                      "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo","Transfer") if wiz.get_cleaned_data_for_step("1") else False,
+                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] == "Merge" if wiz.get_cleaned_data_for_step("1") else False,
                       }
 
     country = None
@@ -1701,12 +1788,18 @@ class AddEventWizard(SessionWizardView):
         print "DATA",data
         country = self.country
         
-        if data["type"] == "Expansion":
+        if data["type"] == "Merge":
             prov = data["toname"]
         elif data["type"] == "Split":
             prov = data["fromname"]
+        elif data["type"] == "Transfer":
+            prov = data["fromname"]
         elif data["type"] == "NewInfo":
             prov = data["fromname"]
+
+        # if transfer, have to set 3 geom vals and save to session
+        # then, in addtransferchange, get the 3 geom vals from session, and set to the submit data
+        # ...
             
         keys = data.keys() #["date","source","type"]
         params = urlencode( [(key,data[key]) for key in keys] + [("country",country)] )
@@ -1827,10 +1920,31 @@ class TypeChangeRenderer(RadioFieldRenderer):
         rendered = Template(html).render(Context({"choices":choices }))
         return rendered
 
-class ExpansionTypeChangeRenderer(RadioFieldRenderer):
+class MergeTypeChangeRenderer(RadioFieldRenderer):
 
     def render(self):
-        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in ["PartTransfer","FullTransfer"]]
+        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label == "FullTransfer"]
+        html = """
+            <table class="myradio">
+            {% for choice,extra in choices %}
+            <tr>
+                <td>{{ choice }}<td>
+                <td>{{ extra.img|safe }}</td>
+                <td>
+                    <h4>{{ extra.short|safe }}</h4>
+                    <p>{{ extra.descr|safe }}</p>
+                </td>
+            </tr>
+            {% endfor %}
+            </table>
+            """
+        rendered = Template(html).render(Context({"choices":choices }))
+        return rendered
+
+class TransferTypeChangeRenderer(RadioFieldRenderer):
+
+    def render(self):
+        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label == "PartTransfer"]
         html = """
             <table class="myradio">
             {% for choice,extra in choices %}
@@ -1884,7 +1998,7 @@ class TypeChangeForm(forms.ModelForm):
         widgets = {"type": forms.RadioSelect(renderer=TypeChangeRenderer) }
         
 
-class ExpansionTypeChangeForm(forms.ModelForm):
+class MergeTypeChangeForm(forms.ModelForm):
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? Multiple changes may have to be submitted for the same date.
@@ -1895,7 +2009,20 @@ class ExpansionTypeChangeForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ['type']
-        widgets = {"type": forms.RadioSelect(renderer=ExpansionTypeChangeRenderer) }
+        widgets = {"type": forms.RadioSelect(renderer=MergeTypeChangeRenderer) }
+
+class TransferTypeChangeForm(forms.ModelForm):
+    step_title = "Type of Change"
+    step_descr = """
+                    What type of change was it? Multiple changes may have to be submitted for the same date.
+                    For instance, on a given date, a province may receive territory from two of its neighbours, annex
+                    a third neighbour, and change its name and ISO code. 
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ['type']
+        widgets = {"type": forms.RadioSelect(renderer=TransferTypeChangeRenderer) }
 
 class SplitTypeChangeForm(forms.ModelForm):
     step_title = "Type of Change"
@@ -2542,8 +2669,10 @@ class AddChangeWizard(SessionWizardView):
         eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
         print eventvalues
 
-        if eventvalues["type"].strip('"') == "Expansion" and formfieldvalues["type"].strip('"') == "NewInfo":
-            # all tos become froms when newinfo for expansion event
+        if eventvalues["type"].strip('"') == "Merge" and formfieldvalues["type"].strip('"') == "NewInfo":
+            # all tos become froms when newinfo for merge event
+            # ACTUALLY: shouldnt happen anymore
+            raise Exception()
             trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
             eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
             eventvalues.update(trans)
@@ -2617,9 +2746,9 @@ class AddSplitChangeWizard(AddChangeWizard):
         html = redirect(eventlink)
         return html
     
-class AddExpansionChangeWizard(AddChangeWizard):
+class AddMergeChangeWizard(AddChangeWizard):
 
-    form_list = [   ExpansionTypeChangeForm,
+    form_list = [   MergeTypeChangeForm,
                     FromChangeForm,
                     ToChangeForm,
                      HistoMapForm,
@@ -2630,11 +2759,11 @@ class AddExpansionChangeWizard(AddChangeWizard):
     def _geomode(wiz):
         typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
         print wiz.get_cleaned_data_for_step("0")
-        return "Transfer" in typeformdata["type"]
+        return typeformdata["type"] == "FullTransfer"
 
     condition_dict = {"0": lambda wiz: True,
-                      "1": lambda wiz: wiz.get_cleaned_data_for_step("0")["type"] != "NewInfo" if wiz.get_cleaned_data_for_step("0") else None,
-                      "2": lambda wiz: wiz.get_cleaned_data_for_step("0")["type"] == "NewInfo" if wiz.get_cleaned_data_for_step("0") else None,
+                      "1": lambda wiz: True,
+                      "2": lambda wiz: False,
                       "3": _geomode,
                       "4": _geomode,
                       "5": _geomode,}
@@ -2651,12 +2780,66 @@ class AddExpansionChangeWizard(AddChangeWizard):
             data = {}
         print data
 
-        form = super(AddExpansionChangeWizard, self).get_form(step, data=data, files=files)        
+        form = super(AddMergeChangeWizard, self).get_form(step, data=data, files=files)        
 
         if isinstance(form, GeoChangeForm):
             # ADD CUSTOM WMS
             typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
-            if "Transfer" in typeformdata["type"]:
+            if typeformdata["type"] == "FullTransfer":
+                wmsdata = self.get_cleaned_data_for_step("4") or {}
+                wms = wmsdata.get("transfer_source")
+                if wms:
+                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
+                    form.fields['transfer_geom'].widget.wms = wms
+        return form
+    
+    def done_redirect(self, obj):
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(obj.country), prov=urlquote(obj.toname)) + params
+        html = redirect(eventlink)
+        return html
+
+    
+class AddTransferChangeWizard(AddChangeWizard):
+
+    form_list = [   TransferTypeChangeForm,
+                    FromChangeForm,
+                    ToChangeForm,
+                     HistoMapForm,
+                     GeorefForm,
+                      GeoChangeForm,
+                      ]
+    
+    def _geomode(wiz):
+        typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+        print wiz.get_cleaned_data_for_step("0")
+        return typeformdata["type"] == "PartTransfer"
+
+    condition_dict = {"0": lambda wiz: True,
+                      "1": lambda wiz: False,
+                      "2": lambda wiz: True,
+                      "3": _geomode,
+                      "4": _geomode,
+                      "5": _geomode,}
+
+    country = None
+    province = None
+    
+    def get_form(self, step=None, data=None, files=None):
+        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+        if data:
+            print data
+            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+        else:
+            data = {}
+        print data
+
+        form = super(AddTransferChangeWizard, self).get_form(step, data=data, files=files)        
+
+        if isinstance(form, GeoChangeForm):
+            # ADD CUSTOM WMS
+            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+            if typeformdata["type"] == "PartTransfer":
                 wmsdata = self.get_cleaned_data_for_step("4") or {}
                 wms = wmsdata.get("transfer_source")
                 if wms:
@@ -2666,7 +2849,7 @@ class AddExpansionChangeWizard(AddChangeWizard):
     
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Expansion&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
     
