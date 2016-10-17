@@ -5,6 +5,7 @@ Static page views.
 """
 from django.shortcuts import render
 from django.template import Template,Context
+from django.contrib.auth.decorators import login_required
 
 from provchanges.models import ProvChange
 
@@ -98,6 +99,8 @@ def recentadds(request):
     rendered = Template(html).render(Context({"request":request, "shortdescr":shortdescr, "changelist":changelist}))
     return rendered
 
+
+
 def home(request):
     changelist = ProvChange.objects.all().order_by("-added") # the dash reverses the order
     return render(request, 'pshapes_site/home.html', {"shortdescr":shortdescr, "changelist":changelist})
@@ -137,6 +140,10 @@ def home(request):
                         """
     else:
         bannerright = """
+			<br>
+			<br>
+			<br>
+			<br>
                         Help keep track of our changing world.
 			<br>
 			<br>
@@ -204,6 +211,16 @@ def about(request):
                 </div>
                 """ % shortdescr
     bannerright = ""
+    grids.append(dict(title="The Contributors",
+                      content="""
+                            The pShapes project wouldn't be possible without the work
+                            and efforts of its community of contributors. 
+
+                            <br><br>
+
+                            Insert maybe some stats or list of users...
+                            """
+                      ))
     grids.append(dict(title="Contact",
                       content="""
                             The Pshapes concept and website was created by Karim Bahgat in 2015-2016. 

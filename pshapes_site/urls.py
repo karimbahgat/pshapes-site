@@ -50,20 +50,24 @@ urlpatterns = [
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
 
 
-    # ------
-    # ABOUT
-    url('^about/$', "pshapes_site.views.about"),
-
 
     # -----
     # DATA
     url('^data/$', "pshapes_site.views.data"),
     url('^download/raw/$', "pshapes_site.views.download_raw"),
+    
+
+
+    # ------
+    # ABOUT
+    url('^about/$', "pshapes_site.views.about"),
 
 
 
     # --------
     # (USERS)
+    url('^account/$', "provchanges.views.account"),
+    url('^account/edit/$', "provchanges.views.account_edit"),
     url('^registration/$', "provchanges.views.registration"),
     url('^login/$', "provchanges.views.login"),
     url('^logout/$', "provchanges.views.logout"),

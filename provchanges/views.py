@@ -320,16 +320,6 @@ def logout(request):
 ##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"nomainbanner":True}
 ##                  )
 
-@login_required
-def account(request):
-    """User account screen to edit info, and check stats etc..."""
-    logoutbut = """
-                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Logout</b>
-                            </a>
-                        """
-    pass
-
 def contribute(request):
     bannertitle = "Contributions at a Glance:"
 
@@ -1615,8 +1605,88 @@ class UserInfoForm(forms.ModelForm):
         model = User
         fields = ["first_name","last_name","email","institution"]
 
-        
+@login_required
+def account_edit(request):
+    userobj = User.objects.get(username=request.user)
+    form = UserInfoForm(instance=userobj)
+    if request.POST:
+        userobj.first_name = request.POST["first_name"]
+        userobj.last_name = request.POST["last_name"]
+        userobj.email_name = request.POST["email"]
+        userobj.institution = request.POST["institution"]
+        print userobj.first_name
+        userobj.save()
+        return redirect("/account/")
+    else:
+        ##form.fields["email"].widget.attrs['readonly'] = "readonly"
+        return render(request, 'provchanges/accountedit.html', {"user":request.user, "userinfoform":form}
+                      )
 
+@login_required
+def account(request):
+    userobj = User.objects.get(username=request.user)
+    userform = UserInfoForm(instance=userobj)
+    grids = []
+    bannertitle = "User Settings for '%s'" % request.user
+    
+##    if edit:
+##        bannerleft = """
+##                    <form action="/account/edit/" method="post">
+##                    
+##                    <div style="text-align:center">
+##                            {userinfoform}
+##                    </div>
+##                    
+##                    <div style="text-align:center">
+##                        <input type="submit" value="Submit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; float:right; margin:10px;">
+##                    </div>
+##                    <br>
+##
+##                    </form>
+##                    """.format(userinfoform=userform.as_p())
+##    else:
+    
+    for field in userform.fields.values():
+        field.widget.attrs['readonly'] = "readonly"
+        field.widget.attrs["style"] = 'background-color:black; color:white'
+    bannerleft = """
+                <div style="text-align:center">
+                    {userinfoform}
+                </div>
+                <div style="text-align:center">
+                    <a href="/account/edit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Edit
+                    </a>
+                </div>
+                <br>
+                """.format(userinfoform=userform.as_p())
+
+##    for field in userform.fields.values():
+##        field.widget.attrs['readonly'] = "readonly"
+##        field.widget.attrs["style"] = 'background-color:black'
+##    bannertitle = "User Settings for '%s'" % request.user
+##    bannerleft = """
+##                <div style="text-align:center">
+##                    {userinfoform}
+##                </div>
+##                <br>
+##                """.format(userinfoform=userform.as_p())
+
+    
+    bannerright = """
+                    <br><br><br><br><br>
+                    <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                        <b>Logout</b>
+                        </a>
+                        """
+    grids.append(dict(title="Your Contributions:",
+                      content="table...",
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="100%",
+                      ))
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
 
 
 
