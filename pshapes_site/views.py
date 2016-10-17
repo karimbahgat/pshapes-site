@@ -79,7 +79,7 @@ def recentadds(request):
 					</td>
 
 					<td>
-					{{ change.country }}
+					{{ change.tocountry }}
 					</td>
 					
 					<td>
@@ -103,7 +103,7 @@ def home(request):
     return render(request, 'pshapes_site/home.html', {"shortdescr":shortdescr, "changelist":changelist})
 
 def home(request):
-    bannertitle = "Crowdsourcing Historical Province Boundaries, 1946-2014 (Beta)"
+    bannertitle = "Crowdsourcing Historical Province Boundaries, 1946-Present (Beta)"
     bannerleft = """
 			<style>
 			.shadow
@@ -133,6 +133,7 @@ def home(request):
                         <br>
                         <p>Not sure what to put here...</p>
                         <p>Maybe slideshow of stepbystep instructions...</p>
+                        <p>Or latest site news or blog/progress notes...</p>
                         """
     else:
         bannerright = """
@@ -277,7 +278,7 @@ def download_raw(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="pshapes_raw.csv"'
     import csv, datetime
-    fields = "source status country date type fromname fromiso fromfips fromhasc fromtype fromcapital toname toiso tofips tohasc totype tocapital transfer_source transfer_reference transfer_geom".split()
+    fields = "source status date type fromcountry fromname fromalterns fromiso fromfips fromhasc fromtype fromcapitalname fromcapital tocountry toname toalterns toiso tofips tohasc totype tocapitalname tocapital transfer_source transfer_reference transfer_geom".split()
     writer = csv.writer(response)
     writer.writerow(fields)
     def encode(val):

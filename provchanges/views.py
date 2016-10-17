@@ -21,6 +21,8 @@ import datetime
 
 # Create your views here.
 
+countries = [(u'Afghanistan', u'Afghanistan'), (u'\xc5land Islands', u'\xc5land Islands'), (u'Albania', u'Albania'), (u'Algeria', u'Algeria'), (u'American Samoa', u'American Samoa'), (u'Andorra', u'Andorra'), (u'Angola', u'Angola'), (u'Anguilla', u'Anguilla'), (u'Antigua and Barbuda', u'Antigua and Barbuda'), (u'Argentina', u'Argentina'), (u'Armenia', u'Armenia'), (u'Aruba', u'Aruba'), (u'Australia', u'Australia'), (u'Austria', u'Austria'), (u'Azerbaijan', u'Azerbaijan'), (u'The Bahamas', u'The Bahamas'), (u'Bahrain', u'Bahrain'), (u'Bangladesh', u'Bangladesh'), (u'Barbados', u'Barbados'), (u'Belarus', u'Belarus'), (u'Belgium', u'Belgium'), (u'Belize', u'Belize'), (u'Benin', u'Benin'), (u'Bermuda', u'Bermuda'), (u'Bhutan', u'Bhutan'), (u'Bolivia', u'Bolivia'), (u'Bonaire', u'Bonaire'), (u'Bosnia and Herzegovina', u'Bosnia and Herzegovina'), (u'Botswana', u'Botswana'), (u'Bouvet Island', u'Bouvet Island'), (u'Brazil', u'Brazil'), (u'British Indian Ocean Territory', u'British Indian Ocean Territory'), (u'United States Minor Outlying Islands', u'United States Minor Outlying Islands'), (u'British Virgin Islands', u'British Virgin Islands'), (u'Brunei', u'Brunei'), (u'Bulgaria', u'Bulgaria'), (u'Burkina Faso', u'Burkina Faso'), (u'Burundi', u'Burundi'), (u'Cambodia', u'Cambodia'), (u'Cameroon', u'Cameroon'), (u'Canada', u'Canada'), (u'Cape Verde', u'Cape Verde'), (u'Cayman Islands', u'Cayman Islands'), (u'Central African Republic', u'Central African Republic'), (u'Chad', u'Chad'), (u'Chile', u'Chile'), (u'China', u'China'), (u'Christmas Island', u'Christmas Island'), (u'Cocos (Keeling) Islands', u'Cocos (Keeling) Islands'), (u'Colombia', u'Colombia'), (u'Comoros', u'Comoros'), (u'Republic of the Congo', u'Republic of the Congo'), (u'Democratic Republic of the Congo', u'Democratic Republic of the Congo'), (u'Cook Islands', u'Cook Islands'), (u'Costa Rica', u'Costa Rica'), (u'Croatia', u'Croatia'), (u'Cuba', u'Cuba'), (u'Cura\xe7ao', u'Cura\xe7ao'), (u'Cyprus', u'Cyprus'), (u'Czech Republic', u'Czech Republic'), (u'Denmark', u'Denmark'), (u'Djibouti', u'Djibouti'), (u'Dominica', u'Dominica'), (u'Dominican Republic', u'Dominican Republic'), (u'Ecuador', u'Ecuador'), (u'Egypt', u'Egypt'), (u'El Salvador', u'El Salvador'), (u'Equatorial Guinea', u'Equatorial Guinea'), (u'Eritrea', u'Eritrea'), (u'Estonia', u'Estonia'), (u'Ethiopia', u'Ethiopia'), (u'Falkland Islands', u'Falkland Islands'), (u'Faroe Islands', u'Faroe Islands'), (u'Fiji', u'Fiji'), (u'Finland', u'Finland'), (u'France', u'France'), (u'French Guiana', u'French Guiana'), (u'French Polynesia', u'French Polynesia'), (u'French Southern and Antarctic Lands', u'French Southern and Antarctic Lands'), (u'Gabon', u'Gabon'), (u'The Gambia', u'The Gambia'), (u'Georgia', u'Georgia'), (u'Germany', u'Germany'), (u'Ghana', u'Ghana'), (u'Gibraltar', u'Gibraltar'), (u'Greece', u'Greece'), (u'Greenland', u'Greenland'), (u'Grenada', u'Grenada'), (u'Guadeloupe', u'Guadeloupe'), (u'Guam', u'Guam'), (u'Guatemala', u'Guatemala'), (u'Guernsey', u'Guernsey'), (u'Guinea', u'Guinea'), (u'Guinea-Bissau', u'Guinea-Bissau'), (u'Guyana', u'Guyana'), (u'Haiti', u'Haiti'), (u'Heard Island and McDonald Islands', u'Heard Island and McDonald Islands'), (u'Honduras', u'Honduras'), (u'Hong Kong', u'Hong Kong'), (u'Hungary', u'Hungary'), (u'Iceland', u'Iceland'), (u'India', u'India'), (u'Indonesia', u'Indonesia'), (u'Ivory Coast', u'Ivory Coast'), (u'Iran', u'Iran'), (u'Iraq', u'Iraq'), (u'Republic of Ireland', u'Republic of Ireland'), (u'Isle of Man', u'Isle of Man'), (u'Israel', u'Israel'), (u'Italy', u'Italy'), (u'Jamaica', u'Jamaica'), (u'Japan', u'Japan'), (u'Jersey', u'Jersey'), (u'Jordan', u'Jordan'), (u'Kazakhstan', u'Kazakhstan'), (u'Kenya', u'Kenya'), (u'Kiribati', u'Kiribati'), (u'Kuwait', u'Kuwait'), (u'Kyrgyzstan', u'Kyrgyzstan'), (u'Laos', u'Laos'), (u'Latvia', u'Latvia'), (u'Lebanon', u'Lebanon'), (u'Lesotho', u'Lesotho'), (u'Liberia', u'Liberia'), (u'Libya', u'Libya'), (u'Liechtenstein', u'Liechtenstein'), (u'Lithuania', u'Lithuania'), (u'Luxembourg', u'Luxembourg'), (u'Macau', u'Macau'), (u'Republic of Macedonia', u'Republic of Macedonia'), (u'Madagascar', u'Madagascar'), (u'Malawi', u'Malawi'), (u'Malaysia', u'Malaysia'), (u'Maldives', u'Maldives'), (u'Mali', u'Mali'), (u'Malta', u'Malta'), (u'Marshall Islands', u'Marshall Islands'), (u'Martinique', u'Martinique'), (u'Mauritania', u'Mauritania'), (u'Mauritius', u'Mauritius'), (u'Mayotte', u'Mayotte'), (u'Mexico', u'Mexico'), (u'Federated States of Micronesia', u'Federated States of Micronesia'), (u'Moldova', u'Moldova'), (u'Monaco', u'Monaco'), (u'Mongolia', u'Mongolia'), (u'Montenegro', u'Montenegro'), (u'Montserrat', u'Montserrat'), (u'Morocco', u'Morocco'), (u'Mozambique', u'Mozambique'), (u'Myanmar', u'Myanmar'), (u'Namibia', u'Namibia'), (u'Nauru', u'Nauru'), (u'Nepal', u'Nepal'), (u'Netherlands', u'Netherlands'), (u'New Caledonia', u'New Caledonia'), (u'New Zealand', u'New Zealand'), (u'Nicaragua', u'Nicaragua'), (u'Niger', u'Niger'), (u'Nigeria', u'Nigeria'), (u'Niue', u'Niue'), (u'Norfolk Island', u'Norfolk Island'), (u'North Korea', u'North Korea'), (u'Northern Mariana Islands', u'Northern Mariana Islands'), (u'Norway', u'Norway'), (u'Oman', u'Oman'), (u'Pakistan', u'Pakistan'), (u'Palau', u'Palau'), (u'Palestine', u'Palestine'), (u'Panama', u'Panama'), (u'Papua New Guinea', u'Papua New Guinea'), (u'Paraguay', u'Paraguay'), (u'Peru', u'Peru'), (u'Philippines', u'Philippines'), (u'Pitcairn Islands', u'Pitcairn Islands'), (u'Poland', u'Poland'), (u'Portugal', u'Portugal'), (u'Puerto Rico', u'Puerto Rico'), (u'Qatar', u'Qatar'), (u'Republic of Kosovo', u'Republic of Kosovo'), (u'R\xe9union', u'R\xe9union'), (u'Romania', u'Romania'), (u'Russia', u'Russia'), (u'Rwanda', u'Rwanda'), (u'Saint Barth\xe9lemy', u'Saint Barth\xe9lemy'), (u'Saint Helena', u'Saint Helena'), (u'Saint Kitts and Nevis', u'Saint Kitts and Nevis'), (u'Saint Lucia', u'Saint Lucia'), (u'Saint Martin', u'Saint Martin'), (u'Saint Pierre and Miquelon', u'Saint Pierre and Miquelon'), (u'Saint Vincent and the Grenadines', u'Saint Vincent and the Grenadines'), (u'Samoa', u'Samoa'), (u'San Marino', u'San Marino'), (u'S\xe3o Tom\xe9 and Pr\xedncipe', u'S\xe3o Tom\xe9 and Pr\xedncipe'), (u'Saudi Arabia', u'Saudi Arabia'), (u'Senegal', u'Senegal'), (u'Serbia', u'Serbia'), (u'Seychelles', u'Seychelles'), (u'Sierra Leone', u'Sierra Leone'), (u'Singapore', u'Singapore'), (u'Sint Maarten', u'Sint Maarten'), (u'Slovakia', u'Slovakia'), (u'Slovenia', u'Slovenia'), (u'Solomon Islands', u'Solomon Islands'), (u'Somalia', u'Somalia'), (u'South Africa', u'South Africa'), (u'South Georgia', u'South Georgia'), (u'South Korea', u'South Korea'), (u'South Sudan', u'South Sudan'), (u'Spain', u'Spain'), (u'Sri Lanka', u'Sri Lanka'), (u'Sudan', u'Sudan'), (u'Suriname', u'Suriname'), (u'Svalbard and Jan Mayen', u'Svalbard and Jan Mayen'), (u'Swaziland', u'Swaziland'), (u'Sweden', u'Sweden'), (u'Switzerland', u'Switzerland'), (u'Syria', u'Syria'), (u'Taiwan', u'Taiwan'), (u'Tajikistan', u'Tajikistan'), (u'Tanzania', u'Tanzania'), (u'Thailand', u'Thailand'), (u'East Timor', u'East Timor'), (u'Togo', u'Togo'), (u'Tokelau', u'Tokelau'), (u'Tonga', u'Tonga'), (u'Trinidad and Tobago', u'Trinidad and Tobago'), (u'Tunisia', u'Tunisia'), (u'Turkey', u'Turkey'), (u'Turkmenistan', u'Turkmenistan'), (u'Turks and Caicos Islands', u'Turks and Caicos Islands'), (u'Tuvalu', u'Tuvalu'), (u'Uganda', u'Uganda'), (u'Ukraine', u'Ukraine'), (u'United Arab Emirates', u'United Arab Emirates'), (u'United Kingdom', u'United Kingdom'), (u'United States', u'United States'), (u'Uruguay', u'Uruguay'), (u'Uzbekistan', u'Uzbekistan'), (u'Vanuatu', u'Vanuatu'), (u'Venezuela', u'Venezuela'), (u'Vietnam', u'Vietnam'), (u'Wallis and Futuna', u'Wallis and Futuna'), (u'Western Sahara', u'Western Sahara'), (u'Yemen', u'Yemen'), (u'Zambia', u'Zambia'), (u'Zimbabwe', u'Zimbabwe')]
+
 def slideshow():
     # from https://codepen.io/anon/pen/RGYPjP
     html = """
@@ -395,21 +397,32 @@ def contribute(request):
     
     fields = ["country","entries","mindate","maxdate"]
     lists = []
-    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in ProvChange._meta.get_field("country").choices])
-    for rowdict in ProvChange.objects.values("country").annotate(entries=Count('pk'),
-                                                                 mindate=Min("date"),
-                                                                 maxdate=Max("date")):
+    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
+    for rowdict in ProvChange.objects.values("fromcountry").annotate(entries=Count('pk'),
+                                                                     mindate=Min("date"),
+                                                                     maxdate=Max("date")):
+        rowdict["country"] = rowdict.pop("fromcountry")
         rowdicts[rowdict["country"]] = rowdict
+    for rowdict in ProvChange.objects.values("tocountry").annotate(entries=Count('pk'),
+                                                                     mindate=Min("date"),
+                                                                     maxdate=Max("date")):
+        rowdict["country"] = rowdict.pop("tocountry")
+        if rowdict["country"] in rowdicts:
+            cur = rowdicts[rowdict["country"]]
+            cur["entries"] += rowdict["entries"]
+            cur["mindate"] = min(cur["mindate"], rowdict["mindate"]) if cur["mindate"] != "-" else rowdict["mindate"]
+            cur["maxdate"] = min(cur["maxdate"], rowdict["maxdate"]) if cur["maxdate"] != "-" else rowdict["maxdate"]
+        else:
+            rowdicts[rowdict["country"]] = rowdict
 
     for country in sorted(rowdicts.keys()):
         rowdict = rowdicts[country]
-        print rowdict
         row = [rowdict[f] for f in fields]
         url = "/contribute/view/%s" % urlquote(rowdict["country"])
         lists.append((url,row))
     
     countriestable = lists2table(request, lists=lists,
-                              fields=fields)
+                                  fields=["Country","Entries","First Change","Last Change"])
     content = countriestable
     grids.append(dict(title="Choose a Country:",
                       content=content,
@@ -629,7 +642,7 @@ def contribute(request):
 def viewcountry(request, country):
 
     def getdateeventstable(date):        
-        changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
+        changes = (ProvChange.objects.filter(fromcountry=country, date=date) | ProvChange.objects.filter(tocountry=country, date=date)).order_by("-added") # the dash reverses the order
         import itertools
         
         def typeprov(obj):
@@ -682,21 +695,25 @@ def viewcountry(request, country):
             items = list(items)
             firstitem = items[0]
             if typ == "NewInfo":
-                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
+                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
             elif typ == "Split":
-                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
+                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
             elif typ == "Merge":
-                fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
+                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Merge"'
+                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
             elif typ == "Transfer":
-                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
+                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
+                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
             return link,(prov,typ)
         events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType"])
@@ -814,7 +831,7 @@ def viewcountry(request, country):
                         </table>
                         """.format(top=top, left=left, right=right)
 
-        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
+        dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).order_by("date").values('date').distinct()]
         print dates
 
     ##    def getlinkrow(date):
@@ -880,7 +897,10 @@ def adddate(request, country):
     func = AddDateWizard.as_view(country=country)
     return func(request)
 
-
+def markcountrychange(country, provtext, provcountry):
+    if provcountry != country:
+        provtext += " (%s)" % provcountry
+    return provtext
 
 def viewevent(request, country, province):
     # TODO: add "edit-event" button in main banner
@@ -908,15 +928,17 @@ def viewevent(request, country, province):
     if typ == "NewInfo":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(country=country, date=date, type="NewInfo", fromname=prov, bestversion=True)
+        changes = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True) | ProvChange.objects.filter(tocountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True)
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
-            oldinfo = '<li style="list-style:none">'+change.fromname.encode("utf8")+"</li>"
+            oldinfo = '<li style="list-style:none">'+markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Altnerate names: '+change.fromalterns.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.fromiso.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.fromfips.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.fromhasc.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapital.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapitalname.encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.fromcapital.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.fromtype.encode("utf8")+"</li>"
             top = """
                             <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -933,11 +955,13 @@ def viewevent(request, country, province):
                     <h2><em>Changed info to:</em></h2>
                     """
         
-            newinfo = '<li style="font-size:smaller; list-style:none"><a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8"))
+            newinfo = '<li style="font-size:smaller; list-style:none"><a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.tohasc.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.tocapital.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.tocapitalname.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.tocapital.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.totype.encode("utf8")+"</li>"
             right = """
                             <style>
@@ -979,7 +1003,7 @@ def viewevent(request, country, province):
 
             pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
             pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
-                                      fields=["date","type","fromname","toname","country","user","added","status"])
+                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
 
             grids.append(dict(title="Pending Edits",
                               content=pendingeditstable,
@@ -989,7 +1013,7 @@ def viewevent(request, country, province):
 
             oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
             oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
-                                      fields=["date","type","fromname","toname","country","user","added","status"])
+                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
 
             grids.append(dict(title="Revision History",
                               content=oldversionstable,
@@ -997,7 +1021,8 @@ def viewevent(request, country, province):
                               width="99%",
                               ))
 
-            conflicting = ProvChange.objects.filter(country=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
+            # NOT SURE BOUT FROMCOUNTRY HERE...
+            conflicting = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
             conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
                                           fields=["date","type","fromname","toname","country","user","added","status"])
 
@@ -1009,11 +1034,13 @@ def viewevent(request, country, province):
 
         else:
             # newinfo event just added, so no change objects yet
-            oldinfo = '<li style="list-style:none">'+request.GET["fromname"].encode("utf8")+"</li>"
+            oldinfo = '<li style="list-style:none">'+markcountrychange(country, request.GET["fromname"], request.GET["fromcountry"]).encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+request.GET["fromalterns"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+request.GET["fromiso"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+request.GET["fromfips"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+request.GET["fromhasc"].encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+request.GET["fromcapital"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+request.GET["fromcapitalname"].encode("utf8")+"</li>"
+            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+request.GET["fromcapital"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+request.GET["fromtype"].encode("utf8")+"</li>"
             top = """
                             <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -1068,7 +1095,7 @@ def viewevent(request, country, province):
         
     elif typ == "Split":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="Breakaway",fromname=prov)
+        changes = ProvChange.objects.filter(fromcountry=country,date=date,type="Breakaway",fromname=prov) | ProvChange.objects.filter(tocountry=country,date=date,type="Breakaway",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
 
         top = """
@@ -1079,15 +1106,15 @@ def viewevent(request, country, province):
         
         left = """
                         <div style="clear:both; text-align: left">
-                        <h2 style="float:left">{provtext} province</h2>
+                        <h2 style="float:left">{provtext}</h2>
                         </div>
-        """.format(provtext=prov.encode("utf8"))
+        """.format(provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
 
         mid = """
                 <h2><em>Split into:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8")) for change in changes))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
         splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
@@ -1129,9 +1156,9 @@ def viewevent(request, country, province):
 
     elif typ == "Merge":
         fields = ["fromname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="FullTransfer",toname=prov)
+        changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=change.fromname.encode("utf8")) for change in changes))
+        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
         givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -1153,9 +1180,9 @@ def viewevent(request, country, province):
                 """
         right = """
                         <div>
-                        <h2>{provtext} province</h2>
+                        <h2>{provtext}</h2>
                         </div>
-        """.format(provtext=prov.encode("utf8"))
+        """.format(provtext=markcountrychange(country, changes[0].toname, changes[0].tocountry).encode("utf8") if changes else prov.encode("utf8"))
         custombanner = """
 
                         {top}
@@ -1185,7 +1212,7 @@ def viewevent(request, country, province):
 
     elif typ == "Transfer":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(country=country,date=date,type="PartTransfer",fromname=prov)
+        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",fromname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
 
         top = """
@@ -1196,15 +1223,15 @@ def viewevent(request, country, province):
         
         left = """
                         <div style="clear:both; text-align: left">
-                        <h2 style="float:left">{provtext} province</h2>
+                        <h2 style="float:left">{provtext}</h2>
                         </div>
-        """.format(provtext=prov.encode("utf8"))
+        """.format(provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
 
         mid = """
                 <h2><em>Gave territory to:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=change.toname.encode("utf8")) for change in changes))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
         splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
@@ -1442,27 +1469,27 @@ def viewchange(request, pk):
         note = ""
 
     if change.type == "Breakaway":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     elif change.type == "FullTransfer":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.country), prov=urlquote(change.toname)) + params
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "PartTransfer":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     elif change.type == "NewInfo":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.country), prov=urlquote(change.fromname)) + params
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     print 99999,change.type, change
     print 1111,eventlink
 
     pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
     pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
-                              fields=["date","type","fromname","toname","country","user","added","status"])
+                              fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
 
     oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
     oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
-                              fields=["date","type","fromname","toname","country","user","added","status"])
+                              fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
 
     args = {'pk': pk,
             'note': note,
@@ -1496,7 +1523,7 @@ def editchange(request, pk):
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
         formfieldvalues["user"] = request.user.username
-        formfieldvalues["added"] = datetime.date.today()
+        formfieldvalues["added"] = datetime.datetime.now()
         formfieldvalues["status"] = "Pending"
 
         if request.user.username == change.user:
@@ -1604,6 +1631,23 @@ class UserInfoForm(forms.ModelForm):
 
 # Event forms
 
+class ListTextWidget(forms.TextInput):
+    # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
+    def __init__(self, data_list, name, *args, **kwargs):
+        super(ListTextWidget, self).__init__(*args, **kwargs)
+        self._name = name
+        self._list = data_list
+        self.attrs.update({'list':'list__%s' % self._name})
+
+    def render(self, name, value, attrs=None):
+        text_html = super(ListTextWidget, self).render(name, value, attrs=attrs)
+        data_list = '<datalist id="list__%s">' % self._name
+        for item in self._list:
+            data_list += '<option value="%s">' % item
+        data_list += '</datalist>'
+
+        return (text_html + data_list)
+
 class SourceEventForm(forms.ModelForm):
 
     step_title = "Source of Information"
@@ -1621,7 +1665,7 @@ from django.forms.widgets import RadioFieldRenderer
 EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                          "short": "A change was made to a province's name, codes, or capital.",
                           "descr": """
-                                    Most province changes are as simple as changes in their basic information. 
+                                    Description...
                                     """,
                           "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                           },
@@ -1687,11 +1731,15 @@ class FromEventForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = 'fromname fromiso fromfips fromhasc fromcapital fromtype'.split()
+        fields = 'fromcountry fromname fromalterns fromiso fromfips fromhasc fromcapitalname fromcapital fromtype'.split()
 
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(FromEventForm, self).__init__(*args, **kwargs)
+        countrylist = [c[0] for c in countries]
+        # also add in any other manual countries from db
+        # ...
+        self.fields["fromcountry"].widget = ListTextWidget(data_list=countrylist, name="fromcountrylist")
 
 class ToEventForm(forms.ModelForm):
 
@@ -1700,11 +1748,15 @@ class ToEventForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = 'toname toiso tofips tohasc tocapital totype'.split()
+        fields = 'tocountry toname toalterns toiso tofips tohasc tocapitalname tocapital totype'.split()
 
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(ToEventForm, self).__init__(*args, **kwargs)
+        countrylist = [c[0] for c in countries]
+        # also add in any other manual countries from db
+        # ...
+        self.fields["tocountry"].widget = ListTextWidget(data_list=countrylist, name="tocountrylist")
 
 class DateForm(forms.Form):
 
@@ -1788,7 +1840,15 @@ class AddEventWizard(SessionWizardView):
             elif typ == "Merge":
                 kwargs["step_descr"] = "Please identify the province that gained territory after all the mergers?"
 
-        return kwargs 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "2":
+            data["fromcountry"] = self.country
+        elif step == "3":
+            data["tocountry"] = self.country
+        return data
 
     def get_context_data(self, form, **kwargs):
         context = super(AddEventWizard, self).get_context_data(form=form, **kwargs)
@@ -1821,7 +1881,7 @@ class AddEventWizard(SessionWizardView):
         # ...
             
         keys = data.keys() #["date","source","type"]
-        params = urlencode( [(key,data[key]) for key in keys] + [("country",country)] )
+        params = urlencode( [(key,data[key]) for key in keys] ) #+ [("fromcountry",country),("tocountry",country)] )
         print params
         url = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params
         html = redirect(url)
@@ -2095,7 +2155,7 @@ class GeneralChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ['country', 'date', 'source']
+        fields = ['date', 'source']
         widgets = {"date": CustomDateWidget()}
 
 class FromChangeForm(forms.ModelForm):
@@ -2105,11 +2165,16 @@ class FromChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = 'fromname fromiso fromfips fromhasc fromcapital fromtype'.split()
+        fields = 'fromcountry fromname fromalterns fromiso fromfips fromhasc fromcapitalname fromcapital fromtype'.split()
 
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(FromChangeForm, self).__init__(*args, **kwargs)
+        countrylist = [c[0] for c in countries]
+        # also add in any other manual countries from db
+        # ...
+        self.fields["fromcountry"].widget = ListTextWidget(data_list=countrylist, name="fromcountrylist")
+
 
 class ToChangeForm(forms.ModelForm):
 
@@ -2118,11 +2183,16 @@ class ToChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = 'toname toiso tofips tohasc tocapital totype'.split()
+        fields = 'tocountry toname toalterns toiso tofips tohasc tocapitalname tocapital totype'.split()
 
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(ToChangeForm, self).__init__(*args, **kwargs)
+        countrylist = [c[0] for c in countries]
+        # also add in any other manual countries from db
+        # ...
+        self.fields["tocountry"].widget = ListTextWidget(data_list=countrylist, name="tocountrylist")
+
 
 
 
@@ -2234,6 +2304,15 @@ class HistoMapForm(forms.ModelForm):
         html = """
                         The map should show the giving province as it was prior to the change.
                         This can be either an image you find online or a physical map that you scan.
+                        If Googling "[Countryname] historical provinces" returns too much noise, you can
+                        also try the following sites specialized for historical maps:
+
+                        <ul>
+                            <li><a href="http://mapwarper.net/">MapWarper</a> might already have your map georeferenced.</li>
+                            <li><a href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress</a> has a large collection of maps tagged "administrative divisions".</li>
+                            <li><a href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                        </ul>
+
                         In the field below identify and reference the source, author, and year of the
                         map in as much detail as possible.
 
@@ -2681,7 +2760,7 @@ class AddChangeWizard(SessionWizardView):
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
         formfieldvalues["user"] = self.request.user.username
-        formfieldvalues["added"] = datetime.date.today()
+        formfieldvalues["added"] = datetime.datetime.now()
         formfieldvalues["bestversion"] = True
         print formfieldvalues
 
@@ -2735,11 +2814,17 @@ class AddNewInfoChangeWizard(AddChangeWizard):
         kwargs = {}
         if step == "0": # from or to form
             kwargs["step_descr"] = "Fill in the province information after the change. Only the parts that have changed will be registered." 
-        return kwargs 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "0":
+            data["tocountry"] = self.country
+        return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
 
@@ -2769,11 +2854,17 @@ class AddSplitChangeWizard(AddChangeWizard):
         kwargs = {}
         if step == "1": # from or to form
             kwargs["step_descr"] = "Please identify the province that broke away?"
-        return kwargs 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["tocountry"] = self.country
+        return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
     
@@ -2828,11 +2919,17 @@ class AddMergeChangeWizard(AddChangeWizard):
         kwargs = {}
         if step == "1": # from or to form
             kwargs["step_descr"] = "Please identify the province that merged and ceased to exist?"
-        return kwargs 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["fromcountry"] = self.country
+        return data      
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","toname","toiso","tohasc","tofips","totype","tocapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(obj.country), prov=urlquote(obj.toname)) + params
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
 
@@ -2888,11 +2985,17 @@ class AddTransferChangeWizard(AddChangeWizard):
         kwargs = {}
         if step == "2": # from or to form
             kwargs["step_descr"] = "Please identify the province that received territory?"
-        return kwargs 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "2":
+            data["tocountry"] = self.country
+        return data  
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["country","date","source","fromname","fromiso","fromhasc","fromfips","fromtype","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(obj.country), prov=urlquote(obj.fromname)) + params
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
     
