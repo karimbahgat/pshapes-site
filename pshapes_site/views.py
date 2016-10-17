@@ -242,30 +242,31 @@ def data(request):
                     """
     grids.append(dict(title="Methodology",
                       content="""
+                            <b>
                             <p>
                             One of the novelties of the pShapes project is that it uses a unique reverse
-                            polygon geocoding algorithm that requires minimal detail and input from
-                            contributors to be able to reverse geocode the exact shapes of
-                            provinces in the distant past. This lowers the cost for contributors and allows
-                            virtually anyone to contribute, regardless of technical know-how.
+                            polygon geocoding algorithm that requires minimal input from
+                            contributors.
                             </p>
                             <a href="">
                             Click to learn more about the reverse polygon geocoding algorithm...
                             </a>
+                            </b>
                             """,
                       width="46%",
                       ))
     grids.append(dict(title="Advanced Use",
                       content="""
-                            New versions of the pShapes dataset is based on the raw data on province changes that
-                            users contribute. 
-                            Some users may be interesting in exploring this raw change data directly, for instance to build
-                            the data on your own if you want to use it immediately without waiting for the next version.
+                            <b>
+                            Some users may be interesting in replicating the pshapes dataset using the raw user
+                            contributions directly, instead of waiting for the next version. 
 
                             <ul>
                                 <li><a href="/download/raw">Download the raw data as CSV</a></li>
-                                <li><a href="">Instructions on how to build the data from scratch</a></li>
                             </ul>
+
+                            <a href="">Click here to view instructions on how to build pshapes using the raw CSV file.</a>
+                            </b>
                             """,
                       width="46%",
                       ))

@@ -1114,7 +1114,7 @@ def viewevent(request, country, province):
                 <h2><em>Split into:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
         splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
@@ -1158,7 +1158,7 @@ def viewevent(request, country, province):
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
+        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
         givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -1231,7 +1231,7 @@ def viewevent(request, country, province):
                 <h2><em>Gave territory to:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
         splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
@@ -1736,10 +1736,16 @@ class FromEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(FromEventForm, self).__init__(*args, **kwargs)
-        countrylist = [c[0] for c in countries]
-        # also add in any other manual countries from db
-        # ...
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
         self.fields["fromcountry"].widget = ListTextWidget(data_list=countrylist, name="fromcountrylist")
+        
+        country = kwargs["initial"]["fromcountry"]
+        provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+        provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+        provlist = sorted(provlist)
+        self.fields["fromname"].widget = ListTextWidget(data_list=provlist, name="fromprovlist")
 
 class ToEventForm(forms.ModelForm):
 
@@ -1753,10 +1759,16 @@ class ToEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(ToEventForm, self).__init__(*args, **kwargs)
-        countrylist = [c[0] for c in countries]
-        # also add in any other manual countries from db
-        # ...
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
         self.fields["tocountry"].widget = ListTextWidget(data_list=countrylist, name="tocountrylist")
+        
+        country = kwargs["initial"]["tocountry"]
+        provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+        provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+        provlist = sorted(provlist)
+        self.fields["toname"].widget = ListTextWidget(data_list=provlist, name="toprovlist")
 
 class DateForm(forms.Form):
 
@@ -2170,11 +2182,17 @@ class FromChangeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(FromChangeForm, self).__init__(*args, **kwargs)
-        countrylist = [c[0] for c in countries]
-        # also add in any other manual countries from db
-        # ...
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
         self.fields["fromcountry"].widget = ListTextWidget(data_list=countrylist, name="fromcountrylist")
 
+        if "initial" in kwargs:
+            country = kwargs["initial"]["fromcountry"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+            provlist = sorted(provlist)
+            self.fields["fromname"].widget = ListTextWidget(data_list=provlist, name="fromprovlist")
 
 class ToChangeForm(forms.ModelForm):
 
@@ -2188,10 +2206,17 @@ class ToChangeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.step_descr = kwargs.pop("step_descr", "")
         super(ToChangeForm, self).__init__(*args, **kwargs)
-        countrylist = [c[0] for c in countries]
-        # also add in any other manual countries from db
-        # ...
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
         self.fields["tocountry"].widget = ListTextWidget(data_list=countrylist, name="tocountrylist")
+
+        if "initial" in kwargs:
+            country = kwargs["initial"]["tocountry"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+            provlist = sorted(provlist)
+            self.fields["toname"].widget = ListTextWidget(data_list=provlist, name="toprovlist")
 
 
 
@@ -2797,18 +2822,18 @@ class AddNewInfoChangeWizard(AddChangeWizard):
     country = None
     province = None
     
-    def get_form(self, step=None, data=None, files=None):
-        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-        if data:
-            print data
-            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-        else:
-            data = {}
-        print data
-
-        form = super(AddNewInfoChangeWizard, self).get_form(step, data=data, files=files)        
-
-        return form
+##    def get_form(self, step=None, data=None, files=None):
+##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+##        if data:
+##            print data
+##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+##        else:
+##            data = {}
+##        print data
+##
+##        form = super(AddNewInfoChangeWizard, self).get_form(step, data=data, files=files)        
+##
+##        return form
 
     def get_form_kwargs(self, step=None):
         kwargs = {}
@@ -2837,18 +2862,18 @@ class AddSplitChangeWizard(AddChangeWizard):
     country = None
     province = None
     
-    def get_form(self, step=None, data=None, files=None):
-        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-        if data:
-            print data
-            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-        else:
-            data = {}
-        print data
-
-        form = super(AddSplitChangeWizard, self).get_form(step, data=data, files=files)        
-
-        return form
+##    def get_form(self, step=None, data=None, files=None):
+##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+##        if data:
+##            print data
+##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+##        else:
+##            data = {}
+##        print data
+##
+##        form = super(AddSplitChangeWizard, self).get_form(step, data=data, files=files)        
+##
+##        return form
 
     def get_form_kwargs(self, step=None):
         kwargs = {}
@@ -2894,13 +2919,13 @@ class AddMergeChangeWizard(AddChangeWizard):
     province = None
     
     def get_form(self, step=None, data=None, files=None):
-        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-        if data:
-            print data
-            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-        else:
-            data = {}
-        print data
+##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+##        if data:
+##            print data
+##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+##        else:
+##            data = {}
+##        print data
 
         form = super(AddMergeChangeWizard, self).get_form(step, data=data, files=files)        
 
@@ -2960,13 +2985,13 @@ class AddTransferChangeWizard(AddChangeWizard):
     province = None
     
     def get_form(self, step=None, data=None, files=None):
-        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-        if data:
-            print data
-            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-        else:
-            data = {}
-        print data
+##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
+##        if data:
+##            print data
+##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
+##        else:
+##            data = {}
+##        print data
 
         form = super(AddTransferChangeWizard, self).get_form(step, data=data, files=files)        
 
