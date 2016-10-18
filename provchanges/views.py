@@ -639,45 +639,49 @@ def viewcountry(request, country):
             typ = obj.type
             if typ == "FullTransfer":
                 prov = obj.toname
-                return "Merge",prov
+                return prov,"Merge"
             elif typ == "PartTransfer":
                 prov = obj.fromname
-                return "Transfer",prov
+                return prov,"Transfer"
             elif typ == "Breakaway":
                 prov = obj.fromname
-                return "Split",prov
+                return prov,"Split"
             elif typ == "NewInfo":
-                prov = obj.toname
-                return typ,prov
+                prov = obj.fromname
+                return prov,typ
         def events():
             dategroup = list(changes)
-            #splits
-            subkey = lambda o: o.fromname
-            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                splitgroup = list(splitgroup)
-                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
-                if splits:
-                    yield (date,("Split",splitfrom)), splits
-            # mergers
-            subkey = lambda o: o.toname
-            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                mergegroup = list(mergegroup)
-                mergers = [ch for ch in mergegroup if ch.type == "FullTransfer"]
-                if mergers:
-                    yield (date,("Merge",mergeto)), mergers
-            # transfers
-            subkey = lambda o: o.fromname
-            for transfrom,transgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                transgroup = list(transgroup)
-                transfers = [ch for ch in transgroup if ch.type == "PartTransfer"]
-                if transfers:
-                    yield (date,("Transfer",transfrom)), transfers
-            # newinfos
-            subkey = lambda o: o.fromname
-            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
-                if newinfos:
-                    yield (date,("NewInfo",fromname)), newinfos
+            subkey = typeprov
+            for typprov,subevents in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+                yield (date,typprov),subevents
+                
+##            #splits
+##            subkey = lambda o: o.fromname
+##            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                splitgroup = list(splitgroup)
+##                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
+##                if splits:
+##                    yield (date,("Split",splitfrom)), splits
+##            # mergers
+##            subkey = lambda o: o.toname
+##            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                mergegroup = list(mergegroup)
+##                mergers = [ch for ch in mergegroup if ch.type == "FullTransfer"]
+##                if mergers:
+##                    yield (date,("Merge",mergeto)), mergers
+##            # transfers
+##            subkey = lambda o: o.fromname
+##            for transfrom,transgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                transgroup = list(transgroup)
+##                transfers = [ch for ch in transgroup if ch.type == "PartTransfer"]
+##                if transfers:
+##                    yield (date,("Transfer",transfrom)), transfers
+##            # newinfos
+##            subkey = lambda o: o.fromname
+##            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
+##                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
+##                if newinfos:
+##                    yield (date,("NewInfo",fromname)), newinfos
 
         events = events()
         
@@ -700,12 +704,12 @@ def viewcountry(request, country):
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Merge"'
                 prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
             elif typ == "Transfer":
-                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","tocapitalname"]
+                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
                 prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
             return link,(prov,typ)
-        events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
+        events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType"])
 
         content = eventstable
@@ -910,6 +914,7 @@ def viewevent(request, country, province):
 ##        bannertitle = "{provtext} province changed some of its information on {date}".format(provtext=prov.encode("utf8"), date=date.strftime('%b %d, %Y'))
 ##    else:
 ##        raise Exception()
+    
     #bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
     bannertitle = ""
     grids = []
@@ -1088,6 +1093,10 @@ def viewevent(request, country, province):
         changes = ProvChange.objects.filter(fromcountry=country,date=date,type="Breakaway",fromname=prov) | ProvChange.objects.filter(tocountry=country,date=date,type="Breakaway",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
 
+        GET = request.GET.copy()
+        GET["type"] = "NewInfo"
+        newinfobut = '<a href="/contribute/view/{country}/{province}?{params}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Info</a>'.format(country=urlquote(country), province=urlquote(prov), params=GET.urlencode())
+
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
@@ -1096,9 +1105,9 @@ def viewevent(request, country, province):
         
         left = """
                         <div style="clear:both; text-align: left">
-                        <h2 style="float:left">{provtext}</h2>
+                        <h2 style="float:left">{provtext} {newinfobut}</h2>
                         </div>
-        """.format(provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
+        """.format(newinfobut=newinfobut, provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
 
         mid = """
                 <h2><em>Split into:</em></h2>
@@ -1205,6 +1214,10 @@ def viewevent(request, country, province):
         changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",fromname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",fromname=prov)
         changes = changes.order_by("-added") # the dash reverses the order
 
+        GET = request.GET.copy()
+        GET["type"] = "NewInfo"
+        newinfobut = '<a href="/contribute/view/{country}/{province}?{params}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Info</a>'.format(country=urlquote(country), province=urlquote(prov), params=GET.urlencode())
+
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
@@ -1213,9 +1226,9 @@ def viewevent(request, country, province):
         
         left = """
                         <div style="clear:both; text-align: left">
-                        <h2 style="float:left">{provtext}</h2>
+                        <h2 style="float:left">{provtext} {newinfobut}</h2>
                         </div>
-        """.format(provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
+        """.format(newinfobut=newinfobut, provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
 
         mid = """
                 <h2><em>Gave territory to:</em></h2>
@@ -1729,6 +1742,13 @@ class SourceEventForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ['source']
+
+    def __init__(self, *args, **kwargs):
+        super(SourceEventForm, self).__init__(*args, **kwargs)
+        country = kwargs["initial"]["fromcountry"]
+        sources = (r.source for r in ProvChange.objects.filter(fromcountry=country).distinct("source"))
+        sources = sorted(sources)
+        self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources")
         
 from django.forms.widgets import RadioFieldRenderer
 
@@ -1926,7 +1946,9 @@ class AddEventWizard(SessionWizardView):
 
     def get_form_initial(self, step=None):
         data = dict()
-        if step == "2":
+        if step == "0":
+            data["fromcountry"] = self.country
+        elif step == "2":
             data["fromcountry"] = self.country
         elif step == "3":
             data["tocountry"] = self.country
@@ -2454,7 +2476,7 @@ class GeorefForm(forms.ModelForm):
                         For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
 
                         <br><br>
-                        <img style="display:block" align="middle" height=300px src="http://dirtdirectory.org/sites/dirtdirectory.org/files/screenshots/mapwarper.PNG"/>
+                        <iframe width="100%" height="500px" src="http://mapwarper.net/"></iframe>
                         <br>
 
                         Once finished with georeferencing, simply insert the MapWarper ID of your georeferenced map
@@ -2914,7 +2936,15 @@ class AddNewInfoChangeWizard(AddChangeWizard):
     def get_form_initial(self, step=None):
         data = dict()
         if step == "0":
-            data["tocountry"] = self.country
+            data["tocountry"] = self.request.GET["fromcountry"]
+            data["toname"] = self.request.GET["fromname"]
+            data["toalterns"] = self.request.GET["fromalterns"]
+            data["toiso"] = self.request.GET["fromiso"]
+            data["tofips"] = self.request.GET["fromfips"]
+            data["tohasc"] = self.request.GET["fromhasc"]
+            data["totype"] = self.request.GET["fromtype"]
+            data["tocapital"] = self.request.GET["fromcapital"]
+            data["tocapitalname"] = self.request.GET["fromcapitalname"]
         return data  
 
     def done_redirect(self, obj):
