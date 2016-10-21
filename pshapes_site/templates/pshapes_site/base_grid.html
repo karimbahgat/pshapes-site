@@ -3,56 +3,40 @@
 
 {% block content %}    	
 		
-	<div class="centeredbody" style="width:800px; margin:0 auto;">
+	{% if not nomainbanner %}
+		<div id="mainbanner" style="display:table;content:'';clear:both; background-color:black; width:100%; padding:0px; margin:0px; color:white">
 		
-	{% if helpbar %}
-	<div class="left" style="float:left; min-height:350px; background-color:gray; padding:10px">
-		Help Bar
-		<br>
-		<a href="/contact/" style="color:white;padding:5px">Contact</a>
-		<br>
-		<a href="/login/" style="color:white;padding:5px">Login</a>
-	</div>
+			<div style="width:800px; margin:0 auto;">
+			
+			{% if custombanner %}
+				{{ custombanner|safe }}
+			
+			{% else %}				
+				<div style="float:left; width:48%; text-align:center; padding:1%">
+				<h3>{{ bannertitle|safe }}</h3>
+				{{ bannerleft|safe }}
+				</div>
+				
+				<div style="float:left; width:48%; text-align:center; padding:1%">
+				{{ bannerright|safe }}
+				</div>
+			
+			{% endif %}
+			
+			</div>
+			
+		</div>
 	{% endif %}
 	
-	<div class="right" style="float:left">
-		
-		{% if not nomainbanner %}
-			<div id="mainbanner" style="display:table;content:'';clear:both; background-color:black; width:100%; padding:0px; margin:0px; color:white">
-			
-				<div style="width:800px;">
-				
-				{% if custombanner %}
-					{{ custombanner|safe }}
-				
-				{% else %}				
-					<div style="float:left; width:48%; text-align:center; padding:1%">
-					<h3>{{ bannertitle|safe }}</h3>
-					{{ bannerleft|safe }}
-					</div>
-					
-					<div style="float:left; width:48%; text-align:center; padding:1%">
-					{{ bannerright|safe }}
-					</div>
-				
-				{% endif %}
-				
+	<div style="width:800px; margin:0 auto;">
+		{% for grid in grids %}
+			<div class="gridcell" style="float:left; width:{% firstof grid.width "30%" %}; padding-right:3%">
+				<h4>{{ grid.title|safe }}</h4>
+				<div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; background-color:orange; {{ grid.style }}">
+				{{ grid.content|safe }}
 				</div>
-				
 			</div>
-		{% endif %}
-		
-		<div style="width:800px; margin:0 auto;">
-			{% for grid in grids %}
-				<div class="gridcell" style="float:left; width:{% firstof grid.width "30%" %}; padding-right:3%">
-					<h4>{{ grid.title|safe }}</h4>
-					<div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; background-color:orange; {{ grid.style }}">
-					{{ grid.content|safe }}
-					</div>
-				</div>
-			{% endfor %}
-		</div>
-		
+		{% endfor %}
 	</div>
 
 {% endblock %}

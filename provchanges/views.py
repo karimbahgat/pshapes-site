@@ -330,7 +330,7 @@ def contribute(request):
     
     bannerleft = """
                     <div style="text-align:center">
-                        <img style="width:450px" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
+                        <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
 		    </div>
     """
     
@@ -772,12 +772,14 @@ def viewcountry(request, country):
 			</a>
 			"""
         left = """	
-			<h3 style="clear:both">Timeline for {country}</h3>
+			<h3 style="clear:both">Timeline for {countrytext}</h3>
 			
                         <div id="blackbackground" style="">
                             <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
                         </div>
-        """.format(country=country.encode("utf8"))
+                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New date</a>
+                        <br><br><br>
+        """.format(countrytext=country.encode("utf8"), country=urlquote(country))
         right = """
                         <style>
                             #blackbackground a { color:white }
@@ -845,11 +847,6 @@ def viewcountry(request, country):
                               style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                               width="99%",
                               ))
-        grids.append(dict(title="""+ <a href="/contribute/add/{country}">New date</a>""".format(country=urlquote(country)),
-                          content='',
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="99%",
-                          ))
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )

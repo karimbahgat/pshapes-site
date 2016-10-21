@@ -188,7 +188,7 @@ def home(request):
                                 <li>October 2016: Beta Website Launched!</li>
                             </ul>
                             """,
-                      width="auto",
+                      width="25%",
                       ))
 
 ##    grids.append(dict(title="What is Pshapes?",
@@ -227,7 +227,7 @@ def home(request):
     grids.append(dict(title="Recent Additions:",
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="auto",
+                      width="65%",
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
@@ -239,30 +239,27 @@ def about(request):
 
 def about(request):
     grids = []
-    bannertitle = "About Pshapes"
-    bannerleft = """
+    custombanner = """
+                <h3 style="text-align:center">About Pshapes</h3>
                 <div style="text-align:left">
-                %s
-                <p>
-                <img width="50px" src="https://people.eecs.berkeley.edu/~sequin/arcad96/A2/anim2d.gif">
-                One of the novelties of the pShapes project is that it uses a unique reverse
-                polygon geocoding algorithm that requires minimal input from
-                contributors.
-                </p>
+                
+                    <p>%s</p>
+                    
+                    <h4>Reverse geocoding methodology</h4>
+                    <p>
+                    <img style="padding:6px" align="left" width="50px" src="https://people.eecs.berkeley.edu/~sequin/arcad96/A2/anim2d.gif">
+                    One of the novelties of the pShapes project is that it uses a unique reverse
+                    polygon geocoding algorithm that requires minimal input from
+                    contributors.
+                    </p>
 
-                <p>
-                More...
-                </p>
+                    <h4 style="clear:both"><br>More</h4>
+                    <p>
+                    Abc...
+                    </p>
                 
                 </div>
                 """ % shortdescr
-    bannerright = ""
-    grids.append(dict(title="Stats",
-                      content="""
-                            Basic overview stats of contributions, users, etc (move this to left sidebar)...
-                            """,
-                      width="20%",
-                      ))
     grids.append(dict(title="Suggest a Feature",
                       content="""
                             Got suggestions for improving the website or data collection?
@@ -282,14 +279,13 @@ def about(request):
                             He can be contacted at karim.bahgat.norway@gmail.com. 
                             """
                       ))
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                   )
 
 def data(request):
     grids = []
-    bannertitle = "Download the Data:"
-    bannerleft = """
+    custombanner = """
+                <h3 style="text-align:center">Download the Data:</h3>
                 <div style="text-align:left">
                 <p>
                 The Pshapes boundary dataset is completely open-source and free of charge for commercial and academic use (see the license for more details),
@@ -303,8 +299,8 @@ def data(request):
                 <ul>
                 </div>
 
-                <div style="text-align:center">
-                <table>
+                <div>
+                <table align="center">
                     <tr>
                         <td style="text-align:center"><img width="50px" src="http://img.expertgps.com/images/shp256.png"><p>Shapefile</p></td>
                         <td style="text-align:center"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></td>
@@ -314,7 +310,6 @@ def data(request):
                 </div>
 
                 """ 
-    bannerright = "<br><br><br><br>License with big icon..."
     grids.append(dict(title="Raw Data Dump",
                       content="""
                             <b>
@@ -325,7 +320,7 @@ def data(request):
                             <div style="text-align:center">
                             <table>
                                 <tr>
-                                    <td style="text-align:center"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></td>
+                                    <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
                                     <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Codebook</p></td>
                                 </tr>
                             </table>
@@ -335,8 +330,7 @@ def data(request):
                             """,
                       width="46%",
                       ))
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                   )
 
 def download_raw(request):
