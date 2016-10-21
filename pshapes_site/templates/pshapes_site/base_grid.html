@@ -1,13 +1,26 @@
 
 {% extends 'pshapes_site/base.html' %}
 
-{% block content %}
-
-	<div class="header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
-    	
+{% block content %}    	
+		
+	<div class="centeredbody" style="width:800px; margin:0 auto;">
+		
+	{% if helpbar %}
+	<div class="left" style="float:left; min-height:350px; background-color:gray; padding:10px">
+		Help Bar
+		<br>
+		<a href="/contact/" style="color:white;padding:5px">Contact</a>
+		<br>
+		<a href="/login/" style="color:white;padding:5px">Login</a>
+	</div>
+	{% endif %}
+	
+	<div class="right" style="float:left">
 		
 		{% if not nomainbanner %}
 			<div id="mainbanner" style="display:table;content:'';clear:both; background-color:black; width:100%; padding:0px; margin:0px; color:white">
+			
+				<div style="width:800px;">
 				
 				{% if custombanner %}
 					{{ custombanner|safe }}
@@ -24,19 +37,21 @@
 				
 				{% endif %}
 				
+				</div>
+				
 			</div>
 		{% endif %}
 		
-		
-		{% for grid in grids %}
-			<div class="gridcell" style="float:left; width:{% firstof grid.width "30%" %}; padding-right:3%">
-				<h4>{{ grid.title|safe }}</h4>
-				<div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; background-color:orange; {{ grid.style }}">
-				{{ grid.content|safe }}
+		<div style="width:800px; margin:0 auto;">
+			{% for grid in grids %}
+				<div class="gridcell" style="float:left; width:{% firstof grid.width "30%" %}; padding-right:3%">
+					<h4>{{ grid.title|safe }}</h4>
+					<div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; background-color:orange; {{ grid.style }}">
+					{{ grid.content|safe }}
+					</div>
 				</div>
-			</div>
-		{% endfor %}
-
+			{% endfor %}
+		</div>
 		
 	</div>
 

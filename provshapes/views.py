@@ -16,11 +16,15 @@ def interactive(request):
 
 def interactive(request):
     grids = []
-    bannertitle = "Interactive data explorer"
-    bannerleft = '<p style="text-align:left">This functionality is not yet available, but will be once the first stable version is released. </p>'
-    bannerright = ""
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    bannertitle = ""
+    custombanner = """
+                <div style="text-align:center">
+                <h2>Interactive data explorer</h2>
+                <img src="http://www.iconarchive.com/download/i66283/jommans/ironman-style/Internet-Explorer.ico">
+                <p style="text-align:center"><em>This functionality is not yet available, but will be once the first stable version is released.</em></p>
+                """
+    bannerright = ''
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
 
 def data(request):

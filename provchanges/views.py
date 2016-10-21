@@ -388,14 +388,14 @@ def contribute(request):
     fields = ["country","entries","mindate","maxdate"]
     lists = []
     rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
-    for rowdict in ProvChange.objects.values("fromcountry").annotate(entries=Count('pk'),
-                                                                     mindate=Min("date"),
-                                                                     maxdate=Max("date")):
+    for rowdict in ProvChange.objects.values("fromcountry").exclude(status="NonActive").annotate(entries=Count('pk'),
+                                                                                                 mindate=Min("date"),
+                                                                                                 maxdate=Max("date")):
         rowdict["country"] = rowdict.pop("fromcountry")
         rowdicts[rowdict["country"]] = rowdict
-    for rowdict in ProvChange.objects.values("tocountry").annotate(entries=Count('pk'),
-                                                                     mindate=Min("date"),
-                                                                     maxdate=Max("date")):
+    for rowdict in ProvChange.objects.values("tocountry").exclude(status="NonActive").annotate(entries=Count('pk'),
+                                                                                                 mindate=Min("date"),
+                                                                                                 maxdate=Max("date")):
         rowdict["country"] = rowdict.pop("tocountry")
         if rowdict["country"] in rowdicts:
             cur = rowdicts[rowdict["country"]]
@@ -632,7 +632,7 @@ def contribute(request):
 def viewcountry(request, country):
 
     def getdateeventstable(date):        
-        changes = (ProvChange.objects.filter(fromcountry=country, date=date) | ProvChange.objects.filter(tocountry=country, date=date)).order_by("-added") # the dash reverses the order
+        changes = (ProvChange.objects.filter(fromcountry=country, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date).exclude(status="NonActive")).order_by("-added") # the dash reverses the order
         import itertools
         
         def typeprov(obj):
@@ -825,7 +825,7 @@ def viewcountry(request, country):
                         </table>
                         """.format(top=top, left=left, right=right)
 
-        dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).order_by("date").values('date').distinct()]
+        dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country).exclude(status="NonActive")).order_by("date").values('date').distinct()]
         print dates
 
     ##    def getlinkrow(date):
@@ -923,7 +923,7 @@ def viewevent(request, country, province):
     if typ == "NewInfo":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True) | ProvChange.objects.filter(tocountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True)
+        changes = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
@@ -1090,7 +1090,7 @@ def viewevent(request, country, province):
         
     elif typ == "Split":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(fromcountry=country,date=date,type="Breakaway",fromname=prov) | ProvChange.objects.filter(tocountry=country,date=date,type="Breakaway",fromname=prov)
+        changes = ProvChange.objects.filter(fromcountry=country,date=date,type="Breakaway",fromname=prov).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country,date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         GET = request.GET.copy()
@@ -1155,7 +1155,7 @@ def viewevent(request, country, province):
 
     elif typ == "Merge":
         fields = ["fromname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov)
+        changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
         givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
         givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
@@ -1211,7 +1211,7 @@ def viewevent(request, country, province):
 
     elif typ == "Transfer":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",fromname=prov) | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",fromname=prov)
+        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",fromname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",fromname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         GET = request.GET.copy()
@@ -2416,6 +2416,7 @@ class HistoMapForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ["transfer_reference"]
+        widgets = {"transfer_reference": forms.Textarea(attrs=dict(cols=90,rows=5)) }
 
     def as_p(self):
         html = """
@@ -2458,6 +2459,7 @@ class GeorefForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ["transfer_source"]
+        widgets = {"transfer_source": forms.TextInput(attrs={'size': 60}) }
 
     def clean(self):
         data = super(GeorefForm, self).clean()
@@ -2476,7 +2478,7 @@ class GeorefForm(forms.ModelForm):
                         For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
 
                         <br><br>
-                        <iframe width="100%" height="500px" src="http://mapwarper.net/"></iframe>
+                        <iframe width="100%" height="300px" src="http://mapwarper.net/"></iframe>
                         <br>
 
                         Once finished with georeferencing, simply insert the MapWarper ID of your georeferenced map
@@ -2509,8 +2511,6 @@ class GeoChangeForm(forms.ModelForm):
         html = """
                         Finally, draw on the map. Identify the borders of the province that gave away the territory, as it looked like prior to giving away territory.
                         This will be used to determine the extent of the territory that changed hands.
-
-                        <img style="display:block" align="middle" height=300px src="http://localnepaltoday.com/wp-content/uploads/2015/08/image8.jpg"/>
 
                         <div style="padding:20px"><b>Transferred Territory:</b></div>
 
