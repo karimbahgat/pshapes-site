@@ -791,17 +791,19 @@ def viewcountry(request, country):
                         <p style="font-size:medium; font-style:italic">
                         <ul>
                             <li>
-                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-                            in great detail, and should be the first place to look.
+                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a>
                             </li>
 
                             <li>
-                            The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                            can sometimes also be a useful reference.
+                            <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
                             </li>
 
                             <li>
-                            You can also use offline sources such as a book or an article.
+                            <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
+                            </li>
+
+                            <li>
+                            <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
                             </li>
                         </ul>
                         </p>
@@ -842,8 +844,8 @@ def viewcountry(request, country):
         grids = []
         for date in dates:
             content = getdateeventstable(date)
-            grids.append(dict(title='{date}: <a href="/contribute/add/{country}?date={date}">Add event</a>'.format(date=date, country=urlquote(country)),
-                              content=content,
+            grids.append(dict(title='{date}:'.format(date=date),
+                              content=content+'<br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(date=date, country=urlquote(country)),
                               style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                               width="99%",
                               ))
@@ -924,7 +926,7 @@ def viewevent(request, country, province):
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
-            oldinfo = '<li style="list-style:none">'+markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")+"</li>"
+            oldinfo = '<li style="list-style:none">'+markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")+"<br><br></li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Altnerate names: '+change.fromalterns.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.fromiso.encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.fromfips.encode("utf8")+"</li>"
@@ -947,7 +949,7 @@ def viewevent(request, country, province):
                     <h2><em>Changed info to:</em></h2>
                     """
         
-            newinfo = '<li style="font-size:smaller; list-style:none"><a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
+            newinfo = '<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a><br><br></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -1110,8 +1112,8 @@ def viewevent(request, country, province):
                 <h2><em>Split into:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
-        splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        splitlist = "".join(('<li style="list-style:none">&rarr; {provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
+        splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
                             #blackbackground a {{ color:white }}
@@ -1154,8 +1156,8 @@ def viewevent(request, country, province):
         fields = ["fromname","type","status"]
         changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
-        givelist = "".join(('<li style="list-style:none"><a href="/provchange/{pk}/view">{provtext}</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
-        givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        givelist = "".join(('<li style="list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        givelist += '<li style="list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}">Add</a> +'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
@@ -1231,8 +1233,8 @@ def viewevent(request, country, province):
                 <h2><em>Gave territory to:</em></h2>
                 """
         
-        splitlist = "".join(('<li style="list-style:none">&rarr; <a href="/provchange/{pk}/view">{provtext}</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
-        splitlist += '<li style="list-style:none"> + ' + '<a href="/contribute/add/{country}/{province}?{params}">Add new</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
+        splitlist = "".join(('<li style="list-style:none">&rarr; {provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
+        splitlist += '<li style="list-style:none">' + ' + <a href="/contribute/add/{country}/{province}?{params}">Add</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode()) + "</li>"
         right = """
                         <style>
                             #blackbackground a {{ color:white }}
@@ -1451,6 +1453,14 @@ def lists2table(request, lists, fields):
                 """
     rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
     return rendered
+
+def dropchange(request, pk):
+    change = get_object_or_404(ProvChange, pk=pk)
+    if request.user.username == change.user or 'user.administrator' in request.user.get_all_permission():
+        change.status = "NonActive"
+        change.save()
+
+    return redirect("/provchange/{pk}/view/".format(pk=pk) )
 
 def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
@@ -1745,7 +1755,7 @@ class SourceEventForm(forms.ModelForm):
         country = kwargs["initial"]["fromcountry"]
         sources = (r.source for r in ProvChange.objects.filter(fromcountry=country).distinct("source"))
         sources = sorted(sources)
-        self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources")
+        self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
         
 from django.forms.widgets import RadioFieldRenderer
 
@@ -2418,14 +2428,17 @@ class HistoMapForm(forms.ModelForm):
     def as_p(self):
         html = """
                         The map should show the giving province as it was prior to the change.
-                        This can be either an image you find online or a physical map that you scan.
-                        If Googling "[Countryname] historical provinces" returns too much noise, you can
-                        also try the following sites specialized for historical maps:
+                        Here are some useful places to start:
 
                         <ul>
-                            <li><a href="http://mapwarper.net/">MapWarper</a> might already have your map georeferenced.</li>
-                            <li><a href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress</a> has a large collection of maps tagged "administrative divisions".</li>
+                            <li><a href="http://mapwarper.net/">MapWarper</a></li>
+                            <li><a href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                            <li><a href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
                             <li><a href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                            <li><a href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                            <li><a href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                            <li><a href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                            <li><a href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
                         </ul>
 
                         In the field below identify and reference the source, author, and year of the
@@ -2456,7 +2469,7 @@ class GeorefForm(forms.ModelForm):
     class Meta:
         model = ProvChange
         fields = ["transfer_source"]
-        widgets = {"transfer_source": forms.TextInput(attrs={'size': 60}) }
+        widgets = {"transfer_source": forms.TextInput(attrs={'size': 90}) }
 
     def clean(self):
         data = super(GeorefForm, self).clean()

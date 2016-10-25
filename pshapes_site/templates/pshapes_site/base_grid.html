@@ -6,7 +6,7 @@
 	{% if not nomainbanner %}
 		<div id="mainbanner" style="display:table;content:'';clear:both; background-color:black; width:100%; padding:0px; margin:0px; color:white">
 		
-			<div style="width:800px; margin:0 auto;">
+			<div style="width:1000px; margin:0 auto;">
 			
 			{% if custombanner %}
 				{{ custombanner|safe }}
@@ -28,7 +28,7 @@
 		</div>
 	{% endif %}
 	
-	<div style="width:800px; margin:0 auto;">
+	<div style="width:1000px; margin:0 auto;">
 		{% for grid in grids %}
 			<div class="gridcell" style="float:left; width:{% firstof grid.width "30%" %}; padding-right:3%">
 				<h4>{{ grid.title|safe }}</h4>

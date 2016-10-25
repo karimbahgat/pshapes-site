@@ -28,10 +28,12 @@
 		<a href="/provchange/{{pk}}/edit/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 		Edit
 		</a>
-		{% if user.username == metachange.user.value or 'user.administrator' in user.get_all_permission %}
-			<a href="/provchange/{{pk}}/delete/" style="background-color:red; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Delete
-			</a>
+		{% if metachange.status.value != 'NonActive' %}
+			{% if user.username == metachange.user.value or 'user.administrator' in user.get_all_permission %}
+				<a href="/provchange/{{pk}}/drop/" style="background-color:red; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+				Drop
+				</a>
+			{% endif %}
 		{% endif %}
 		
 		</div>

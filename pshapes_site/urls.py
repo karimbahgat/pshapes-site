@@ -48,6 +48,7 @@ urlpatterns = [
     # provchange (should be phased out, maybe allow via get param instead?)
     url(r'^provchange/(?P<pk>[0-9]+)/edit/$', "provchanges.views.editchange", name="editchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/view/$', "provchanges.views.viewchange", name="viewchange"),
+    url(r'^provchange/(?P<pk>[0-9]+)/drop/$', "provchanges.views.dropchange", name="viewchange"),
 
 
 
