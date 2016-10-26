@@ -2349,8 +2349,13 @@ from django.contrib.gis.forms.widgets import OpenLayersWidget
 
 class CustomOLWidget(OpenLayersWidget):
     default_zoom = 1
+
+    #class Media:
+        #extend = False
+        #js = ("OpenLayers.js",)
     
     def render(self, name, value, attrs=None):
+        #print self.Media.js, self.Media.
         output = super(CustomOLWidget, self).render(name, value, attrs=attrs)
         output += """
 <script>

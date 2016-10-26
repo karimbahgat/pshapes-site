@@ -120,7 +120,7 @@ INSTALLED_APPS.append('django.contrib.gis')
 TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'pshapes_site', "templates"))
 
 # add static
-STATIC_ROOT = "static"
+STATIC_ROOT = "static" #os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = "/static/"
 ## STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 STATICFILES_STORAGE = "whitenoise.django.GzipManifestStaticFilesStorage"
