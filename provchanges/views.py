@@ -16,6 +16,8 @@ from formtools.wizard.views import SessionWizardView
 
 from .models import ProvChange
 
+from django.db.models import Count
+
 import datetime
 
 
@@ -1767,9 +1769,11 @@ class SourceEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SourceEventForm, self).__init__(*args, **kwargs)
         country = kwargs["initial"]["fromcountry"]
-        sources = (r.source for r in ProvChange.objects.filter(fromcountry=country).distinct("source"))
-        sources = sorted(sources)
+        sources = [r.source for r in ProvChange.objects.filter(fromcountry=country).annotate(count=Count('source')).order_by('-count')]
+        mostcommon = sources[0]
+        sources = sorted(set(sources))
         self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
+        self.fields['source'].initial = mostcommon
         
 from django.forms.widgets import RadioFieldRenderer
 
@@ -1887,7 +1891,7 @@ class DateForm(forms.Form):
     step_descr = """
                     On what date did the changes occur? 
                    """
-    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1946, 2014+1)])
+    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2014+1)])
     month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
     day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
 
@@ -2525,13 +2529,22 @@ class GeoChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ["transfer_reference", "transfer_source", "transfer_geom"]
         widgets = {"transfer_geom": CustomOLWidget(attrs={"id":"geodjango_transfer_geom"}),
-                    "transfer_source": forms.TextInput(attrs={'size': 90, "id":"id_transfer_source"}),
-                    "transfer_reference": forms.Textarea(attrs={"cols":90,"rows":5,"id":"id_transfer_reference"}),
+                    "transfer_source": ListTextWidget([], name="sources", attrs={'size': 90, "id":"id_transfer_source"}),
+                    "transfer_reference": ListTextWidget([], name="references", attrs={'size': 90, "id":"id_transfer_reference"}),
                    }
         
     def __init__(self, *args, **kwargs):
         super(GeoChangeForm, self).__init__(*args, **kwargs)
         print 999, self.fields["transfer_geom"].widget
+
+        print kwargs
+        if "initial" in kwargs:
+            country = kwargs["initial"]["country"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            sources = sorted((r.transfer_source for r in provs.distinct("transfer_source")))
+            references = sorted((r.transfer_reference for r in provs.distinct("transfer_reference")))
+            self.fields['transfer_source'].widget._list = sources
+            self.fields['transfer_reference'].widget._list = references
 
         # make wms auto add/update on sourceurl input
         #self.fields['transfer_geom'].widget = EditableLayerField().widget
@@ -2552,9 +2565,8 @@ class GeoChangeForm(forms.ModelForm):
         
     def as_p(self):
         html = """
-                        To draw the borders you need a historical map that shows the giving province as it was prior to the change.
-                        Georeference the map at <a href="http://mapwarper.net/">MapWarper</a> or <a href="http://www.oldmapsonline.org/">OldMapsOnline</a>
-                        and get its WMS link so you can overlay it on the map. 
+                        To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
+                        Only use maps licenses restrictions. 
                         Here are some useful sources for historical maps:
 
                         <ul>
@@ -2568,22 +2580,17 @@ class GeoChangeForm(forms.ModelForm):
                             <li><a href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
                         </ul>
 
+                        Georeference the map at <a href="http://mapwarper.net/">MapWarper</a>
+                        and get its WMS link (under the "Export" tab) so you can overlay it on the map.
+                        
+                        Guided by the map, draw a clipping polygon that traces the border between the giving and receiving province (if any),
+                        then close it by encircling all areas (incl. islands) that were transferred. Draw multiple polygons
+                        if necessary.
+
                         <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
-                            <p style="font-size:large; font-weight:bold">Note:</p>
-                            <p style="font-size:medium; font-style:italic">
-                            Note: In accordance with the open-source
-                            nature of the Pshapes project, the map source must be free to share and use without any license restrictions.
-                            Submissions that are based on copyrighted map sources will not be used in the final data. 
-                            </p>
-                            </div>
-
-                        When drawing the borders, be precise between the giving and receiving provinces, but draw too large
-                        everywhere else. This is because...
-                        This will be used to determine the extent of the territory that changed hands.
                         <br><br>
 
                         <div>{{ form.transfer_geom }}</div>
@@ -3098,6 +3105,8 @@ class AddMergeChangeWizard(AddChangeWizard):
         data = dict()
         if step == "1":
             data["fromcountry"] = self.country
+        elif step == "3":
+            data["country"] = self.country
         return data      
     
     def done_redirect(self, obj):
@@ -3138,6 +3147,8 @@ class AddTransferChangeWizard(AddChangeWizard):
         data = dict()
         if step == "2":
             data["tocountry"] = self.country
+        elif step == "3":
+            data["country"] = self.country
         return data  
     
     def done_redirect(self, obj):

@@ -55,15 +55,15 @@
 				</fieldset>
 				
 				<fieldset>
-					<legend>Type of Change</legend>
-					<p>Type: {{ typechange.type.value }}</p>
-				</fieldset>
-				
-				<fieldset>
 					<legend>From Province</legend>
 					{% for field in fromchange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
+				</fieldset>
+				
+				<fieldset>
+					<legend>Type of Change</legend>
+					<p>Type: {{ typechange.type.value }}</p>
 				</fieldset>
 
 				{% if "Transfer" in typechange.type.value %}

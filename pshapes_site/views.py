@@ -149,11 +149,11 @@ def home(request):
 			"""
     bannerright = """
                     <br><br>
-                    <h4 style="text-align:left">The Pshapes Data Project (Beta)</h4>
+                    <h4 style="text-align:left">The Pshapes Data Project (Alpha)</h4>
                     <div style="text-align:left">
                         <p>%s</p>
 
-                        <p style="font-size:smaller"><em>Note: This is an early Beta trial version of the website to test
+                        <p style="font-size:smaller"><em>Note: This is an early Alpha trial version of the website to test
                         out the data collection effort. Suggestions
                         and feature requests are welcome.</em>
                         </p>
@@ -184,9 +184,7 @@ def home(request):
     grids = []
     grids.append(dict(title="Project News:",
                       content="""
-                            <ul>
-                                <li>October 2016: Beta Website Launched!</li>
-                            </ul>
+                            <p>October 2016: <br> Alpha Website Launched!</p>
                             """,
                       width="25%",
                       ))
