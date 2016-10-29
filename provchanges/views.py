@@ -2370,7 +2370,7 @@ function syncwms() {
     if (wmsurl.trim() != "") {
         var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
         
-        var layerlist = jsmap.map.getLayersByName('Custom WMS');
+        var layerlist = jsmap.map.getLayersByName('Historical Map');
         
         if (layerlist.length >= 1) 
             {
@@ -2378,7 +2378,7 @@ function syncwms() {
             jsmap.map.removeLayer(layerlist[0]);
             };
             
-        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
+        customwms = new OpenLayers.Layer.WMS("Historical Map", wmsurl, {layers: 'basic'} );
         customwms.isBaseLayer = false;
         jsmap.map.addLayer(customwms);
         jsmap.map.setLayerIndex(customwms, 1);
@@ -2386,6 +2386,19 @@ function syncwms() {
         // zoom to country bbox somehow
         //jsmap.map.zoomToExtent(customwms.getDataExtent());
     };
+};
+
+function addlayer(geoj) {
+    var geojson_format = new OpenLayers.Format.GeoJSON();
+    var vectors = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"blue", fillOpacity:0.5}});
+    var features = geojson_format.read(geoj, "FeatureCollection");
+    
+    //vectors.addFeatures requires an array, thus
+    if(features.constructor != Array) {
+        features = [features];
+    }
+    vectors.addFeatures(features);
+    jsmap.map.addLayers([vectors]);
 };
 
 function setupmap() {
@@ -2565,37 +2578,66 @@ class GeoChangeForm(forms.ModelForm):
         
     def as_p(self):
         html = """
+                        Before you begin:
+                        <br><br>
                         To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
-                        Only use maps licenses restrictions. 
+                        Make sure the map doesn't have a license that restricts sharing or modifying. 
                         Here are some useful sources for historical maps:
 
                         <ul>
-                            <li><a href="http://mapwarper.net/">MapWarper</a></li>
-                            <li><a href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                            <li><a href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                            <li><a href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                            <li><a href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                            <li><a href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                            <li><a href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                            <li><a href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                            <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                            <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                            <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                            <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                            <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                            <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                            <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                            <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
                         </ul>
 
-                        Georeference the map at <a href="http://mapwarper.net/">MapWarper</a>
-                        and get its WMS link (under the "Export" tab) so you can overlay it on the map.
-                        
-                        Guided by the map, draw a clipping polygon that traces the border between the giving and receiving province (if any),
-                        then close it by encircling all areas (incl. islands) that were transferred. Draw multiple polygons
-                        if necessary.
+                        Georeference the map at <a target="_blank" href="http://mapwarper.net/">MapWarper</a>
+                        and get its "WMS" link (under the "Export" tab) so you can overlay it on the map.
 
                         <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                        <br><br>
+                        <br>
 
                         <div>{{ form.transfer_geom }}</div>
+
+                        <div style="clear:both">
+                        <br>
+                        Instructions:
+                        <br>
+                        <ol>
+                            <li>
+                            Guided by the map, draw a clipping polygon that traces the border between the giving and receiving province (if any).
+                            </li>
+                            <li>
+                            If the giving province shares a border with any previously drawn giving provinces (shown in blue), make sure the clipping polygon
+                            covers every part of that border, so that there is no gap in between. 
+                            </li>
+                            <li>
+                            Then close the polygon by encircling all areas (incl. islands) that were transferred. Draw multiple polygons
+                            if necessary.
+                            </li>
+                        </ol>
+                        </div>
                         
                     """
+        # add features
+        otherfeats = ProvChange.objects.all() #filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+        import json
+        geoj = {"type":"FeatureCollection",
+                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
+                             for f in otherfeats if f.transfer_geom]}
+        print json.dumps(geoj)
+        html += """<script>
+                addlayer('{geoj}')
+                </script>
+                """.format(geoj=json.dumps(geoj))
+        
         rendered = Template(html).render(Context({"form":self}))
         return rendered
 
