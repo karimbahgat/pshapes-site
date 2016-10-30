@@ -643,7 +643,7 @@ def viewcountry(request, country):
                 prov = obj.toname
                 return prov,"Merge"
             elif typ == "PartTransfer":
-                prov = obj.fromname
+                prov = obj.toname
                 return prov,"Transfer"
             elif typ == "Breakaway":
                 prov = obj.fromname
@@ -706,10 +706,10 @@ def viewcountry(request, country):
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Merge"'
                 prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
             elif typ == "Transfer":
-                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
+                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
-                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
+                prov = markcountrychange(country, firstitem.fromname, firstitem.tocountry)
             return link,(prov,typ)
         events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType"])
@@ -1223,45 +1223,37 @@ def viewevent(request, country, province):
 
     elif typ == "Transfer":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",fromname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",fromname=prov).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",toname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
-        GET = request.GET.copy()
-        GET["type"] = "NewInfo"
-        newinfobut = '<a href="/contribute/view/{country}/{province}?{params}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Info</a>'.format(country=urlquote(country), province=urlquote(prov), params=GET.urlencode())
+        butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
+        plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
 
+        givelist = "".join(('<li style="padding:10px 0px; list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
 			</a>
 			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
-        
-        left = """
-                        <div style="clear:both; text-align: left">
-                        <h2 style="float:left">{provtext} {newinfobut}</h2>
-                        </div>
-        """.format(newinfobut=newinfobut, provtext=markcountrychange(country, changes[0].fromname, changes[0].fromcountry).encode("utf8") if changes else prov.encode("utf8"))
-
-        mid = """
-                <h2><em>Gave territory to:</em></h2>
-                """
-
-        butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
-        plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
-
-        splitlist = "".join(('<li style="padding:10px 0px; list-style:none">&rarr; {provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
-        splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
-        right = """
+        left = """			
                         <style>
                             #blackbackground a {{ color:white }}
                             #blackbackground a:visited {{ color:grey }}
                         </style>
                         
-                        <div id="blackbackground">
-                        <h2>{splitlist}</h2>
+                        <div style="clear:both; text-align:left">
+                        <h2 id="blackbackground" style="float:left">{givelist}</h2>
                         </div>  
-        """.format(splitlist=splitlist)
-
+        """.format(givelist=givelist)
+        mid = """
+                <h2><em>Transferred territory to:</em></h2>
+                """
+        right = """
+                        <div>
+                        <h2>{provtext}</h2>
+                        </div>
+        """.format(provtext=markcountrychange(country, changes[0].toname, changes[0].tocountry).encode("utf8") if changes else prov.encode("utf8"))
         custombanner = """
 
                         {top}
@@ -1501,7 +1493,7 @@ def viewchange(request, pk):
         params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "PartTransfer":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     elif change.type == "NewInfo":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
@@ -1769,7 +1761,7 @@ class SourceEventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SourceEventForm, self).__init__(*args, **kwargs)
         country = kwargs["initial"]["fromcountry"]
-        sources = [r.source for r in ProvChange.objects.filter(fromcountry=country).annotate(count=Count('source')).order_by('-count')]
+        sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
         mostcommon = sources[0]
         sources = sorted(set(sources))
         self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
@@ -1799,7 +1791,7 @@ EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
              "Transfer": {"label": "Transfer",
-                              "short": "A province gave parts of its territory to one or more provinces.",
+                              "short": "One or more provinces gave parts of their territories to another province.",
                               "descr": """
                                         Description...
                                         """,
@@ -1944,8 +1936,8 @@ class AddEventWizard(SessionWizardView):
     # NOTE: MUST BE EITHER EXPANSION OR SPLIT OR NEWINFO EVENT, WITH GET PARAMS FOR ALL CONSTANT EVENTINFO
     condition_dict = {"0": lambda wiz: True,
                       "1": lambda wiz: True,
-                      "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo","Transfer") if wiz.get_cleaned_data_for_step("1") else False,
-                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] == "Merge" if wiz.get_cleaned_data_for_step("1") else False,
+                      "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
+                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Merge","Transfer") if wiz.get_cleaned_data_for_step("1") else False,
                       }
 
     country = None
@@ -1963,7 +1955,7 @@ class AddEventWizard(SessionWizardView):
             elif typ == "NewInfo":
                 kwargs["step_descr"] = "Please identify the province that changed information? Only the parts that have changed will be registered. "
             elif typ == "Transfer":
-                kwargs["step_descr"] = "Please identify the province that transferred part of its territory?"
+                kwargs["step_descr"] = "Please identify the province that gained territory after all the transfers?"
             elif typ == "Merge":
                 kwargs["step_descr"] = "Please identify the province that gained territory after all the mergers?"
 
@@ -2001,7 +1993,7 @@ class AddEventWizard(SessionWizardView):
         elif data["type"] == "Split":
             prov = data["fromname"]
         elif data["type"] == "Transfer":
-            prov = data["fromname"]
+            prov = data["toname"]
         elif data["type"] == "NewInfo":
             prov = data["fromname"]
 
@@ -3144,7 +3136,6 @@ class AddMergeChangeWizard(AddChangeWizard):
 
     country = None
     province = None
-    date = None
 
     def get_form_kwargs(self, step=None):
         kwargs = {}
@@ -3185,8 +3176,8 @@ class AddTransferChangeWizard(AddChangeWizard):
         return typeformdata["type"] == "PartTransfer"
 
     condition_dict = {"0": lambda wiz: True,
-                      "1": lambda wiz: False,
-                      "2": lambda wiz: True,
+                      "1": lambda wiz: True,
+                      "2": lambda wiz: False,
                       "3": _geomode,}
 
     country = None
@@ -3194,8 +3185,8 @@ class AddTransferChangeWizard(AddChangeWizard):
 
     def get_form_kwargs(self, step=None):
         kwargs = {}
-        if step == "2": # from or to form
-            kwargs["step_descr"] = "Please identify the province that received territory?"
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that transferred territory?"
         elif step == "3":
             kwargs["country"] = self.country
             kwargs["province"] = self.province
@@ -3204,15 +3195,15 @@ class AddTransferChangeWizard(AddChangeWizard):
 
     def get_form_initial(self, step=None):
         data = dict()
-        if step == "2":
-            data["tocountry"] = self.country
+        if step == "1":
+            data["fromcountry"] = self.country
         elif step == "3":
             data["country"] = self.country
         return data  
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
     
