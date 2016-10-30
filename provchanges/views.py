@@ -1526,7 +1526,7 @@ def viewchange(request, pk):
 ##            'histomap': HistoMapForm(instance=change),
 ##            'georef': GeorefForm(instance=change),
             'fromchange': FromChangeForm(instance=change),
-            'geochange': GeoChangeForm(instance=change),
+            'geochange': GeoChangeForm(instance=change, country=change.tocountry, province=change.toname, date=change.date),
             'tochange': ToChangeForm(instance=change),
             "pendingeditstable": pendingeditstable,
             "oldversionstable": oldversionstable,
@@ -1575,7 +1575,7 @@ def editchange(request, pk):
                 'fromchange': FromChangeForm(instance=change),
 ##                'histomap': HistoMapForm(instance=change),
 ##                'georef': GeorefForm(instance=change),
-                'geochange': GeoChangeForm(instance=change),
+                'geochange': GeoChangeForm(instance=change, country=change.tocountry, province=change.toname, date=change.date),
                 'tochange': ToChangeForm(instance=change),}
         html = render(request, 'provchanges/editchange.html', args)
         
@@ -2547,6 +2547,10 @@ class GeoChangeForm(forms.ModelForm):
                    }
         
     def __init__(self, *args, **kwargs):
+        self.country = kwargs.pop("country")
+        self.province = kwargs.pop("province")
+        self.date = kwargs.pop("date")
+        print "kwargs",kwargs
         super(GeoChangeForm, self).__init__(*args, **kwargs)
         print 999, self.fields["transfer_geom"].widget
 
@@ -2581,7 +2585,7 @@ class GeoChangeForm(forms.ModelForm):
                         Before you begin:
                         <br><br>
                         To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
-                        Make sure the map doesn't have a license that restricts sharing or modifying. 
+                        Make sure the map doesn't have a license that restricts sharing or derivative work. 
                         Here are some useful sources for historical maps:
 
                         <ul>
@@ -2627,7 +2631,11 @@ class GeoChangeForm(forms.ModelForm):
                         
                     """
         # add features
-        otherfeats = ProvChange.objects.all() #filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+        country = self.country
+        province = self.province
+        date = self.date
+        
+        otherfeats = ProvChange.objects.filter(fromcountry=country, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date).exclude(status="NonActive")
         import json
         geoj = {"type":"FeatureCollection",
                 "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
@@ -3136,11 +3144,16 @@ class AddMergeChangeWizard(AddChangeWizard):
 
     country = None
     province = None
+    date = None
 
     def get_form_kwargs(self, step=None):
         kwargs = {}
         if step == "1": # from or to form
             kwargs["step_descr"] = "Please identify the province that merged and ceased to exist?"
+        elif step == "3":
+            kwargs["country"] = self.country
+            kwargs["province"] = self.province
+            kwargs["date"] = self.request.GET["date"]
         return kwargs
 
     def get_form_initial(self, step=None):
@@ -3149,7 +3162,7 @@ class AddMergeChangeWizard(AddChangeWizard):
             data["fromcountry"] = self.country
         elif step == "3":
             data["country"] = self.country
-        return data      
+        return data
     
     def done_redirect(self, obj):
         params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
@@ -3183,6 +3196,10 @@ class AddTransferChangeWizard(AddChangeWizard):
         kwargs = {}
         if step == "2": # from or to form
             kwargs["step_descr"] = "Please identify the province that received territory?"
+        elif step == "3":
+            kwargs["country"] = self.country
+            kwargs["province"] = self.province
+            kwargs["date"] = self.request.GET["date"]
         return kwargs
 
     def get_form_initial(self, step=None):
