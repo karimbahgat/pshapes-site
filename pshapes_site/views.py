@@ -79,6 +79,8 @@ def recentadds(request):
 					{{ change.added }}
 					</td>
 
+                            {% if "Transfer" in change.type %}
+
 					<td>
 					{{ change.tocountry }}
 					</td>
@@ -86,6 +88,18 @@ def recentadds(request):
 					<td>
 					{{ change.toname }}
 					</td>
+
+			    {% else %}
+
+					<td>
+					{{ change.fromcountry }}
+					</td>
+					
+					<td>
+					{{ change.fromname }}
+					</td>
+
+			    {% endif %}
 					
 					<td>
 					{{ change.type }}
@@ -106,7 +120,7 @@ def home(request):
     return render(request, 'pshapes_site/home.html', {"shortdescr":shortdescr, "changelist":changelist})
 
 def home(request):
-    bannertitle = "Crowdsourcing Historical Province Boundaries"
+    bannertitle = ""
 ##    bannerleft = """
 ##			<style>
 ##			.shadow
@@ -148,8 +162,8 @@ def home(request):
 			</a>
 			"""
     bannerright = """
-                    <br><br>
-                    <h4 style="text-align:left">The Pshapes Data Project (Alpha)</h4>
+                    <br>
+                    <h3 style="text-align:left">Crowdsourcing Historical Province Boundaries</h3>
                     <div style="text-align:left">
                         <p>%s</p>
 
@@ -168,6 +182,7 @@ def home(request):
                     <br>
                     """ % shortdescr
     bannerleft = """
+                    <br>
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
                     <p>
                     %s

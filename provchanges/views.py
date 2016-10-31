@@ -1555,6 +1555,9 @@ def editchange(request, pk):
         print formfieldvalues
 
         change.__dict__.update(**formfieldvalues)
+        geoform = GeoChangeForm(instance=change, data=formfieldvalues, country=change.tocountry, province=change.toname, date=change.date)
+        geoform.is_valid()
+        change.transfer_geom = geoform.clean()["transfer_geom"]
         change.pk = None # nulling the pk will add a modified copy of the instance
         change.save()
 
@@ -2425,13 +2428,13 @@ function setupmap() {
     syncwms();
 
     // existing clips
-    var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"blue", fillOpacity:0.5}});
+    var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"gray", fillOpacity:0.3}});
     jsmap.map.addLayers([existingClipLayer]);
 
     // enable popup for clips (currently only works if disabling the transfer_geom layer)
-    selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
-    jsmap.map.addControl(selectControl);
-    selectControl.activate();
+    //selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
+    //jsmap.map.addControl(selectControl);
+    //selectControl.activate();
 };
 
 setupmap();
@@ -2574,12 +2577,23 @@ class GeoChangeForm(forms.ModelForm):
                    }
         
     def __init__(self, *args, **kwargs):
+        self.inst = kwargs.get("instance")
+        print "INST",self.inst
         self.country = kwargs.pop("country")
         self.province = kwargs.pop("province")
         self.date = kwargs.pop("date")
         print "kwargs",kwargs
         super(GeoChangeForm, self).__init__(*args, **kwargs)
         print 999, self.fields["transfer_geom"].widget
+
+        # find other relates provs
+        country = self.country
+        province = self.province
+        date = self.date
+        otherfeats = ProvChange.objects.filter(fromcountry=country, toname=province, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, toname=province, date=date).exclude(status="NonActive")
+        if self.inst:
+            otherfeats = otherfeats.exclude(pk=self.inst.pk)
+        otherfeats = self.otherfeats = [f for f in otherfeats if f.transfer_geom] # only those with geoms
 
         print kwargs
         if "initial" in kwargs:
@@ -2643,30 +2657,28 @@ class GeoChangeForm(forms.ModelForm):
                         <br>
                         <ol>
                             <li>
-                            Guided by the map, draw a clipping polygon that traces the border between the giving and receiving province (if any).
+                            Guided by the map, draw a clipping polygon that encircles all areas (incl. islands) that were transferred.
                             </li>
                             <li>
-                            If the giving province shares a border with any previously drawn giving provinces (shown in blue), make sure the clipping polygon
-                            covers every part of that border, so that there is no gap in between. 
+                            There is no need to follow the borders exactly, except where the giving province shares a border with the
+                            receiving province or any other giving provinces. 
                             </li>
                             <li>
-                            Then close the polygon by encircling all areas (incl. islands) that were transferred. Draw multiple polygons
-                            if necessary.
+                            The clipping polygon will be snapped to any previously drawn giving provinces (shown in gray), so just make
+                            sure it covers every part of that border so that there is no gap in between. 
+                            </li>
+                            <li>
+                            Draw multiple polygons if necessary.
                             </li>
                         </ol>
                         </div>
                         
                     """
         # add features
-        country = self.country
-        province = self.province
-        date = self.date
-        
-        otherfeats = ProvChange.objects.filter(fromcountry=country, toname=province, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, toname=province, date=date).exclude(status="NonActive")
         import json
         geoj = {"type":"FeatureCollection",
                 "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
-                             for f in otherfeats if f.transfer_geom]}
+                             for f in self.otherfeats]}
         geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
         print geoj_str
         html += """<script>
@@ -2676,6 +2688,16 @@ class GeoChangeForm(forms.ModelForm):
         
         rendered = Template(html).render(Context({"form":self}))
         return rendered
+
+    def clean(self):
+        cleaned_data = super(GeoChangeForm, self).clean()
+        othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
+        diff = cleaned_data["transfer_geom"].difference(othergeoms)
+        if diff.geom_type != "MultiPolygon":
+            from django.contrib.gis.geos import MultiPolygon
+            diff = MultiPolygon(diff)
+        cleaned_data["transfer_geom"] = diff
+        return cleaned_data
 
 
 
