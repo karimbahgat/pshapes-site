@@ -1886,7 +1886,7 @@ class DateForm(forms.Form):
     step_descr = """
                     On what date did the changes occur? 
                    """
-    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2014+1)])
+    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2016+1)])
     month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
     day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
 
