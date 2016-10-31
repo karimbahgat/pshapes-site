@@ -709,7 +709,7 @@ def viewcountry(request, country):
                 fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
-                prov = markcountrychange(country, firstitem.fromname, firstitem.tocountry)
+                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
             return link,(prov,typ)
         events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType"])
@@ -1494,7 +1494,7 @@ def viewchange(request, pk):
         eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "PartTransfer":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
-        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
+        eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "NewInfo":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
@@ -2356,6 +2356,8 @@ class CustomOLWidget(OpenLayersWidget):
         output += """
 <script>
 var jsmap = %s;
+var selectedFeature;
+var selectControl;
 
 function syncwms() {
     var wmsurl = document.getElementById('id_transfer_source').value;
@@ -2380,27 +2382,60 @@ function syncwms() {
     };
 };
 
-function addlayer(geoj) {
+function setExistingClipFeatures(geoj) {
     var geojson_format = new OpenLayers.Format.GeoJSON();
-    var vectors = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"blue", fillOpacity:0.5}});
     var features = geojson_format.read(geoj, "FeatureCollection");
     
     //vectors.addFeatures requires an array, thus
     if(features.constructor != Array) {
         features = [features];
     }
-    vectors.addFeatures(features);
-    jsmap.map.addLayers([vectors]);
+    existingClipLayer = jsmap.map.getLayersByName('Existing Clip Polygons')[0];
+    existingClipLayer.addFeatures(features);
+};
+
+function onPopupClose(evt) {
+    selectControl.unselect(selectedFeature);
+};
+
+function onFeatureSelect(feature) {
+    selectedFeature = feature;
+    popup = new OpenLayers.Popup.FramedCloud("featinfo", 
+                             feature.geometry.getBounds().getCenterLonLat(),
+                             null,
+                             "<div style='font-size:.8em'>Feature: " + feature.id +"<br>Area: " + feature.geometry.getArea()+"</div>",
+                             null, true, onPopupClose);
+    feature.popup = popup;
+    jsmap.map.addPopup(popup);
+    return true;
+};
+
+function onFeatureUnselect(feature) {
+    jsmap.map.removePopup(feature.popup);
+    feature.popup.destroy();
+    feature.popup = null;
 };
 
 function setupmap() {
     // layer switcher
     jsmap.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
+    jsmap.map.addControl(new OpenLayers.Control.MousePosition());
+
+    // wms
     syncwms();
+
+    // existing clips
+    var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"blue", fillOpacity:0.5}});
+    jsmap.map.addLayers([existingClipLayer]);
+
+    // enable popup for clips (currently only works if disabling the transfer_geom layer)
+    selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
+    jsmap.map.addControl(selectControl);
+    selectControl.activate();
 };
 
 setupmap();
-    
+
 </script>
 """ % self.attrs["jsmapname"]
         
@@ -2627,16 +2662,17 @@ class GeoChangeForm(forms.ModelForm):
         province = self.province
         date = self.date
         
-        otherfeats = ProvChange.objects.filter(fromcountry=country, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date).exclude(status="NonActive")
+        otherfeats = ProvChange.objects.filter(fromcountry=country, toname=province, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, toname=province, date=date).exclude(status="NonActive")
         import json
         geoj = {"type":"FeatureCollection",
                 "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
                              for f in otherfeats if f.transfer_geom]}
-        print json.dumps(geoj)
+        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
+        print geoj_str
         html += """<script>
-                addlayer('{geoj}')
+                setExistingClipFeatures('{geoj}')
                 </script>
-                """.format(geoj=json.dumps(geoj))
+                """.format(geoj=geoj_str)
         
         rendered = Template(html).render(Context({"form":self}))
         return rendered
