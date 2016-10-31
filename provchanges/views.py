@@ -2691,12 +2691,13 @@ class GeoChangeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(GeoChangeForm, self).clean()
-        othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
-        diff = cleaned_data["transfer_geom"].difference(othergeoms)
-        if diff.geom_type != "MultiPolygon":
-            from django.contrib.gis.geos import MultiPolygon
-            diff = MultiPolygon(diff)
-        cleaned_data["transfer_geom"] = diff
+        if self.otherfeats:
+            othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
+            diff = cleaned_data["transfer_geom"].difference(othergeoms)
+            if diff.geom_type != "MultiPolygon":
+                from django.contrib.gis.geos import MultiPolygon
+                diff = MultiPolygon(diff)
+            cleaned_data["transfer_geom"] = diff
         return cleaned_data
 
 
