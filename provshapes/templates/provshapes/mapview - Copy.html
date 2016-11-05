@@ -1,0 +1,96 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% block content %}
+
+	<div class="map header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+   		<h3 style="color:black">
+		Interactive Map of Historical Province Boundaries
+		</h3>
+	</div>
+	
+	<div style="width:100%; text-align:center">
+		<input id="datetext" type="text"/>
+		
+		<input id="dateslider" type="range" style="width:90%" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)"/>
+		<datalist id="ticks">
+		<option>1800</option>
+		<option>1850</option>
+		<option>1900</option>
+		<option>1950</option>
+		<option>2000</option>
+		<option>2016</option>
+		</datalist>
+		
+		<img id="loadicon" src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif" alt="Loading map data...">
+	</div>
+	
+	<script>
+	function updatedate(fraction) {
+		mindate = new Date(1800, 1, 1);
+		maxdate = new Date(2016, 1, 1);
+		var daterange = maxdate.getTime() - mindate.getTime();
+		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
+		datetext = document.getElementById("datetext");
+		datetext.value = newdate.toISOString().slice(0,10);
+	};
+	updatedate(1); // max at default
+	</script>
+	
+	
+	
+	
+	
+	
+	<div>
+		
+		<script type="text/javascript" src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+		
+		<script>
+			
+			// create the map
+			var map = new OpenLayers.Map("map");
+			var layer = new OpenLayers.Layer.WMS( "OpenLayers WMS",
+				"http://labs.metacarta.com/wms/vmap0", {layers: 'basic'} 
+				);
+            map.addLayer(layer);
+			
+			var provLayer = new OpenLayers.Layer.Vector("Provinces", {style:{fillColor:"orange", fillOpacity:0.3}});
+			map.addLayers([provLayer]);
+			
+			// download data
+			onsuccess = function(data) {
+				alert(data.objectName);
+				var geojson_format = new OpenLayers.Format.GeoJSON();
+				document.allProvs = geojson_format.read(data, "FeatureCollection");
+				var date = document.getElementById('datetext');
+				draw_borders(date);
+			}; 
+			var geoj = $.getJSON("https://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson", onsuccess);
+
+			// define drawing function
+			function draw_borders(date) {
+			
+				// drop previous provs
+				provLayer.removeAllFeatures();
+				
+				// select provs by date
+				alert(document.allProvs.objectName);
+				dateFeats = [];
+				for (feat of document.allProvs) {
+					if (feat["start"] <= date < feat["end"] ) {
+						dateFeats.push(feat);
+					};
+				};
+				
+				// add to layer
+				provLayer.addFeatures(dateFeats);
+			};
+			
+		</script>
+		
+    </div>
+	
+	<div id="map"></div>
+
+{% endblock %}

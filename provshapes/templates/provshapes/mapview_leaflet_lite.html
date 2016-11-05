@@ -1,0 +1,81 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load leaflet_tags %}
+
+{% block content %}
+
+	<div class="map header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+    		<h3 style="color:black">
+		Pshapes Dataset of Historical Province Boundaries, 1946-2014
+		</h3>
+
+		<p style="font-size:small">
+		Pshapes is a proposed historical dataset of the boundaries of subnational country provinces worldwide, 
+		changes in their names, administrative centers, and reference codes. 
+		The dataset is crowdsourced and created by people like you in order to bring together the multiple 
+		stakeholders that might need such data and therefore also ensure the highest possible data quality. 
+		Contributing to the dataset is easy and only requires that you register a new user account. 
+
+		<br><br>
+
+		<b>The Pshapes website and data is still in early alpha-testing, so no content is currently available.</b>
+
+		<br><br>
+
+		<em>* The term province is used here loosely to refer to administrative units, and in the current 
+		version only includes the highest level (level 1).</em>
+		</p>
+	</div>
+
+	<div>
+        {% leaflet_js %}
+        {% leaflet_css %}
+		
+		<script>
+			function map_init_basic (map, options) {
+			
+				//var dataurl = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json";
+				//var dataurl = "https://raw.githubusercontent.com/karimbahgat/pshapes/master/BaseData/ne_admin1.geojson";
+				var dataurl = "https://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson";
+				
+				$.getJSON(dataurl, function(data) {
+					var options = 	{
+									style: {color: "white",
+										  weight: 1,
+										  fillColor: "orange",
+										  fillOpacity: 255,
+										  opacity: 255},
+									onEachFeature: function (feature, layer) {
+										var html = "<div style='overflow-y: scroll; max-height: 150px'>";
+										html = html + "<table>";
+										for (var k in feature.properties) {
+											html = html + "<tr>"
+											html = html + "<td><b>" + k + ": </b></td>";
+											html = html + "<td>" + feature.properties[k] + "</td>";
+											html = html + "</tr>"
+											};
+										html = html + "</table>";
+										html = html + "</div>";
+										layer.bindPopup(html);
+										}
+									};
+					var geojson = L.geoJson(data, options);
+					geojson.addTo(map);
+				});
+			}
+		</script>
+		
+        {% leaflet_map "map" callback="window.map_init_basic" %}
+    </div>
+
+	{% block extracss %}
+	 <style>
+	    #map { 
+	        width: 100%;
+			//padding-top: 25%;
+	     }
+	 </style>
+	{% endblock extracss %}
+
+{% endblock %}

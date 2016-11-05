@@ -1,0 +1,114 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% block content %}
+
+	<div class="map header" style="text-align:center; margin-top: 0; padding: 0 0 0 0;">
+   		<h3 style="color:black">
+		Historical Province Boundaries
+		</h3>
+	</div>
+	
+	<div style="width:100%; text-align:center">
+		<input id="datetext" type="text" style="font-size:large"/>
+		
+		<p>
+		1900
+		<input id="dateslider" type="range" style="width:70%" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="draw_borders(document.getElementById('datetext').value);"/>
+		2016
+		<datalist id="ticks">
+		<option>1900</option>
+		<option>1950</option>
+		<option>2000</option>
+		<option>2016</option>
+		</datalist>
+		</p>
+		
+	</div>
+	
+	<script>
+	function updatedate(fraction) {
+		mindate = new Date(1900, 1, 1);
+		maxdate = new Date(2016, 1, 1);
+		var daterange = maxdate.getTime() - mindate.getTime();
+		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
+		datetext = document.getElementById("datetext");
+		datetext.value = newdate.toISOString().slice(0,10);
+	};
+	updatedate(1); // max at default
+	</script>
+	
+	
+	
+	
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+	<div id="mapcontainer" style="background-color:black; width:80%; margin-left:10%; height:300px">
+		<div style="width:100%; height:100%; margins:auto" id="map">
+		</div>
+	</div>
+
+	<script defer="defer" type="text/javascript">
+	var map = new OpenLayers.Map('map');
+	
+	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
+		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
+		
+	var xyz = new OpenLayers.Layer.XYZ( "Dark XYZ", ["http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"] );
+	var xyz = new OpenLayers.Layer.XYZ(
+		"Natural Earth",
+		[
+			"http://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+			"http://b.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+			"http://c.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+			"http://d.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+		], {
+			sphericalMercator: true,
+			wrapDateLine: false,
+		}
+	);
+	
+	map.addLayer(wms);
+	map.zoomToMaxExtent();
+	</script>
+
+	<script>
+
+	// empty province layer
+	var provLayer = new OpenLayers.Layer.Vector("Provinces", {style:{fillColor:"orange", fillOpacity:0.3}});
+	map.addLayers([provLayer]);
+	
+	// download data
+	onsuccess = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+		var date = document.getElementById('datetext').value;
+		draw_borders(date);
+	}; 
+	$.getJSON("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson", onsuccess);
+	
+
+	// define drawing function
+	function draw_borders(date) {
+	
+		// drop previous provs
+		provLayer.removeAllFeatures();
+		
+		// select provs by date
+		dateFeats = [];
+		for (feat of document.allProvs) {
+			var start = feat.attributes.start;
+			var end = feat.attributes.end;
+			if (start <= date && date < end ) {
+				dateFeats.push(feat);
+			};
+		};
+		
+		// add to layer
+		provLayer.addFeatures(dateFeats);
+	};
+	
+	</script>
+	
+{% endblock %}

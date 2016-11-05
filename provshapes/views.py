@@ -27,6 +27,15 @@ def interactive(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
 
+def interactive(request):
+    import urllib2
+    import json
+
+    return render(request, 'provshapes/mapview.html')
+
+
+
+
 def data(request):
     return render(request, 'provshapes/data.html')
 

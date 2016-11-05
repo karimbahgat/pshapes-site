@@ -1,0 +1,173 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load leaflet_tags %}
+
+{% block content %}
+
+	<div class="map header" style="text-align:left; margin-top: 0; padding: 0 0 0 0;">
+   		<h3 style="color:black">
+		Pshapes Dataset of Historical Province Boundaries
+		</h3>
+	</div>
+	
+	<div style="width:100%; text-align:center">
+	<input id="datetext" type="text"/>
+	</div>
+	
+	<input id="test" type="range" style="width:100%" value="1" min="0" max="1" step="0.00001" list="steplist" oninput="updatedate(this.value)"/>
+	<datalist id="steplist">
+    <option>1800</option>
+    <option>1850</option>
+    <option>1900</option>
+    <option>1950</option>
+    <option>2000</option>
+	<option>2016</option>
+	</datalist>
+	
+	<script>
+	function updatedate(fraction) {
+		mindate = new Date(1800, 1, 1);
+		maxdate = new Date(2016, 1, 1);
+		var daterange = maxdate.getTime() - mindate.getTime();
+		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
+		datetext = document.getElementById("datetext");
+		datetext.value = newdate.toISOString().slice(0,10);
+	};
+	updatedate(1); // max at default
+	</script>
+	
+	<div style="margin:auto;">
+		<img id="loadicon" src="http://ppt4web.ru/assets/2c736062/img/loading.gif" alt="Loading map data..." style="width:25px; height:25px; visibility:hidden; position:relative;">
+	</div>
+	
+	<div>
+        {% leaflet_js %}
+        {% leaflet_css %}
+		
+		<script>
+			function draw_borders(map, options) {
+			
+				var selectyear = document.getElementById("selectyear");
+				//var curyr = selectyear[selectyear.selectedIndex].value;
+				//var dataurl = "/api/cshapes/?format=json&year="+curyr+"&month=1&day=1";
+				//var dataurl = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json";
+				//var dataurl = "https://raw.githubusercontent.com/karimbahgat/pshapes/master/BaseData/ne_admin1.geojson";
+				var dataurl = "https://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson"
+				
+				$.getJSON(dataurl, function(data) {
+					if (map.hasOwnProperty('geojson_lyr')) {
+					   map.removeLayer(map.geojson_lyr);
+					};
+					var options = 	{
+									style: {color: "white",
+										  weight: 1,
+										  fillColor: "orange",
+										  fillOpacity: 255,
+										  opacity: 255},
+									onEachFeature: function (feature, layer) {
+										var html = "<div style='overflow-y: scroll; max-height: 150px'>";
+										html = html + "<table>";
+										for (var k in feature.properties) {
+											html = html + "<tr>"
+											html = html + "<td><b>" + k + ": </b></td>";
+											html = html + "<td>" + feature.properties[k] + "</td>";
+											html = html + "</tr>"
+											};
+										html = html + "</table>";
+										html = html + "</div>";
+										layer.bindPopup(html);
+										}
+									};
+					map.geojson_lyr = L.geoJson(data, options);
+					map.geojson_lyr.addTo(map);
+					var loadicon = document.getElementById("loadicon");
+					loadicon.style.visibility = "hidden";
+				});
+				
+				// indicate loading
+				var loadicon = document.getElementById("loadicon");
+				loadicon.style.visibility = "visible";
+			}
+		</script>
+		
+		<div id="map" class="leaflet-container-default" style="width=80%; padding-top: 25%;">
+		<script type="text/javascript">
+		
+			var djoptions = {"layers": [["esri_phys", 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}', {"noWrap": true, attribution: 'Background tiles &copy; Esri &mdash; Background source: US National Park Service'}],
+										["esri_sat", 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {"noWrap": true, attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'}],
+										["watercolor", "http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.png", {"noWrap": true}],
+										["osm", "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png", {"noWrap": true}], 
+										["light", "http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {"noWrap": true}], 
+										["dark", "http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", {"noWrap": true}] 
+										], 
+							"minimap": false, 
+							"scale": "metric", 
+							"center": null, 
+							"tilesextent": [], 
+							"attributionprefix": null, 
+							"zoom": null, 
+							"maxzoom": null, 
+							"minzoom": null, 
+							"extent": [[-90, -180], [90, 180]], 
+							"resetview": true, 
+							"srid": null, 
+							"overlays": [], 
+							"fitextent": true, 
+							}; 
+			var options = {djoptions: djoptions};
+			var leafmap = L.Map.djangoMap('map', options);
+			leafmap.setMaxBounds(false);
+
+			// Attach handler to display labels beyond x zoom level
+			/*
+			var visible;
+			function maybe_labels(e) {
+				var map = leafmap
+				// Check zoom level
+				if (map.getZoom() > 10) {
+					// Check if not already shown
+					if (!visible) {
+						alert("should show!");
+						// Loop over layers
+						map.geojson_lyr.eachLayer(function (layer) {
+							// Show label
+							layer.showLabel();
+						});
+						// Set visibility flag
+						visible = true;
+					}
+				} else {
+					// Check if not already hidden
+					if (visible) {
+						// Loop over layers
+						map.geojson_lyr.eachLayer(function (layer) {
+							// Hide label
+							layer.hideLabel();
+						});
+						// Set visibility flag
+						visible = false;
+					}
+				}
+			};
+			leafmap.on('zoomend', maybe_labels);
+			*/
+			
+			draw_borders(leafmap, {});
+			
+		</script>
+
+		</div>
+		
+    </div>
+
+	{% block extracss %}
+	 <style>
+	    #map { 
+	        width: 100%;
+			//padding-top: 45%;
+	     }
+	 </style>
+	{% endblock extracss %}
+
+{% endblock %}
