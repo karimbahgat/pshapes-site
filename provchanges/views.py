@@ -1462,10 +1462,18 @@ def lists2table(request, lists, fields):
     rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
     return rendered
 
-def dropchange(request, pk):
+def withdrawchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
     if request.user.username == change.user or 'user.administrator' in request.user.get_all_permission():
         change.status = "NonActive"
+        change.save()
+
+    return redirect("/provchange/{pk}/view/".format(pk=pk) )
+
+def resubmitchange(request, pk):
+    change = get_object_or_404(ProvChange, pk=pk)
+    if request.user.username == change.user or 'user.administrator' in request.user.get_all_permission():
+        change.status = "Pending"
         change.save()
 
     return redirect("/provchange/{pk}/view/".format(pk=pk) )

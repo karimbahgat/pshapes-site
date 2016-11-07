@@ -15,12 +15,12 @@
 		<p>
 		1900
 		<input id="dateslider" type="range" style="width:70%" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="draw_borders(document.getElementById('datetext').value);"/>
-		2016
+		2015
 		<datalist id="ticks">
 		<option>1900</option>
 		<option>1950</option>
 		<option>2000</option>
-		<option>2016</option>
+		<option>2015</option>
 		</datalist>
 		</p>
 		
@@ -29,13 +29,13 @@
 	<script>
 	function updatedate(fraction) {
 		mindate = new Date(1900, 1, 1);
-		maxdate = new Date(2016, 1, 1);
+		maxdate = new Date(2015, 12, 31);
 		var daterange = maxdate.getTime() - mindate.getTime();
 		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
 		datetext = document.getElementById("datetext");
 		datetext.value = newdate.toISOString().slice(0,10);
 	};
-	updatedate(1); // max at default
+	updatedate(0.99); // max at default
 	</script>
 	
 	
@@ -43,7 +43,7 @@
 	
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-	<div id="mapcontainer" style="background-color:black; width:80%; margin-left:10%; height:300px">
+	<div id="mapcontainer" style="background-color:black; width:90%; margin-left:5%; height:300px">
 		<div style="width:100%; height:100%; margins:auto" id="map">
 		</div>
 	</div>
@@ -54,9 +54,8 @@
 	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
 		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
 		
-	var xyz = new OpenLayers.Layer.XYZ( "Dark XYZ", ["http://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"] );
 	var xyz = new OpenLayers.Layer.XYZ(
-		"Natural Earth",
+		"Dark XYZ",
 		[
 			"http://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
 			"http://b.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
@@ -75,7 +74,7 @@
 	<script>
 
 	// empty province layer
-	var provLayer = new OpenLayers.Layer.Vector("Provinces", {style:{fillColor:"orange", fillOpacity:0.3}});
+	var provLayer = new OpenLayers.Layer.Vector("Provinces", {style:{fillColor:"orange", fillOpacity:0.3, strokeWidth:0.2}});
 	map.addLayers([provLayer]);
 	
 	// download data
