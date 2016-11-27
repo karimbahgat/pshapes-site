@@ -324,6 +324,61 @@ def logout(request):
 
 def contribute(request):
     bannertitle = "Contributions at a Glance:"
+    
+    bannerleft = """
+                    <div style="text-align:center">
+                        <img style="width:100%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
+		    </div>
+    """
+    
+    bannerright = """
+                    <div style="text-align:left">
+
+                        <br><br><br>
+                        <b>How Does It Work?</b>
+                        <br>
+                        Pshapes is fully built on contributions for the wider community.
+                        This means... 
+
+                        <br><br>
+                        <b>How Can I Contribute?</b>
+                        <br>
+                        Anyone can contribute. Whether you just want to track a recent change in your province, or map out the changes
+                        for an entire country.
+
+                        <br><br>
+                        <a href="/contribute/countries" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Choose a Country
+                        </a>
+
+                    </div>
+    """
+
+    grids = []
+
+    # Map Finder app
+    # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
+
+    content = """
+            Some historical maps can be difficult to find. 
+            With the Map Finder you can connect with others to either request or
+            help locate a historical map for a particular year.
+            <br><br>
+            Choose country - choose date - ask or offer
+            """
+
+    grids.append(dict(title="Map Finder",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def allcountries(request):
+    bannertitle = "Code a Country:"
 
     changes = ProvChange.objects.all()
     accepted = ProvChange.objects.filter(status="Accepted")
@@ -339,7 +394,7 @@ def contribute(request):
     bannerright = """
                     <div style="text-align:left">
 
-                        <br><br>
+                        <br><br><br>
                         <b>How Does It Work?</b>
                         <br>
                         Choose a country from the list below. You can browse,
@@ -347,12 +402,6 @@ def contribute(request):
                         already submitted by other users.
                         After a vetting process the change will be included in the
                         next version of the data available from the website.
-
-                        <br><br>
-                        <b>Who is it for?</b>
-                        <br>
-                        Whether you just want to track a recent change in your province, or map out the changes
-                        for an entire country, all contributions count!
 
                     </div>
     """ 
@@ -769,7 +818,7 @@ def viewcountry(request, country):
     else:
         bannertitle = "" #"Timeline for %s" % country.encode("utf8")
         top = """
-                        <a href="/contribute/" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        <a href="/contribute/countries/" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to World
 			</a>
 			"""

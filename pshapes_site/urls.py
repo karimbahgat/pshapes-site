@@ -27,7 +27,7 @@ urlpatterns = [
 
     # ------------
     # INTERACTIVE
-    url('^interactive/$', "provshapes.views.interactive"),
+    url('^explore/$', "provshapes.views.explore"),
 
 
     # -----------
@@ -40,6 +40,7 @@ urlpatterns = [
     url('^contribute/edit/(?P<country>[^/]+)/$', "provchanges.views.editcountry"),
 
     # province (event or change depending on get params)
+    url('^contribute/countries/$', "provchanges.views.allcountries"), 
     url('^contribute/view/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.viewprov"), # event
     url('^contribute/add/(?P<country>[^/]+)/$', "provchanges.views.addprov"),
     url('^contribute/add/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.addprov"),
@@ -55,7 +56,7 @@ urlpatterns = [
 
     # -----
     # DATA
-    url('^data/$', "pshapes_site.views.data"),
+    url('^download/$', "pshapes_site.views.download"),
     url('^download/raw/$', "pshapes_site.views.download_raw"),
     
 

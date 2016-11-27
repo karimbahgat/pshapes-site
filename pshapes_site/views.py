@@ -295,7 +295,7 @@ def about(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                   )
 
-def data(request):
+def download(request):
     grids = []
     custombanner = """
                 <h3 style="text-align:center">Download the Data:</h3>

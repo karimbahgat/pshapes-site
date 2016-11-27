@@ -11,10 +11,10 @@ def underconstruction(request):
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
-def interactive(request):
-    return render(request, 'provshapes/interactive.html')
+def explore(request):
+    return render(request, 'provshapes/explore.html')
 
-def interactive(request):
+def explore(request):
     grids = []
     bannertitle = ""
     custombanner = """
@@ -27,7 +27,7 @@ def interactive(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
 
-def interactive(request):
+def explore(request):
     import urllib2
     import json
 
@@ -37,9 +37,3 @@ def interactive(request):
 
 
 
-
-def data(request):
-    return render(request, 'provshapes/data.html')
-
-def data(request):
-    return underconstruction(request)
