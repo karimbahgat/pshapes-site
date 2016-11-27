@@ -1773,10 +1773,11 @@ class SourceEventForm(forms.ModelForm):
         super(SourceEventForm, self).__init__(*args, **kwargs)
         country = kwargs["initial"]["fromcountry"]
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
-        mostcommon = sources[0]
-        sources = sorted(set(sources))
-        self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
-        self.fields['source'].initial = mostcommon
+        if sources:
+            mostcommon = sources[0]
+            sources = sorted(set(sources))
+            self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
+            self.fields['source'].initial = mostcommon
         
 from django.forms.widgets import RadioFieldRenderer
 
