@@ -252,104 +252,159 @@ def about(request):
 
 def about(request):
     grids = []
-    custombanner = """
-                <h3 style="text-align:center">About Pshapes</h3>
-                <div style="text-align:left">
-                
-                    <p>%s</p>
-                    
-                    <h4>Reverse geocoding methodology</h4>
-                    <p>
-                    <img style="padding:6px" align="left" width="50px" src="https://people.eecs.berkeley.edu/~sequin/arcad96/A2/anim2d.gif">
-                    One of the novelties of the pShapes project is that it uses a unique reverse
-                    polygon geocoding algorithm that requires minimal input from
-                    contributors.
-                    </p>
+    bannertitle = ""
+    """
+                        The Pshapes framework is primilaly just a dataset of province changes, registering
+                        only the information that changes for each time.
+                        To create a complete spatial dataset of the provinces themselves it is necessary
+                        to start with a dataset of modern province boundaries and apply the changes in reverse
+                        chronological order.
 
-                    <h4 style="clear:both"><br>More</h4>
-                    <p>
-                    Abc...
-                    </p>
-                
-                </div>
-                """ % shortdescr
-    grids.append(dict(title="Suggest a Feature",
+                        This maximizes the value of the user contributions, so that the information doesn't have to
+                        be tied to a single province boundary dataset. 
+                        This makes the data flexible and allows integration with any third-party province datasets.
+                        """
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">About the Pshapes Project</h3>
+                    <div style="text-align:left">
+                        <p>
+                        Background and motivation...
+                    </div>
+
+                    """
+    bannerleft = """
+                    <br>
+                    <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
+                    """    
+    
+    grids.append(dict(title="Frequently Asked Questions",
                       content="""
-                            Got suggestions for improving the website or data collection?
-                            """
-                      ))
-    grids.append(dict(title="Issues",
-                      content="""
-                            Report any issues or bugs with the website or data...
-                            """
+                            <ul>
+                                <li>How Does It Work?</li>
+                                <li>How To Code Changes</li>
+                                <li>How To Draw Boundaries</li>
+                            </ul>
+                            """,
+                      width="45%",
                       ))
     grids.append(dict(title="Contact",
                       content="""
-                            The Pshapes concept and website was created by Karim Bahgat in 2015-2016. 
-
-                            <br><br>
-
-                            He can be contacted at karim.bahgat.norway@gmail.com. 
-                            """
+                            For questions, issues, or feature requests, please contact
+                            Karim Bahgat (karim.bahgat.norway@gmail.com). 
+                            """,
+                      width="45%",
                       ))
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
 
 def download(request):
     grids = []
-    custombanner = """
-                <h3 style="text-align:center">Download the Data:</h3>
-                <div style="text-align:left">
-                <p>
-                The Pshapes boundary dataset is completely open-source and free of charge for commercial and academic use (see the license for more details),
-                requiring only that you cite the source.
-                </p>
-                
-                <ul>
-                    <li>Version: ...</li>
-                    <li>Years: ...</li>
-                    <li>Countries: ...</li>
-                <ul>
-                </div>
+    bannertitle = ""
+    """
+                        The Pshapes framework is primilaly just a dataset of province changes, registering
+                        only the information that changes for each time.
+                        To create a complete spatial dataset of the provinces themselves it is necessary
+                        to start with a dataset of modern province boundaries and apply the changes in reverse
+                        chronological order.
 
-                <div>
-                <table align="center">
-                    <tr>
-                        <td style="text-align:center"><img width="50px" src="http://img.expertgps.com/images/shp256.png"><p>Shapefile</p></td>
-                        <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Codebook</p></td>
-                    </tr>
-                </table>
-                </div>
+                        This maximizes the value of the user contributions, so that the information doesn't have to
+                        be tied to a single province boundary dataset. 
+                        This makes the data flexible and allows integration with any third-party province datasets.
+                        """
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
+                    <div style="text-align:left">
+                        <p>
+                        The Pshapes dataset covers only the historical changes to provinces, so requires
+                        another dataset to cover the modern boundaries.
+                        For convenience to the average user, we here provide a complete dataset that has been reverse-engineered
+                        using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
+                        <em>Natural Earth province boundaries</em></a>
+                        as the starting-point. 
+                        </p>
+                        <p>Version: Alpha (2016-12-01)</p>
+                        <p>Status: Only some test-countries so far.</p> 
+                    </div>
 
-                """ 
+                    <br>
+                    <div style="text-align:right;">
+                        <a href="/download/final/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        <b>Download Boundary Data</b>
+                        </a>
+                    </div>
+                    <br>
+                    """
+    bannerleft = """
+                    <br>
+                    <img width="50%" src="https://lh3.googleusercontent.com/4zN3BOlFGIynfAT1-10I0nhqi7w31aIoePUbvCVCmk83D5E89a59QjhgcLN-d59u1CU=w300">
+                    """    
+    
     grids.append(dict(title="Raw Data Dump",
                       content="""
-                            <b>
-                            The latest data dump of the user
-                            contributions data is always available on-demand. These data dumps can
-                            for instance be used to replicate or rebuild the pshapes dataset. 
+                            <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
 
-                            <div style="text-align:center">
-                            <table>
-                                <tr>
-                                    <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
-                                    <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
-                                </tr>
-                            </table>
-                            </div>
-                            
-                            </b>
+                            <p>
+                                <b>
+                                The latest data dump of the user
+                                contributions data is always available on-demand. These data dumps can
+                                for instance be used to replicate or rebuild the pshapes dataset. 
+
+                                <div style="text-align:center">
+                                <table>
+                                    <tr>
+                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
+                                        <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </p>
                             """,
                       width="46%",
                       ))
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
+
+
+    grids.append(dict(title="Build Your Own",
+                      content="""
+                            <img width="100%" border="2" src="https://thumbs.dreamstime.com/z/coding-programming-source-code-screen-colorful-abstract-data-display-software-developer-web-program-script-computer-50188994.jpg">
+
+                            <p>
+                                The Pshapes framework is primilaly just a dataset of province changes, registering
+                                only the information that changes for each time.
+                                This makes the data flexible and allows integration with any third-party province datasets...
+                            </p>
+
+                            <p style="text-align:right">
+                            <a href="/">
+                            <b>Read More</b>
+                            </a>
+                            </p>
+                            """,
+                      width="46%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
+
+def download_final(request):
+    from django.http import HttpResponse
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pshapes_natearth_final.json"'
+    import csv, datetime, urllib
+    raw = urllib.urlopen("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson").read()
+    response.write(raw)
+    return response
+
+    #TODO: in future, create github releases of the data and maybe just redirect to there
+    #return redirect("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson")
 
 def download_raw(request):
     from django.http import HttpResponse
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="pshapes_raw.csv"'
     import csv, datetime
+    tday = datetime.date.today()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="pshapes_raw_%s.csv"' % tday 
     fields = "source status date type fromcountry fromname fromalterns fromiso fromfips fromhasc fromtype fromcapitalname fromcapital tocountry toname toalterns toiso tofips tohasc totype tocapitalname tocapital transfer_source transfer_reference transfer_geom".split()
     writer = csv.writer(response)
     writer.writerow(fields)

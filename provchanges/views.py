@@ -330,25 +330,27 @@ def contribute(request):
                         <img style="width:100%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
 		    </div>
     """
-    
+
+    #QUOTE
+    #Anyone who has an interest in coding some changes for one or more countries,
+    #should have the ability to do so themselves, regardless of skills or background. 
+
     bannerright = """
                     <div style="text-align:left">
 
-                        <br><br><br>
-                        <b>How Does It Work?</b>
-                        <br>
-                        Pshapes is fully built on contributions for the wider community.
-                        This means... 
-
                         <br><br>
-                        <b>How Can I Contribute?</b>
-                        <br>
-                        Anyone can contribute. Whether you just want to track a recent change in your province, or map out the changes
-                        for an entire country.
+                        <h4>Help Collect the Data</h4>
+                        Creating a global dataset of province changes is a tremendous task for any one stakeholder to undertake. 
+                        The Pshapes project is based on the idea that we can collect and maintain province change data more efficiently
+                        and transparently as a community. The idea is that anyone who has an interest in coding some changes for one or more countries,
+                        should have the ability to do so themselves.
+                        Most of the information is already available from our list of online sources, 
+                        making it easy to jump straight into it with little or no background-knowledge. 
+                        In most cases all that is required is filling out some forms. 
 
                         <br><br>
                         <a href="/contribute/countries" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Choose a Country
+                        Get Started
                         </a>
 
                     </div>
@@ -358,16 +360,41 @@ def contribute(request):
 
     # Map Finder app
     # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
+    # alt img http://cdn.wallpapersafari.com/7/88/QGsTDo.jpg
 
     content = """
+            <b>
+            <img width="100%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+
+            <p>
             Some historical maps can be difficult to find. 
             With the Map Finder you can connect with others to either request or
             help locate a historical map for a particular year.
-            <br><br>
-            Choose country - choose date - ask or offer
+            </p>
+            
+            <div style="text-align:right"><a href="/contribute/maps/">Read More</a></div>
+            </b>
             """
 
     grids.append(dict(title="Map Finder",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
+    content = """
+                <b>
+                <img width="100%" border="2" src="https://blog.tradeshift.com/wp-content/uploads/2015/10/collaboration-illustration.jpg">
+                
+                <p>
+                Join the conversation to help clear up how exactly a province may have changed. 
+                </p>
+                
+                Table of recent comments/discussions...
+                </b>
+              """
+
+    grids.append(dict(title="Discuss",
                       content=content,
                       #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
                       width="46%",
@@ -376,6 +403,94 @@ def contribute(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
+
+
+def maps(request):
+    bannertitle = ""
+    
+    bannerleft = """
+                    <div style="text-align:center">
+                        <img style="width:100%" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+		    </div>
+    """
+
+    bannerright = """
+                    <div id="blackbackground" style="text-align:left">
+
+                        <style>
+                            #blackbackground a { color:white }
+                            #blackbackground a:visited { color:grey }
+                        </style>
+
+                        <br>
+                        <h4>Where to Find Maps?</h4>
+                        Occasionally you will need a historical map to register a province change. 
+                        Make sure the map doesn't have a license that restricts sharing or derivative work. 
+                        Here are some useful sources for historical maps:
+
+                        <ul>
+                            <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                            <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                            <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                            <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                            <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                            <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                            <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                            <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                            <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                        </ul>
+
+                        Once you have found the map you will need to georeference it at the
+                        <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
+
+                    </div>
+    """
+
+    grids = []
+
+    content = """
+            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+            <p>
+            Some maps for particular countries and years are more difficult to find than
+            other maps. Here you can ask others for help or help those who are looking. 
+            </p>
+            
+            Table...
+            """
+
+    grids.append(dict(title="Request a Map:",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
+    #img : http://blog.swagbucks.com/wp-content/uploads/2012/09/book_bg.jpg.jpeg
+    #img : https://www.bookboxshop.com/images/Map-of-the-World-Atlas-Book-Box-Detail.png
+    content = """
+            <img width="100%" border="2" src="http://blog.swagbucks.com/wp-content/uploads/2012/09/book_bg.jpg.jpeg">
+
+            <p>
+            World Atlases have been published for much of the 20th century and often include a snapshot
+            of the world's administrative boundaries at the year of publication. 
+            Unfortunately, atlases are rarely available in digital form, and are scattered across libraries
+            throughout the world. If you own or know of the location of a particular atlas, and are willing to
+            scan and share a map of a country's administrative boundaries, you can let others know by registering
+            it here.
+            </p>
+            
+            Table...
+            """
+
+    grids.append(dict(title="Register a Historical Atlas:",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
 
 def allcountries(request):
     bannertitle = "Code a Country:"
@@ -402,6 +517,35 @@ def allcountries(request):
                         already submitted by other users.
                         After a vetting process the change will be included in the
                         next version of the data available from the website.
+
+                        <style>
+                            #blackbackground a { color:white }
+                            #blackbackground a:visited { color:grey }
+                        </style>
+                        
+                        <div id="blackbackground" style="text-align: left">
+                        <p style="font-size:medium; font-weight:bold">Useful Sources:</p>
+                        <p style="font-size:medium; font-style:italic">
+                        <ul>
+                            <li>
+                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a>
+                            </li>
+
+                            <li>
+                            <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                            </li>
+
+                            <li>
+                            <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
+                            </li>
+
+                            <li>
+                            <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
+                            </li>
+                        </ul>
+                        </p>
+                        </div>
+
 
                     </div>
     """ 
@@ -859,7 +1003,7 @@ def viewcountry(request, country):
                         </ul>
                         </p>
                         </div>
-        """
+                """
 
         custombanner = """
 

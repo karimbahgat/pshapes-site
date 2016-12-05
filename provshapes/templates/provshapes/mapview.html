@@ -181,10 +181,10 @@ input[type=range]:focus::-ms-fill-upper {
 	<script>
 
 	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4, label:"${getLabel}"},
+	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4, fontSize:7, label:"${getLabel}"},
 										{context: {
 												getLabel: function(feature) {
-													if (map.zoom > 4) {
+													if (map.zoom > 5) {
 														return feature.attributes.Name;
 													} else {
 														return '';
