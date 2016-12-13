@@ -438,6 +438,7 @@ def maps(request):
                             <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
                             <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
                             <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                            <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
                         </ul>
 
                         Once you have found the map you will need to georeference it at the
@@ -447,7 +448,9 @@ def maps(request):
     """
 
     grids = []
-
+    #http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg
+    #https://carryingonblog.files.wordpress.com/2011/08/istock_000003161148xsmall.jpg
+    #https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS7UFS0LMDJgj8LPxBGb9E6u1-efXDAniuW7BMOPWc94kD7eEol
     content = """
             <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
             <p>
@@ -458,7 +461,7 @@ def maps(request):
             Table...
             """
 
-    grids.append(dict(title="Request a Map:",
+    grids.append(dict(title="Ask for Help:",
                       content=content,
                       #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
                       width="46%",
@@ -466,8 +469,9 @@ def maps(request):
 
     #img : http://blog.swagbucks.com/wp-content/uploads/2012/09/book_bg.jpg.jpeg
     #img : https://www.bookboxshop.com/images/Map-of-the-World-Atlas-Book-Box-Detail.png
+    #https://thumb1.shutterstock.com/display_pic_with_logo/94021/328915304/stock-photo-education-concept-books-and-textbooks-on-the-bookshelf-d-328915304.jpg
     content = """
-            <img width="100%" border="2" src="http://blog.swagbucks.com/wp-content/uploads/2012/09/book_bg.jpg.jpeg">
+            <img width="100%" border="2" src="http://www.readitforward.com/wp-content/uploads/2015/06/bookshelf-organization-1024x361.jpg">
 
             <p>
             World Atlases have been published for much of the 20th century and often include a snapshot
@@ -481,13 +485,16 @@ def maps(request):
             Table...
             """
 
-    grids.append(dict(title="Register a Historical Atlas:",
+    grids.append(dict(title="Locate a Historical Atlas:",
                       content=content,
                       #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
                       width="46%",
                       ))
+
+    history = [("Back to Contributions","/contribute/")]
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+    return render(request, 'pshapes_site/base_grid.html', {"history":history,
+                                                           "grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
@@ -614,8 +621,11 @@ def allcountries(request):
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
+
+    history = [("Back to Contributions","/contribute/")]
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+    return render(request, 'pshapes_site/base_grid.html', {"history":history,
+                                                           "grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 

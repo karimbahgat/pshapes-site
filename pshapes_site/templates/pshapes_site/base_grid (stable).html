@@ -5,18 +5,8 @@
 		
 	{% if not nomainbanner %}
 		<div id="mainbanner" style="display:table;content:'';clear:both; background-color:black; width:100%; padding:0px; margin:0px; color:white">
-
-			<div>
-			{% if history %}
-				{% for name,url in history %}
-					<a style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;" href="{{ url }}">
-					{{ name|safe }}
-					</a>
-				{% endfor %}
-			{% endif %}
-			</div>
 		
-			<div style="clear:both; width:1000px; margin:0 auto;">
+			<div style="width:1000px; margin:0 auto;">
 			
 			{% if custombanner %}
 				{{ custombanner|safe }}

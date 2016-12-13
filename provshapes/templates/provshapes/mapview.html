@@ -181,18 +181,33 @@ input[type=range]:focus::-ms-fill-upper {
 	<script>
 
 	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4, fontSize:7, label:"${getLabel}"},
+	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4, fontSize:12, label:"${getLabel}"}, //, labelOffsetX:"${getLabelOffsetX}", labelOffsetY:"${getLabelOffsetY}"},
 										{context: {
 												getLabel: function(feature) {
 													if (map.zoom > 5) {
-														return feature.attributes.Name;
+														return feature.attributes.Name.toUpperCase();
 													} else {
 														return '';
 													}
 												},
 												getColor: function(feature) {
 													return document.countryColors[feature.attributes.country];
-												}
+												},
+												
+												// not working yet
+												/*
+												getLabelOffsetX: function(feature) {
+													var midpx = feature.geometry.getBounds().getCenterPixel().x;
+													return 400 //midpx*100;
+												},
+												getLabelOffsetY: function(feature) {
+													var midpy = feature.geometry.getBounds().getCenterPixel().y;
+													return 400 //midpy*100;
+												},
+												*/
+												
+												// instead make a separate layer of polygon centroid and label those
+												// ... 
 											}
 										});
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});

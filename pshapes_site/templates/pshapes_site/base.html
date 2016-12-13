@@ -17,17 +17,54 @@
 				<h2 style="color:black;float:left;">P</h2><h2 style="color:white;float:left;">shapes</h2>
 			</a>
 
-
+					<style>
+					#current {
+						float:left; 
+						padding-right:15px; 
+						text-decoration: underline; 
+						color: white;
+						}
+					#notcurr {
+						float:left; 
+						padding-right:15px; 
+						text-decoration: none; 
+						color: white;
+						}
+					</style>
 
 					<table style="width:100%; white-space: nowrap; clear:both; font-weight:bold; padding:35px; font-size:1em;">
 						
 						<tr>
-						<td><a href="/" style="float:left; padding-right:15px; text-decoration: none; color: white;">Home</a></td>
-						<td><a href="/explore/" style="float:left; padding-right:15px; text-decoration: none; color: white;">Provinces</a></td>
-						<!-- <td><a href="/community/" style="float:left; padding-right:15px; text-decoration: none; color: white;">Community</a></td> -->
-						<td><a href="/download/" style="float:left; padding-right:15px; text-decoration: none; color: white;">Download</a></td>
-						<td><a href="/contribute/" style="float:left; padding-right:15px; text-decoration: none; color: white;">Get Involved</a></td>
-						<td><a href="/about/" style="float:left; padding-right:15px; text-decoration: none; color: white;">About</a></td>
+						{% if request.path == "/" %}
+							<td><a id="current" href="/">Home</a></td>
+						{% else %}
+							<td><a id="notcurr" href="/">Home</a></td>
+						{% endif %}
+
+						{% if request.path|slice:":9" == "/explore/" %}
+							<td><a id="current" href="/explore/">Provinces</a></td>
+						{% else %}
+							<td><a id="notcurr" href="/explore/">Provinces</a></td>
+						{% endif %}
+
+						{% if request.path|slice:":10" == "/download/" %}
+							<td><a id="current" href="/download/">Download</a></td>
+						{% else %}
+							<td><a id="notcurr" href="/download/">Download</a></td>
+						{% endif %}
+						
+						{% if request.path|slice:":12" == "/contribute/" %}
+							<td><a id="current" href="/contribute/">Get Involved</a></td>
+						{% else %}
+							<td><a id="notcurr" href="/contribute/">Get Involved</a></td>
+						{% endif %}
+						
+						{% if request.path|slice:":7" == "/about/" %}
+							<td><a id="current" href="/about/">About</a></td>
+						{% else %}
+							<td><a id="notcurr" href="/about/">About</a></td>
+						{% endif %}
+						
 						<td><form action="/explore" type="GET"><input type="text" placeholder="Find a province" style="float:left; width:100px; padding:3px; text-decoration: none; border-radius:10px"></input></form></td>
 						<td><a href="/account/"><img style="width:22px; height:22px; vertical-align:center" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"></a></td>
 						</tr>
