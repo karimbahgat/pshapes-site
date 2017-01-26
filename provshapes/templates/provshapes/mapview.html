@@ -1,8 +1,4 @@
 
-{% extends 'pshapes_site/base.html' %}
-
-{% block content %}
-
 	<div class="map header" style="text-align:center; margin-top: 0; padding: 0 0 0 0;">
    		<h3 style="color:black">
 		Historical Province Boundaries
@@ -97,6 +93,15 @@ input[type=range]:focus::-ms-fill-upper {
 }
 	</style>
 	
+	</div>
+
+	<script defer="defer" type="text/javascript">
+	var map = new OpenLayers.Map('map');
+	
+		<div style="width:100%; height:100%; margins:auto" id="map">
+		</div>
+	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
+		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
 	<script>
 	function update_slider(date) {
 		draw_borders(date);
@@ -146,15 +151,6 @@ input[type=range]:focus::-ms-fill-upper {
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
 	<div id="mapcontainer" style="background-color:black; width:90%; margin-left:5%; height:80vh">
-		<div style="width:100%; height:100%; margins:auto" id="map">
-		</div>
-	</div>
-
-	<script defer="defer" type="text/javascript">
-	var map = new OpenLayers.Map('map');
-	
-	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
-		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
 		
 	var worldsat = new OpenLayers.Layer.WMS( "OpenLayers WMS",
 		"http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?", {layers: 'GEBCO_LATEST'} );	
@@ -260,4 +256,3 @@ input[type=range]:focus::-ms-fill-upper {
 	
 	</script>
 	
-{% endblock %}

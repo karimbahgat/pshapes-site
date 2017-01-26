@@ -253,38 +253,129 @@ def about(request):
 def about(request):
     grids = []
     bannertitle = ""
-    """
-                        The Pshapes framework is primilaly just a dataset of province changes, registering
-                        only the information that changes for each time.
-                        To create a complete spatial dataset of the provinces themselves it is necessary
-                        to start with a dataset of modern province boundaries and apply the changes in reverse
-                        chronological order.
-
-                        This maximizes the value of the user contributions, so that the information doesn't have to
-                        be tied to a single province boundary dataset. 
-                        This makes the data flexible and allows integration with any third-party province datasets.
-                        """
     bannerright = """
                     <br>
                     <h3 style="text-align:left">About the Pshapes Project</h3>
                     <div style="text-align:left">
                         <p>
-                        Background and motivation...
+                        The idea behind the Pshapes project is very simple. Most databases of administrative areas avilable today
+                        are simply snapshots of their boundaries on a particular date. As long as we have this,
+                        as well as a chronology of changes, that should be enough to reverse or forward engineer the situation to
+                        any point in the past or future. Where Pshapes contributes is in the tracking of these changes
+                        as well as a method for reconstructing the world's boundaries based on these.
+                        </p>
                     </div>
-
                     """
     bannerleft = """
                     <br>
                     <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
-                    """    
+                    """
     
     grids.append(dict(title="Frequently Asked Questions",
                       content="""
                             <ul>
-                                <li>How Does It Work?</li>
-                                <li>How To Code Changes</li>
-                                <li>How To Draw Boundaries</li>
+                            <li><b>Why Crowdsourcing?</b></li>
+                                <p>
+                                The Pshapes project has a very different structure than other administrative area datasets.
+                                Instead of being carefully collected and coded by a handful of experts, the project has focused
+                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an apporach is only
+                                possible because it was realized that a lot of the work required to make spatially
+                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
+                                repeating the same steps over and over. These repeatative and hard parts can be automated,
+                                while the information needed is actually fairly straightforward and do not require any
+                                expert knowledge or skills.
+                                </p>
+
+                                <p>
+                                This is why we broke these two processes apart: letting users and other contributors take care
+                                of the data entry through the website's user-friendly interface. Then we leave the difficult parts
+                                of constructing the final dataset up to an automated algorithm with expert supervision.
+                                </p>
+                            
+                            <li><b>How the Algorithm Works</b></li>
+                                <p>
+                                To create a complete spatial dataset of the provinces themselves it is necessary
+                                to start with a dataset of modern province boundaries and apply the changes in reverse
+                                chronological order.
+                                </p>
+
+                                <p>
+                                This maximizes the value of the user contributions, so that the information doesn't have to
+                                be tied to a single province boundary dataset. 
+                                This makes the data flexible and allows integration with any third-party province datasets.
+                                </p>
+
+                            <li><b>Types of Changes</b></li>
+                                <p>
+                                All changes can be boiled down to three types:
+                                
+                                Splits. Abc... Img... 
+                                
+                                Mergers.
+                                
+                                Information change.
+                                </p>
+                                
+                            <li><b>Examples</b></li>
+                                <p>
+                                Newinfo
+                                
+                                Splits
+                                Breakaways
+
+                                Mergers
+                                Aquisitions
+
+                                Transfers
+
+                                Complete reorganizations
+                                </p>
+                                
                             </ul>
+                            """,
+                      width="45%",
+                      ))
+    grids.append(dict(title="Background and Motivation",
+                      content="""
+                        <p>
+                        Sub-national administrative area and boundary data 
+                        have in recent years become essential for many analysts and policy makers.
+                        The data that currently exist are great for representing
+                        modern or the most-recent boundaries. But subnational borders and names
+                        change quite frequently, and are very different today than
+                        they were even just a few years ago.
+                        </p>
+
+                        <p>
+                        This makes it quite challenging for data providers to get an overview of
+                        past changes or regularly come out with new updates. For good reasons,
+                        existing datasets on administrative boundaries simply 
+                        do not capture these historical changes and are only updated every few years.
+                        The only exception here is the UN's Global Administrative Units Layer (GAUL) data,
+                        which provides yearly snapshots back to 1990. But these data are not publically
+                        availabe to all, and its restrictive license prohibits certain uses.
+                        </p>
+
+                        <p>
+                        Better data is needed for earlier historic periods.
+                        In project afer project, geospatial data are frequently created based on information,
+                        such as government statistics, that are originally reportet at the administrative
+                        level. These then have to be geocoded to their historical administrive areas, but using only data
+                        for the modern period. This means a lot of names are no longer valid, or borders have changed
+                        dramatically, requiring substantial followups to match historical units to modern boundaries.
+                        </p>
+
+                        <p>
+                        There is a wealth of administrative based data out there waiting to be collected, but hindered
+                        by the lack in availability of historically correct boundary datasets.
+                        </p>
+
+                        <p>
+                        The Pshapes project grew
+                        out of this need for an open-source and easily maintainable dataset
+                        for not only to uncover administrative units' changes for past historical periods,
+                        but also to help keep track of future changes as they occur. 
+                        </p>
                             """,
                       width="45%",
                       ))
@@ -301,17 +392,6 @@ def about(request):
 def download(request):
     grids = []
     bannertitle = ""
-    """
-                        The Pshapes framework is primilaly just a dataset of province changes, registering
-                        only the information that changes for each time.
-                        To create a complete spatial dataset of the provinces themselves it is necessary
-                        to start with a dataset of modern province boundaries and apply the changes in reverse
-                        chronological order.
-
-                        This maximizes the value of the user contributions, so that the information doesn't have to
-                        be tied to a single province boundary dataset. 
-                        This makes the data flexible and allows integration with any third-party province datasets.
-                        """
     bannerright = """
                     <br>
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>

@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.template.loader import render_to_string
 
 # Create your views here.
 
@@ -31,7 +32,22 @@ def explore(request):
     import urllib2
     import json
 
-    return render(request, 'provshapes/mapview.html')
+    ###
+
+    
+    mapp = render_to_string("provshapes/mapview.html")
+
+    custombanner = mapp
+
+    grids = []
+    grids.append(dict(title="Province:",
+                      content="None selected",
+                      width="99%")
+                 )
+
+    return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
+                                                               grids=grids)
+                  )
 
 
 
