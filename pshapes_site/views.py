@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from provchanges.models import ProvChange
 
 shortdescr = """
-Pshapes is an open-source crowdsourcing project for creating and maintaining
+Pshapes (pronounced p-shapes) is an open-source crowdsourcing project for creating and maintaining
 data on historical provinces, created by and for data-enthusiasts, researchers,
 and others. 
 """
@@ -171,6 +171,10 @@ def home(request):
                         out the data collection effort. Suggestions
                         and feature requests are welcome.</em>
                         </p>
+
+                        <p style="font-size:smaller"><em>Disclaimer: All website pictures and graphics are
+                        currently just placeholders and will be replaced in the final version.</em>
+                        </p>
                     </div>
 
                     <br>
@@ -274,6 +278,12 @@ def about(request):
     grids.append(dict(title="Background and Motivation",
                       content="""
                         <p>
+                        The Pshapes project was first inspired by <a href="http://nils.weidmann.ws/projects/cshapes.html">the Cshapes dataset</a>, which tracks historical
+                        country borders and changes since 1946. Hence, the name Pshapes to parallel the Cshapes dataset. 
+                        </p>
+
+                        <p>
+                        No such historical data exists yet for subnational administrative boundaries (see more below). 
                         Sub-national administrative area and boundary data 
                         have in recent years become essential for many analysts and policy makers.
                         The data that currently exist are great for representing

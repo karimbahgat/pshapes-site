@@ -34,6 +34,11 @@ def explore(request):
 
     ###
 
+    if "Name" in request.GET:
+        custombanner = '<h3 style="text-align:center; padding:10%;">Province search still under construction...</h3>'
+
+        return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner)
+                      )
     
     mapp = render_to_string("provshapes/mapview.html")
 
