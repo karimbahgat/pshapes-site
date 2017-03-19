@@ -47,6 +47,10 @@ def explore(request):
     
     <script>
     function selectfunc(feature) {
+        alterns = feature.attributes.Alterns.join("; ");
+        if (alterns) {
+            alterns = " (" + alterns + ")";
+        };
         table = "<table>"
             table += "<tr>"
             table += "<td>Country: </td>"
@@ -55,22 +59,25 @@ def explore(request):
             
             table += "<tr>"
             table += "<td>Name: </td>"
-            table += "<td>" + feature.attributes.Name + "</td>"
+            table += "<td>" + feature.attributes.Name + alterns + "</td>"
             table += "</tr>"
             
             table += "<tr>"
-            table += "<td>Start: </td>"
-            table += "<td>" + feature.attributes.start + "</td>"
+            table += "<td>Time period: </td>"
+            table += "<td>" + feature.attributes.start + " to " + feature.attributes.end + "</td>"
             table += "</tr>"
 
             table += "<tr>"
-            table += "<td>End: </td>"
-            table += "<td>" + feature.attributes.end + "</td>"
+            table += "<td>Codes: </td>"
+            table += "<td>ISO=" + feature.attributes.ISO + ", FIPS=" + feature.attributes.FIPS + ", HASC=" + feature.attributes.HASC + "</td>"
             table += "</tr>"
         table += "</table>"
         document.getElementById("provframe").innerHTML = table;
     };
-    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
+    function unselectfunc(feature) {
+        document.getElementById("provframe").innerHTML = "None selected";
+    };
+    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, onUnselect: unselectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
     map.addControl(selectControl);
     selectControl.activate();
     </script>
