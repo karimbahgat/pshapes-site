@@ -40,14 +40,50 @@ def explore(request):
     custombanner = mapp
 
     grids = []
+    content = """
+    <div id="provframe">
+    None selected
+    </div>
+    
+    <script>
+    function selectfunc(feature) {
+        table = "<table>"
+            table += "<tr>"
+            table += "<td>Country: </td>"
+            table += "<td>" + feature.attributes.country + "</td>"
+            table += "</tr>"
+            
+            table += "<tr>"
+            table += "<td>Name: </td>"
+            table += "<td>" + feature.attributes.Name + "</td>"
+            table += "</tr>"
+            
+            table += "<tr>"
+            table += "<td>Start: </td>"
+            table += "<td>" + feature.attributes.start + "</td>"
+            table += "</tr>"
+
+            table += "<tr>"
+            table += "<td>End: </td>"
+            table += "<td>" + feature.attributes.end + "</td>"
+            table += "</tr>"
+        table += "</table>"
+        document.getElementById("provframe").innerHTML = table;
+    };
+    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
+    map.addControl(selectControl);
+    selectControl.activate();
+    </script>
+    """
     grids.append(dict(title="Province:",
-                      content="None selected",
+                      content=content,
                       width="99%")
                  )
 
     return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
                                                                grids=grids)
                   )
+
 
 
 

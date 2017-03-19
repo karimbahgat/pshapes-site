@@ -40,7 +40,6 @@ urlpatterns = [
     url('^contribute/edit/(?P<country>[^/]+)/$', "provchanges.views.editcountry"),
 
     # province (event or change depending on get params)
-    url('^contribute/maps/$', "provchanges.views.maps"), 
     url('^contribute/countries/$', "provchanges.views.allcountries"), 
     url('^contribute/view/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.viewprov"), # event
     url('^contribute/add/(?P<country>[^/]+)/$', "provchanges.views.addprov"),

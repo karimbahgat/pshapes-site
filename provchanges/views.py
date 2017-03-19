@@ -358,6 +358,65 @@ def contribute(request):
 
     grids = []
 
+    content = """
+            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+                <p>
+                    <b>
+                    All contributors should read the following guidelines, and refer
+                    back to them whenever you face a difficult coding decision. 
+                    </b>
+
+                    <h3>Admin Levels</h3>
+                    In its first run, the Pshapes project is only collecting data on the first-level
+                    administrative areas, the highest level in a country. Typically they are given names
+                    like "province", "state", "district", or a local language equivalent. 
+
+                    Some countries have a special administrative level between the national and 1st level,
+                    often referred to as "regions".
+                    These tend to be so big that sometimes there are only two of them. 
+                    In Pshapes we prefer to ignore these regions and instead focus on the level below. 
+                    When in doubt follow a rule that they should be small enough to provide good variation within
+                    the country and big enough that it is feasible to get complete information on all of its changes.
+
+                    <h3>Cross-Country Changes</h3>
+                    Sometimes you will come across cases where a change involves more than one country name. Territory
+                    might be transferred to or change ownership from one country to another. In those cases, register as
+                    usual, and then change the from-country field.
+
+                    <h3>Historic Countries</h3>
+                    The same applies to historic countries that don't exist anymore. For instance, for each of the ex-Soviet
+                    countries all of their provinces must be registered as changing info from the Soviet Union. The new country
+                    name as you have written it will appear in the list of countries, so you can keep tracking it further back
+                    in time. 
+
+                    <h3>Disputed Countries/Territories</h3>
+                    What defines a country? At all times follow the most internationally recognized country-units and names.
+                    For territories under foreign colonial rule, these should be coded as separate from the ruling
+                    power. For countries simply achieving independence or countries with only minor changes in their official name,
+                    avoid changing the country name. 
+                    
+                    <h3>Minor Transfers</h3>
+                    In some countries, some transfers of territory may be listed with the names of level-2 areas, and these
+                    should just be listed as partial territorial transfers and drawn roughly by hand. 
+                    However, if the change seems very small, or if there are too many of these types of minor changes,
+                    it is okay to ignore most of them and only focus on the big changes. 
+
+                    <h3>Complete reorganizations</h3>
+                    Sometimes changes aren't listed with clearly distinct changes from one province to the other,
+                    but are rather listed in bulk by saying that an entire country or set of provinces completely reshuffled
+                    and reorganized. In these cases, we continue to code them as separate events, you will just have to
+                    use historic maps to figure out which types of events occured. For instance, if an entirely new province
+                    was made by partially overlapping 2 provinces and fully engulfing 1 province, we register 2 partial
+                    transfers and 1 name change. 
+                </p>
+            """
+
+    grids.append(dict(title="Guidelines:",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
     # Map Finder app
     # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
     # alt img http://cdn.wallpapersafari.com/7/88/QGsTDo.jpg
@@ -366,17 +425,64 @@ def contribute(request):
             <b>
             <img width="100%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
 
-            <p>
-            Some historical maps can be difficult to find. 
-            With the Map Finder you can connect with others to either request or
-            help locate a historical map for a particular year.
+            <style>
+                #blackbackground a { color:white }
+                #blackbackground a:visited { color:white }
+            </style>
+
+            <br>
+            For some types of changes, Pshapes will ask you to draw the spatial extent of a change. 
+            For this you will need an image file of a historical map and to georeference it at the
+            <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
+            Here are some useful sources:
+
+            <ul>
+                <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+            </ul>
+
+            <em>Note: Make sure the map doesn't have a license that restricts sharing or derivative work.</em>
+
             </p>
-            
-            <div style="text-align:right"><a href="/contribute/maps/">Read More</a></div>
             </b>
             """
 
-    grids.append(dict(title="Map Finder",
+    grids.append(dict(title="Finding a Map",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
+    #http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg
+    #https://carryingonblog.files.wordpress.com/2011/08/istock_000003161148xsmall.jpg
+    #https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS7UFS0LMDJgj8LPxBGb9E6u1-efXDAniuW7BMOPWc94kD7eEol
+    content = """
+            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+            <b>
+            <p>
+            Some maps for particular countries and years are more difficult to find than
+            other maps. Here you can ask others for help or help those who are looking. 
+            </p>
+
+            <p><em>
+            Tips: if you have access to a world atlas for a particular year, these often
+            contain detailed province boundaries and can be useful for many different countries at once.
+            </em></p>
+            
+            Table...
+
+            </b>
+            """
+
+    grids.append(dict(title="Ask for Help:",
                       content=content,
                       #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
                       width="46%",
@@ -405,100 +511,6 @@ def contribute(request):
                   )
 
 
-def maps(request):
-    bannertitle = ""
-    
-    bannerleft = """
-                    <div style="text-align:center">
-                        <img style="width:100%" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
-		    </div>
-    """
-
-    bannerright = """
-                    <div id="blackbackground" style="text-align:left">
-
-                        <style>
-                            #blackbackground a { color:white }
-                            #blackbackground a:visited { color:grey }
-                        </style>
-
-                        <br>
-                        <h4>Where to Find Maps?</h4>
-                        Occasionally you will need a historical map to register a province change. 
-                        Make sure the map doesn't have a license that restricts sharing or derivative work. 
-                        Here are some useful sources for historical maps:
-
-                        <ul>
-                            <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                            <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                            <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-                            <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                            <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                            <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                            <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                            <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                            <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                            <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
-                        </ul>
-
-                        Once you have found the map you will need to georeference it at the
-                        <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
-
-                    </div>
-    """
-
-    grids = []
-    #http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg
-    #https://carryingonblog.files.wordpress.com/2011/08/istock_000003161148xsmall.jpg
-    #https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS7UFS0LMDJgj8LPxBGb9E6u1-efXDAniuW7BMOPWc94kD7eEol
-    content = """
-            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-            <p>
-            Some maps for particular countries and years are more difficult to find than
-            other maps. Here you can ask others for help or help those who are looking. 
-            </p>
-            
-            Table...
-            """
-
-    grids.append(dict(title="Ask for Help:",
-                      content=content,
-                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-                      width="46%",
-                      ))
-
-    #img : http://blog.swagbucks.com/wp-content/uploads/2012/09/book_bg.jpg.jpeg
-    #img : https://www.bookboxshop.com/images/Map-of-the-World-Atlas-Book-Box-Detail.png
-    #https://thumb1.shutterstock.com/display_pic_with_logo/94021/328915304/stock-photo-education-concept-books-and-textbooks-on-the-bookshelf-d-328915304.jpg
-    content = """
-            <img width="100%" border="2" src="http://www.readitforward.com/wp-content/uploads/2015/06/bookshelf-organization-1024x361.jpg">
-
-            <p>
-            World Atlases have been published for much of the 20th century and often include a snapshot
-            of the world's administrative boundaries at the year of publication. 
-            Unfortunately, atlases are rarely available in digital form, and are scattered across libraries
-            throughout the world. If you own or know of the location of a particular atlas, and are willing to
-            scan and share a map of a country's administrative boundaries, you can let others know by registering
-            it here.
-            </p>
-            
-            Table...
-            """
-
-    grids.append(dict(title="Locate a Historical Atlas:",
-                      content=content,
-                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-                      width="46%",
-                      ))
-
-    history = [("Back to Contributions","/contribute/")]
-    
-    return render(request, 'pshapes_site/base_grid.html', {"history":history,
-                                                           "grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-                  )
-
-
 def allcountries(request):
     bannertitle = "Code a Country:"
 
@@ -517,7 +529,7 @@ def allcountries(request):
                     <div style="text-align:left">
 
                         <br><br><br>
-                        <b>How Does It Work?</b>
+                        <b>How to Begin</b>
                         <br>
                         Choose a country from the list below. You can browse,
                         quality check, and suggest edits to existing province changes

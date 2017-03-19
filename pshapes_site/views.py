@@ -261,8 +261,8 @@ def about(request):
                         The idea behind the Pshapes project is very simple. Most databases of administrative areas avilable today
                         are simply snapshots of their boundaries on a particular date. As long as we have this,
                         as well as a chronology of changes, that should be enough to reverse or forward engineer the situation to
-                        any point in the past or future. Where Pshapes contributes is in the tracking of these changes
-                        as well as a method for reconstructing the world's boundaries based on these.
+                        any point in the past or future. Where Pshapes contributes is in the tracking of changes
+                        as well as a method for reconstructing the world's boundaries based on these changes.
                         </p>
                     </div>
                     """
@@ -270,71 +270,7 @@ def about(request):
                     <br>
                     <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
                     """
-    
-    grids.append(dict(title="Frequently Asked Questions",
-                      content="""
-                            <ul>
-                            <li><b>Why Crowdsourcing?</b></li>
-                                <p>
-                                The Pshapes project has a very different structure than other administrative area datasets.
-                                Instead of being carefully collected and coded by a handful of experts, the project has focused
-                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an apporach is only
-                                possible because it was realized that a lot of the work required to make spatially
-                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
-                                repeating the same steps over and over. These repeatative and hard parts can be automated,
-                                while the information needed is actually fairly straightforward and do not require any
-                                expert knowledge or skills.
-                                </p>
 
-                                <p>
-                                This is why we broke these two processes apart: letting users and other contributors take care
-                                of the data entry through the website's user-friendly interface. Then we leave the difficult parts
-                                of constructing the final dataset up to an automated algorithm with expert supervision.
-                                </p>
-                            
-                            <li><b>How the Algorithm Works</b></li>
-                                <p>
-                                To create a complete spatial dataset of the provinces themselves it is necessary
-                                to start with a dataset of modern province boundaries and apply the changes in reverse
-                                chronological order.
-                                </p>
-
-                                <p>
-                                This maximizes the value of the user contributions, so that the information doesn't have to
-                                be tied to a single province boundary dataset. 
-                                This makes the data flexible and allows integration with any third-party province datasets.
-                                </p>
-
-                            <li><b>Types of Changes</b></li>
-                                <p>
-                                All changes can be boiled down to three types:
-                                
-                                Splits. Abc... Img... 
-                                
-                                Mergers.
-                                
-                                Information change.
-                                </p>
-                                
-                            <li><b>Examples</b></li>
-                                <p>
-                                Newinfo
-                                
-                                Splits
-                                Breakaways
-
-                                Mergers
-                                Aquisitions
-
-                                Transfers
-
-                                Complete reorganizations
-                                </p>
-                                
-                            </ul>
-                            """,
-                      width="45%",
-                      ))
     grids.append(dict(title="Background and Motivation",
                       content="""
                         <p>
@@ -359,15 +295,10 @@ def about(request):
                         <p>
                         Better data is needed for earlier historic periods.
                         In project afer project, geospatial data are frequently created based on information,
-                        such as government statistics, that are originally reportet at the administrative
+                        such as government statistics, that are originally reported at the administrative
                         level. These then have to be geocoded to their historical administrive areas, but using only data
                         for the modern period. This means a lot of names are no longer valid, or borders have changed
                         dramatically, requiring substantial followups to match historical units to modern boundaries.
-                        </p>
-
-                        <p>
-                        There is a wealth of administrative based data out there waiting to be collected, but hindered
-                        by the lack in availability of historically correct boundary datasets.
                         </p>
 
                         <p>
@@ -379,6 +310,71 @@ def about(request):
                             """,
                       width="45%",
                       ))
+
+    grids.append(dict(title="Why Crowdsourcing?",
+                      content="""
+                                <p>
+                                The Pshapes project has a very different structure than other administrative area datasets.
+                                Instead of being carefully collected and coded by a handful of experts, the project has focused
+                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an approach is only
+                                possible because it was realized that a lot of the work required to make spatially
+                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
+                                repeating the same steps over and over. These repetative tasks can be automated,
+                                while the information needed is actually fairly straightforward and do not require any
+                                expert knowledge or skills.
+                                </p>
+
+                                <p>
+                                This is why we broke these two processes apart: letting users and other contributors take care
+                                of the data entry through the website's user-friendly interface. Then we leave the more difficult parts
+                                of constructing the final dataset up to an automated algorithm with expert supervision.
+                                </p>                                
+                            """,
+                      width="45%",
+                      ))
+    
+    grids.append(dict(title="How the Algorithm Works",
+                      content="""
+                                <p>
+                                To create a complete spatial dataset of the provinces themselves it is necessary
+                                to start with a dataset of modern province boundaries and apply the changes in reverse
+                                chronological order.
+                                </p>
+
+                                <p>
+                                This maximizes the value of the user contributions, so that the information doesn't have to
+                                be tied to a single province boundary dataset. 
+                                This makes the data flexible and allows integration with any third-party province datasets.
+                                </p>
+
+                                <p>
+                                All changes can be boiled down to three types.
+                                
+                                Splits happen when new provinces are entirely created from
+                                part of an older province.
+                                
+                                Transfers include any changes where new provinces or created from
+                                parts of multiple old provinces, <em>or</em> during partial transfers
+                                of territory between provinces, <em>or</em> during complete mergers. 
+                                
+                                Finally, some changes may simply involve changes to a province name or code.
+                                </p>
+
+                                <p>
+                                The algorithm to recreate a historical dataset starts at a recent date for
+                                which we have a complete global overview of spatial extents. It then increments
+                                through the dates of change-events backwards in time. For each date,
+                                the goal is to determine the start-date for new provinces, and the end-date and
+                                extent for older provinces. This can be done by identifying all the parts that were
+                                transferred or split from one province to another, and then merging all those parts
+                                to the provinces they previously belonged to, recreating the spatial extents as they
+                                were before the changes. Through this process we can reverse geocode our
+                                way back in time for as long as we have a continuous list of changes. 
+                                </p>
+                            """,
+                      width="45%",
+                      ))
+    
     grids.append(dict(title="Contact",
                       content="""
                             For questions, issues, or feature requests, please contact
@@ -428,8 +424,8 @@ def download(request):
                             <p>
                                 <b>
                                 The latest data dump of the user
-                                contributions data is always available on-demand. These data dumps can
-                                for instance be used to replicate or rebuild the pshapes dataset. 
+                                contributions data is always available on-demand. This is the data
+                                used to replicate or rebuild the pshapes dataset. 
 
                                 <div style="text-align:center">
                                 <table>
@@ -452,12 +448,14 @@ def download(request):
                             <p>
                                 The Pshapes framework is primilaly just a dataset of province changes, registering
                                 only the information that changes for each time.
-                                This makes the data flexible and allows integration with any third-party province datasets...
+                                A reverse polygon geocoding tool was therefore developed to automatically build
+                                a final dataset based on these changes, allowing integration with any third-party
+                                province datasets. This open-source tool is freely available to programmers.
                             </p>
 
                             <p style="text-align:right">
                             <a href="/">
-                            <b>Read More</b>
+                            <b><a href="https://github.com/karimbahgat/pshapes">Go to GitHub</a></b>
                             </a>
                             </p>
                             """,
