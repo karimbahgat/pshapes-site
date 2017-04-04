@@ -203,7 +203,7 @@ def home(request):
     grids = []
     grids.append(dict(title="Project News:",
                       content="""
-                            <p>October 2016: <br> Alpha Website Launched!</p>
+                            <p>October 2016: <br> Alpha Website up-and-running</p>
                             """,
                       width="25%",
                       ))
@@ -283,7 +283,7 @@ def about(request):
                         </p>
 
                         <p>
-                        No such historical data exists yet for subnational administrative boundaries (see more below). 
+                        No such historical data exists yet for subnational administrative boundaries (see "Existing Boundary Datasets"). 
                         Sub-national administrative area and boundary data 
                         have in recent years become essential for many analysts and policy makers.
                         The data that currently exist are great for representing
@@ -297,16 +297,13 @@ def about(request):
                         past changes or regularly come out with new updates. For good reasons,
                         existing datasets on administrative boundaries simply 
                         do not capture these historical changes and are only updated every few years.
-                        The only exception here is the UN's Global Administrative Units Layer (GAUL) data,
-                        which provides yearly snapshots back to 1990. But these data are not publically
-                        availabe to all, and its restrictive license prohibits certain uses.
                         </p>
 
                         <p>
                         Better data is needed for earlier historic periods.
                         In project afer project, geospatial data are frequently created based on information,
-                        such as government statistics, that are originally reported at the administrative
-                        level. These then have to be geocoded to their historical administrive areas, but using only data
+                        that are originally reported at the administrative level, such as government statistics.
+                        These then have to be geocoded to their historical administrive areas, but using only data
                         for the modern period. This means a lot of names are no longer valid, or borders have changed
                         dramatically, requiring substantial followups to match historical units to modern boundaries.
                         </p>
@@ -342,45 +339,40 @@ def about(request):
                             """,
                       width="45%",
                       ))
-    
-    grids.append(dict(title="How the Algorithm Works",
+
+
+    grids.append(dict(title="Existing Boundary Datasets",
                       content="""
                                 <p>
-                                To create a complete spatial dataset of the provinces themselves it is necessary
-                                to start with a dataset of modern province boundaries and apply the changes in reverse
-                                chronological order.
+                                For users that are looking for administrative boundary datasets to use in mapping or
+                                analysis there are several options currently available.
                                 </p>
 
                                 <p>
-                                This maximizes the value of the user contributions, so that the information doesn't have to
-                                be tied to a single province boundary dataset. 
-                                This makes the data flexible and allows integration with any third-party province datasets.
+                                The strongest and possibly only contender to the Pshapes dataset in terms of historical
+                                changes is the UN's Global Administrative Units Layer (GAUL) data,
+                                which provides yearly snapshots back to 1990. But these data are not publically
+                                availabe to all, and its restrictive license prohibits certain uses.
                                 </p>
 
                                 <p>
-                                All changes can be boiled down to three types.
-                                
-                                Splits happen when new provinces are entirely created from
-                                part of an older province.
-                                
-                                Transfers include any changes where new provinces or created from
-                                parts of multiple old provinces, <em>or</em> during partial transfers
-                                of territory between provinces, <em>or</em> during complete mergers. 
-                                
-                                Finally, some changes may simply involve changes to a province name or code.
+                                In the public domain, possibly the most widely used dataset is the Global Administrative
+                                Areas (GADM) data.
+                                This is...
                                 </p>
 
                                 <p>
-                                The algorithm to recreate a historical dataset starts at a recent date for
-                                which we have a complete global overview of spatial extents. It then increments
-                                through the dates of change-events backwards in time. For each date,
-                                the goal is to determine the start-date for new provinces, and the end-date and
-                                extent for older provinces. This can be done by identifying all the parts that were
-                                transferred or split from one province to another, and then merging all those parts
-                                to the provinces they previously belonged to, recreating the spatial extents as they
-                                were before the changes. Through this process we can reverse geocode our
-                                way back in time for as long as we have a continuous list of changes. 
+                                Another one that has been made available and increasingly used in recent years due to its
+                                light weight and permissive license is the Natural Earth admin-1 level dataset. This...
+                                But...
                                 </p>
+
+                                <p>
+                                Along similar lines, the restaurant recommendations company Foursquare has made a series
+                                of 1st, 2nd, and lower-level boundary datasets in a free and open-data philosophy. However,
+                                due to the varied data sources it is based on, the true legal status and license of the data
+                                remains somewhat dubious. It is also not clear whether this will be continously updated.
+                                </p>                                
                             """,
                       width="45%",
                       ))
@@ -392,6 +384,7 @@ def about(request):
                             """,
                       width="45%",
                       ))
+    
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
 

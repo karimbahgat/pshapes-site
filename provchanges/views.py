@@ -149,6 +149,323 @@ def logout(request):
     html = render(request, 'provchanges/logout.html')
     return html
 
+guidelines_header = """
+                    <div style="text-align:left">
+
+                        <br><br><br><br>
+                        <b>
+                        All contributors should read the following guidelines, and refer
+                        back to them whenever you face a difficult coding decision. 
+                        </b>
+
+                        <style>
+                            #blackbackground a { color:white }
+                            #blackbackground a:visited { color:white }
+                        </style>
+
+                        <ul id="blackbackground">
+                        <li><a href="/guidelines/understanding/">Understanding Pshapes</a></li>
+                        <li><a href="/guidelines/codingrules/">Coding Rules</a></li>
+                        <li><a href="/guidelines/mapping/">Mapping</a></li>
+                        </ul>
+
+                    </div>
+                    """
+
+def guidelines_understanding(request):
+    bannertitle = "Guidelines - Understanding Pshapes:"
+    
+    bannerleft = """
+                    <div style="text-align:center">
+                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+		    </div>
+    """
+
+    bannerright = guidelines_header
+
+    grids = []
+
+    # SUBPAGE: UNDERSTANDING PSHAPES
+
+    grids.append(dict(title="How the Algorithm Works",
+                      content="""
+                                <p>
+                                Pshapes is primarily just a dataset of province-related <em>changes</em> and not a boundary dataset per se.
+                                However, the data collection effort was developed in conjunction with a computer algorithm that was
+                                designed to use this change information to create a complete historical boundary dataset.
+                                </p>
+
+                                <p>
+                                The algorithm starts by asking for a
+                                complete global dataset of province boundaries reflecting how the situation looks like
+                                on a given (preferably recent) date. This can be any third-party dataset, including the ones listed earlier. 
+                                It then increments through the events listed in the Pshapes change-data, starting with the
+                                most recent and going gradually further back in time. 
+                                </p>
+
+                                <p>
+                                The Pshapes change-events are processed as they are encountedered, and can be boiled down to three basic types.
+                                </p>
+
+                                <ol>
+
+                                <li>
+                                <b>NewInfo</b>
+                                Most changes simply involve changes to a province name or code. These events are handled
+                                by simply noting the start-date of the existing modern province, and then adding a new province
+                                that ends on that same date. Any subsequent changes involving that province will in turn result in
+                                registering its start-date, before again adding the next historical iteration of that province.
+                                <br><br>
+                                </li>
+
+                                <li>
+                                <b>Splits</b>
+                                If on a given date a split event was registered, this means that the current state of our boundary
+                                dataset contains all the resulting breakaway
+                                provinces and that these used to belong to a single large province. To
+                                recreate this older province all we have to do is glue together the geometries of the provinces
+                                that were registered as splitting away (incl. the remnants of the original province in case
+                                the split was incomplete).
+                                <br><br>
+                                </li>
+                                
+                                <li>
+                                <b>Transfers and Mergers</b>
+                                The last type of change include events where a province receives territory from one or
+                                more other provinces. 
+                                If the receiving province was pre-existing then we are talking about a partial transfer of
+                                territory. Since our boundary data represents the larger version of the province after it
+                                received the territory, all that is needed is to cut off the piece that was received (based on a
+                                cookie-cutter polygon that users draw when encountering such events) and glue it
+                                back together to the province that originally gave away the territory.
+                                The same principle applies if the receiving province did not previously exist but instead came
+                                into existence as a result of two or more such transfers.
+                                Finally, transfers can also involve the full transfer of entire provinces that afterwards cease to exist.
+                                These are often known as mergers or annexations, but they are handled in the same way as other transfers
+                                of territories: cut it off and give it back to its previous owner.
+                                <br><br>
+                                </li>
+
+                                </ol>
+
+                                <p>
+                                Multiple complex configuratios of these changes can occur in a single event,
+                                and when processed in this way, the jigzaw puzzle of broken off parts and changing
+                                ownerships will reorganize itself to recreate how the provinces
+                                looked prior to the event. 
+
+                                <p>
+                                Through this process we can reverse geocode our
+                                way back in time for as long as we have a continuous list of changes. 
+                                </p>
+                            """,
+                      width="98%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def guidelines_codingrules(request):
+    bannertitle = "Guidelines - Coding Rules:"
+    
+    bannerleft = """
+                    <div style="text-align:center">
+                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+		    </div>
+    """
+
+    bannerright = guidelines_header
+
+    grids = []
+
+
+    content = """
+                <h4>Disputed Countries/Territories</h4>
+                <p>
+                What defines a country? At all times follow the most internationally recognized country-units and names.
+                For territories under foreign colonial rule, these should be coded as separate from the ruling
+                power. For countries simply achieving independence or countries with only minor changes in their official name,
+                avoid changing the country name. 
+                </p>
+                
+                <h4>Historical Countries</h4>
+                <p>
+                One of the advantages of the Pshapes project is that we should be able to go back in time as far back
+                as we have information. So when encountering historic countries that don't exist anymore, the way to go
+                about this is to register the event as usual, and then change the from-country field.
+                For instance, for each of the ex-Soviet
+                countries all of their provinces must be registered as changing info from the Soviet Union. The new country
+                name as you have written it will appear in the list of countries, so you can keep tracking it further back
+                in time.
+                </p>
+                """
+
+    grids.append(dict(title="Defining Countries",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="98%",
+                      ))
+
+    content = """
+                <h4>Admin Levels</h4>
+                <p>
+                In its first run, the Pshapes project is only collecting data on the first-level
+                administrative areas, the highest level in a country. Typically they are given names
+                like "province", "state", "district", or a local language equivalent. 
+
+                Some countries have a special administrative level between the national and 1st level,
+                often referred to as "regions".
+                These tend to be so big that sometimes there are only two of them. 
+                In Pshapes we prefer to ignore these regions and instead focus on the level below. 
+                When in doubt follow a rule that they should be small enough to provide good variation within
+                the country and big enough that it is feasible to get complete information on all of its changes.
+                </p>
+                
+                <h4>Cross-Country Changes</h4>
+                <p>
+                Sometimes you will come across cases where a change involves more than one country name. Territory
+                might be transferred to or change ownership from one country to another. In those cases, register as
+                usual, and then change the from-country field.
+                </p>
+
+                <h4>Minor Transfers</h4>
+                <p>
+                In some countries, some transfers of territory may be listed with the names of level-2 areas, and these
+                should just be listed as partial territorial transfers and drawn roughly by hand. 
+                However, if the change seems very small, or if there are too many of these types of minor changes,
+                it is okay to ignore most of them and only focus on the big changes. 
+                </p>
+                """
+
+    grids.append(dict(title="Coding Rules",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="98%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+def guidelines_mapping(request):
+    bannertitle = "Guidelines - Mapping:"
+    
+    bannerleft = """
+                    <div style="text-align:center">
+                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
+		    </div>
+    """
+
+    bannerright = guidelines_header
+
+    grids = []
+
+    # SUBPAGE: MAPPING CHANGES
+
+    # Map Finder app
+    # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
+    # alt img http://cdn.wallpapersafari.com/7/88/QGsTDo.jpg
+
+    content = """
+            <b>
+            <img width="50%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+
+            <style>
+                #blackbackground a { color:white }
+                #blackbackground a:visited { color:white }
+            </style>
+
+            <br>
+            For some types of changes, Pshapes will ask you to draw the spatial extent of a change. 
+            For this you will need an image file of a historical map and to georeference it at the
+            <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
+            Here are some useful sources:
+
+            <ul>
+                <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
+                <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
+                <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+            </ul>
+
+            <em>Note: Make sure the map doesn't have a license that restricts sharing or derivative work.</em>
+
+            </p>
+            </b>
+            """
+
+    grids.append(dict(title="Finding a Map",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="98%",
+                      ))
+
+    content = """
+            <b>
+            <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
+                <p>
+                Once you have found a map and georeferenced it on MapWarper.org, then it is time
+                to draw to indicate the areas of an existing province that used to belong to an older province. 
+                </p>
+
+                <br>
+                Follow these steps when drawing: 
+                <br>
+                <ol>
+                    <li>
+                    Guided by the map, draw a clipping polygon that encircles the province that gave away territory.
+                    Since we do not know which exact third-party dataset will be used to recreate the final
+                    historical dataset, we need to make sure our clipping polygon is always big enough to include all
+                    parts by drawing with a significant error-margin around the province boundaries.
+                    <br><br>
+                    </li>
+                    <li>
+                    If the giving province only gave away parts of its territory
+                    it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
+                    or a series of islands).
+                    <br><br>
+                    </li>
+                    <li>
+                    Where the giving province shares a border with the
+                    receiving province or any other giving provinces you should follow that border exactly.
+                    <br><br>
+                    </li>
+                    <li>
+                    The clipping polygon will be snapped to any previously drawn giving provinces (shown in gray), so just make
+                    sure it covers every part of that border so that there is no gap in between.
+                    <br><br>
+                    </li>
+                    <li>
+                    Draw multiple polygons if necessary.
+                    <br><br>
+                    </li>
+                </ol>
+                
+            </b>
+            """
+
+    grids.append(dict(title="How to Draw Boundary Changes",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="98%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                  )
+
+
+
+
 ##@login_required
 ##def community(request):
 ##    print request, request.user
@@ -353,140 +670,15 @@ def contribute(request):
                         Get Started
                         </a>
 
+                        <a href="/guidelines" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Read the Guidelines
+                        </a>
+
+
                     </div>
     """
 
     grids = []
-
-    content = """
-            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-                <p>
-                    <b>
-                    All contributors should read the following guidelines, and refer
-                    back to them whenever you face a difficult coding decision. 
-                    </b>
-
-                    <h3>Admin Levels</h3>
-                    In its first run, the Pshapes project is only collecting data on the first-level
-                    administrative areas, the highest level in a country. Typically they are given names
-                    like "province", "state", "district", or a local language equivalent. 
-
-                    Some countries have a special administrative level between the national and 1st level,
-                    often referred to as "regions".
-                    These tend to be so big that sometimes there are only two of them. 
-                    In Pshapes we prefer to ignore these regions and instead focus on the level below. 
-                    When in doubt follow a rule that they should be small enough to provide good variation within
-                    the country and big enough that it is feasible to get complete information on all of its changes.
-
-                    <h3>Cross-Country Changes</h3>
-                    Sometimes you will come across cases where a change involves more than one country name. Territory
-                    might be transferred to or change ownership from one country to another. In those cases, register as
-                    usual, and then change the from-country field.
-
-                    <h3>Historic Countries</h3>
-                    The same applies to historic countries that don't exist anymore. For instance, for each of the ex-Soviet
-                    countries all of their provinces must be registered as changing info from the Soviet Union. The new country
-                    name as you have written it will appear in the list of countries, so you can keep tracking it further back
-                    in time. 
-
-                    <h3>Disputed Countries/Territories</h3>
-                    What defines a country? At all times follow the most internationally recognized country-units and names.
-                    For territories under foreign colonial rule, these should be coded as separate from the ruling
-                    power. For countries simply achieving independence or countries with only minor changes in their official name,
-                    avoid changing the country name. 
-                    
-                    <h3>Minor Transfers</h3>
-                    In some countries, some transfers of territory may be listed with the names of level-2 areas, and these
-                    should just be listed as partial territorial transfers and drawn roughly by hand. 
-                    However, if the change seems very small, or if there are too many of these types of minor changes,
-                    it is okay to ignore most of them and only focus on the big changes. 
-
-                    <h3>Complete reorganizations</h3>
-                    Sometimes changes aren't listed with clearly distinct changes from one province to the other,
-                    but are rather listed in bulk by saying that an entire country or set of provinces completely reshuffled
-                    and reorganized. In these cases, we continue to code them as separate events, you will just have to
-                    use historic maps to figure out which types of events occured. For instance, if an entirely new province
-                    was made by partially overlapping 2 provinces and fully engulfing 1 province, we register 2 partial
-                    transfers and 1 name change. 
-                </p>
-            """
-
-    grids.append(dict(title="Guidelines:",
-                      content=content,
-                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-                      width="46%",
-                      ))
-
-    # Map Finder app
-    # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
-    # alt img http://cdn.wallpapersafari.com/7/88/QGsTDo.jpg
-
-    content = """
-            <b>
-            <img width="100%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
-
-            <style>
-                #blackbackground a { color:white }
-                #blackbackground a:visited { color:white }
-            </style>
-
-            <br>
-            For some types of changes, Pshapes will ask you to draw the spatial extent of a change. 
-            For this you will need an image file of a historical map and to georeference it at the
-            <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
-            Here are some useful sources:
-
-            <ul>
-                <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-                <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
-            </ul>
-
-            <em>Note: Make sure the map doesn't have a license that restricts sharing or derivative work.</em>
-
-            </p>
-            </b>
-            """
-
-    grids.append(dict(title="Finding a Map",
-                      content=content,
-                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-                      width="46%",
-                      ))
-
-    #http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg
-    #https://carryingonblog.files.wordpress.com/2011/08/istock_000003161148xsmall.jpg
-    #https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS7UFS0LMDJgj8LPxBGb9E6u1-efXDAniuW7BMOPWc94kD7eEol
-    content = """
-            <img width="100%" border="2" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-            <b>
-            <p>
-            Some maps for particular countries and years are more difficult to find than
-            other maps. Here you can ask others for help or help those who are looking. 
-            </p>
-
-            <p><em>
-            Tips: if you have access to a world atlas for a particular year, these often
-            contain detailed province boundaries and can be useful for many different countries at once.
-            </em></p>
-            
-            Table...
-
-            </b>
-            """
-
-    grids.append(dict(title="Ask for Help:",
-                      content=content,
-                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-                      width="46%",
-                      ))
 
     content = """
                 <b>
@@ -501,6 +693,37 @@ def contribute(request):
               """
 
     grids.append(dict(title="Discuss",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
+    content = """
+                <b>
+                Raise issues or bugs that you may find in the data.
+                </p>
+                
+                Table of recent issues/discussions...
+                </b>
+              """
+
+    grids.append(dict(title="Issues",
+                      content=content,
+                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
+                      width="46%",
+                      ))
+
+    content = """
+                <b>
+                Do you have any requests for the website and user interface on how to improvements it
+                and make it easier to work with?
+                </p>
+                
+                Table of recent feature requests...
+                </b>
+              """
+
+    grids.append(dict(title="Feature Requests",
                       content=content,
                       #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
                       width="46%",
@@ -529,7 +752,7 @@ def allcountries(request):
                     <div style="text-align:left">
 
                         <br><br><br>
-                        <b>How to Begin</b>
+                        <b>Step 1:</b>
                         <br>
                         Choose a country from the list below. You can browse,
                         quality check, and suggest edits to existing province changes
@@ -542,30 +765,6 @@ def allcountries(request):
                             #blackbackground a:visited { color:grey }
                         </style>
                         
-                        <div id="blackbackground" style="text-align: left">
-                        <p style="font-size:medium; font-weight:bold">Useful Sources:</p>
-                        <p style="font-size:medium; font-style:italic">
-                        <ul>
-                            <li>
-                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a>
-                            </li>
-
-                            <li>
-                            <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                            </li>
-
-                            <li>
-                            <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
-                            </li>
-
-                            <li>
-                            <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
-                            </li>
-                        </ul>
-                        </p>
-                        </div>
-
-
                     </div>
     """ 
     
@@ -1004,12 +1203,12 @@ def viewcountry(request, country):
                         </style>
                         
                         <div id="blackbackground" style="text-align: left">
-                        <p style="font-size:large; font-weight:bold">Useful Sources:</p>
+                        <h2>Step 2:</h2>
+                        <p>Read up on the administrative change-history at the <a target="_blank" href="http://www.statoids.com">the Statoids website</a>
+                        and register new events to the timeline below.</p>
+                        <p style="font-size:large; font-weight:bold">Alternative Sources:</p>
                         <p style="font-size:medium; font-style:italic">
                         <ul>
-                            <li>
-                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a>
-                            </li>
 
                             <li>
                             <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
@@ -2881,11 +3080,18 @@ class GeoChangeForm(forms.ModelForm):
                         <br>
                         <ol>
                             <li>
-                            Guided by the map, draw a clipping polygon that encircles all areas (incl. islands) that were transferred.
+                            Guided by the map, draw a clipping polygon that encircles the province that gave away territory.
+                            Since we do not know which exact third-party dataset will be used to recreate the final
+                            historical dataset, we need to make sure our clipping polygon is always big enough to include all
+                            parts by drawing with a significant error-margin around the province boundaries.
+                            <br><br>
+                            <em>If the giving province only gave away parts of its territory
+                            it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
+                            or a series of islands).</em> 
                             </li>
                             <li>
-                            There is no need to follow the borders exactly, except where the giving province shares a border with the
-                            receiving province or any other giving provinces. 
+                            Where the giving province shares a border with the
+                            receiving province or any other giving provinces you should follow that border exactly. 
                             </li>
                             <li>
                             The clipping polygon will be snapped to any previously drawn giving provinces (shown in gray), so just make
