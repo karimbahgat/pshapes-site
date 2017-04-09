@@ -275,6 +275,28 @@ def about(request):
                     <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
                     """
 
+    grids.append(dict(title="Why Crowdsourcing?",
+                      content="""
+                                <p>
+                                The Pshapes project has a very different structure than other administrative area datasets.
+                                Instead of being carefully collected and coded by a handful of experts, the project has focused
+                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an approach is only
+                                possible because it was realized that a lot of the work required to make spatially
+                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
+                                repeating the same steps over and over. These repetative tasks can be automated,
+                                while the information needed is actually fairly straightforward and do not require any
+                                expert knowledge or skills.
+                                </p>
+
+                                <p>
+                                This is why we broke these two processes apart: letting users and other contributors take care
+                                of the data entry through the website's user-friendly interface. Then we leave the more difficult parts
+                                of constructing the final dataset up to an automated algorithm with expert supervision.
+                                </p>                                
+                            """,
+                      width="95%",
+                      ))
+
     grids.append(dict(title="Background and Motivation",
                       content="""
                         <p>
@@ -315,29 +337,7 @@ def about(request):
                         but also to help keep track of future changes as they occur. 
                         </p>
                             """,
-                      width="45%",
-                      ))
-
-    grids.append(dict(title="Why Crowdsourcing?",
-                      content="""
-                                <p>
-                                The Pshapes project has a very different structure than other administrative area datasets.
-                                Instead of being carefully collected and coded by a handful of experts, the project has focused
-                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an approach is only
-                                possible because it was realized that a lot of the work required to make spatially
-                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
-                                repeating the same steps over and over. These repetative tasks can be automated,
-                                while the information needed is actually fairly straightforward and do not require any
-                                expert knowledge or skills.
-                                </p>
-
-                                <p>
-                                This is why we broke these two processes apart: letting users and other contributors take care
-                                of the data entry through the website's user-friendly interface. Then we leave the more difficult parts
-                                of constructing the final dataset up to an automated algorithm with expert supervision.
-                                </p>                                
-                            """,
-                      width="45%",
+                      width="95%",
                       ))
 
 
@@ -350,31 +350,41 @@ def about(request):
 
                                 <p>
                                 The strongest and possibly only contender to the Pshapes dataset in terms of historical
-                                changes is the UN's Global Administrative Units Layer (GAUL) data,
+                                changes is <a href="http://www.fao.org/geonetwork/srv/en/metadata.show?id=12691">
+                                the UN's Global Administrative Units Layer (GAUL) data</a>,
                                 which provides yearly snapshots back to 1990. But these data are not publically
                                 availabe to all, and its restrictive license prohibits certain uses.
                                 </p>
 
                                 <p>
-                                In the public domain, possibly the most widely used dataset is the Global Administrative
-                                Areas (GADM) data.
-                                This is...
+                                Another possible source for historical administrative boundaries is
+                                <a href="https://international.ipums.org/international/gis_yrspecific_1st.shtml">
+                                the IPUMS GIS boundary files</a>. These are only available for a selection of developing countries,
+                                and are only provided as year-specific snapshots which varies across countries. 
+
+                                <p>
+                                In the public domain, possibly the most widely used dataset is <a href=
+                                "http://www.gadm.org/">the Global Administrative
+                                Areas (GADM) data</a>. These are provided at multiple detailed administrative levels,
+                                but are only a snapshot of the latest situation. 
                                 </p>
 
                                 <p>
                                 Another one that has been made available and increasingly used in recent years due to its
-                                light weight and permissive license is the Natural Earth admin-1 level dataset. This...
-                                But...
+                                light weight and permissive license is <a href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
+                                the Natural Earth Admin-1 dataset of states and provinces.</a>
+                                These data however are also just a snapshot in time, and are not frequently updated.
                                 </p>
 
                                 <p>
-                                Along similar lines, the restaurant recommendations company Foursquare has made a series
-                                of 1st, 2nd, and lower-level boundary datasets in a free and open-data philosophy. However,
+                                Along similar lines, there is also <a href="http://quattroshapes.com/">the Quattroshapes dataset</a>,
+                                an extended version of the
+                                Natural Earth dataset that also includes 2nd and lower-level divisions. However,
                                 due to the varied data sources it is based on, the true legal status and license of the data
-                                remains somewhat dubious. It is also not clear whether this will be continously updated.
+                                remains somewhat dubious. It is also not clear whether this will be updated in the future.
                                 </p>                                
                             """,
-                      width="45%",
+                      width="95%",
                       ))
     
     grids.append(dict(title="Contact",
@@ -382,7 +392,7 @@ def about(request):
                             For questions, issues, or feature requests, please contact
                             Karim Bahgat (karim.bahgat.norway@gmail.com). 
                             """,
-                      width="45%",
+                      width="95%",
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}

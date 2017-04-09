@@ -376,9 +376,15 @@ def guidelines_mapping(request):
                 #blackbackground a:visited { color:white }
             </style>
 
-            <br>
-            For some types of changes, Pshapes will ask you to draw the spatial extent of a change. 
-            For this you will need an image file of a historical map and to georeference it at the
+            <p>
+            One of the great things about the Pshapes project is that for the vast majority of province
+            changes we do not need to consult historical maps or use valuable time on geocoding. 
+            </p>
+
+            <p>
+            For some types of changes however there is simply no way around it. In these situations,
+            namely mergers and partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. 
+            To do this you will need to locate an image file of a historical map and to georeference it at the
             <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
             Here are some useful sources:
 
@@ -814,10 +820,11 @@ def allcountries(request):
     grids = []
 
     from django.db.models import Count,Max,Min
-    
+
+    # already coded
     fields = ["country","entries","mindate","maxdate"]
     lists = []
-    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
+    rowdicts = dict() #dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
     for rowdict in ProvChange.objects.values("fromcountry").exclude(status="NonActive").annotate(entries=Count('pk'),
                                                                                                  mindate=Min("date"),
                                                                                                  maxdate=Max("date")):
@@ -844,11 +851,32 @@ def allcountries(request):
     countriestable = lists2table(request, lists=lists,
                                   fields=["Country","Entries","First Change","Last Change"])
     content = countriestable
-    grids.append(dict(title="Choose a Country:",
+    grids.append(dict(title="Previously coded:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
+
+    # remaining
+    lists = []
+    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries
+                     if countryid not in rowdicts.keys()])
+
+    for country in sorted(rowdicts.keys()):
+        rowdict = rowdicts[country]
+        row = [rowdict[f] for f in fields]
+        url = "/contribute/view/%s" % urlquote(rowdict["country"])
+        lists.append((url,row))
+    
+    countriestable = lists2table(request, lists=lists,
+                                  fields=["Country","Entries","First Change","Last Change"])
+    content = countriestable
+    grids.append(dict(title="Add a new country:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
 
     history = [("Back to Contributions","/contribute/")]
     
