@@ -641,12 +641,48 @@ def guidelines_mapping(request):
 
 def contribute(request):
     bannertitle = "Contributions at a Glance:"
-    
+
+    from django.db.models import Count
+    changes = ProvChange.objects.all()
+    pending = ProvChange.objects.filter(status="Pending")
+    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
+    users = User.objects.all()
+
     bannerleft = """
-                    <div style="text-align:center">
-                        <img style="width:100%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
-		    </div>
-    """
+                <div>
+                        <div style="text-align:center">
+                            <img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
+                        </div>
+		    
+                        <b>
+                        <ul style="text-align:left; list-style-type: none; line-height: 30px;">
+                            <li>
+                            Registered users:
+                            {users}
+                            </li>
+
+                            <li>
+                            Province changes:
+                            {changes}
+                            </li>
+
+                            <li>
+                            Edits made:
+                            {modifs}
+                            </li>
+
+                            <li>
+                            Countries coded:
+                            {countrycount}
+                            </li>   
+                        </ul>
+                        </b>
+                </div>
+                        """.format(users=len(users),
+                                   changes=len(pending),
+                                   modifs=len(changes)-len(pending),
+                                   countrycount=countrycount,
+                                   )
 
     #QUOTE
     #Anyone who has an interest in coding some changes for one or more countries,
@@ -670,7 +706,7 @@ def contribute(request):
                         Get Started
                         </a>
 
-                        <a href="/guidelines" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                         Read the Guidelines
                         </a>
 
@@ -735,7 +771,7 @@ def contribute(request):
 
 
 def allcountries(request):
-    bannertitle = "Code a Country:"
+    bannertitle = ""
 
     changes = ProvChange.objects.all()
     accepted = ProvChange.objects.filter(status="Accepted")
@@ -743,6 +779,8 @@ def allcountries(request):
     users = User.objects.all()
     
     bannerleft = """
+                    <h3 style="clear:both">Countries</h3>
+                    
                     <div style="text-align:center">
                         <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
 		    </div>
@@ -751,8 +789,8 @@ def allcountries(request):
     bannerright = """
                     <div style="text-align:left">
 
-                        <br><br><br>
-                        <b>Step 1:</b>
+                        <br>
+                        <h3>Step 1:</h3>
                         <br>
                         Choose a country from the list below. You can browse,
                         quality check, and suggest edits to existing province changes
@@ -764,37 +802,16 @@ def allcountries(request):
                             #blackbackground a { color:white }
                             #blackbackground a:visited { color:grey }
                         </style>
+
+                        <br>
+                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Need Help?
+                        </a>
                         
                     </div>
     """ 
     
     grids = []
-    content = """
-                <div style="text-align:center">
-
-                        <div><em>
-                            Users:
-                            {users}
-                            /
-                            Contributions:
-                            {changes}
-                            /
-                            Accepted:
-                            {accepted}
-                            /
-                            Pending:
-                            {pending}
-                        
-                        </em></div>
-                </div>
-                        """.format(changes=len(changes), users=len(users),
-                                   accepted=len(accepted), pending=len(pending))
-
-    grids.append(dict(title="",
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
 
     from django.db.models import Count,Max,Min
     
@@ -1188,7 +1205,7 @@ def viewcountry(request, country):
 			</a>
 			"""
         left = """	
-			<h3 style="clear:both">Timeline for {countrytext}</h3>
+			<h3 style="clear:both">{countrytext}</h3>
 			
                         <div id="blackbackground" style="">
                             <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
@@ -1203,10 +1220,10 @@ def viewcountry(request, country):
                         </style>
                         
                         <div id="blackbackground" style="text-align: left">
-                        <h2>Step 2:</h2>
+                        <h3>Step 2:</h3>
                         <p>Read up on the administrative change-history at the <a target="_blank" href="http://www.statoids.com">the Statoids website</a>
                         and register new events to the timeline below.</p>
-                        <p style="font-size:large; font-weight:bold">Alternative Sources:</p>
+                        <h4>Alternative Sources:</h4>
                         <p style="font-size:medium; font-style:italic">
                         <ul>
 
@@ -1223,6 +1240,11 @@ def viewcountry(request, country):
                             </li>
                         </ul>
                         </p>
+
+                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Need Help?
+                        </a>
+                        
                         </div>
                 """
 
@@ -2347,7 +2369,7 @@ class AddDateWizard(SessionWizardView):
         date = datetime.date(**data)
         country = self.country
 
-        url = "/contribute/view/{country}?date={date}".format(country=urlquote(country), date=urlquote(date))
+        url = "/contribute/add/{country}?date={date}".format(country=urlquote(country), date=urlquote(date))
         html = redirect(url)
 
         return html

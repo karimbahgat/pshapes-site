@@ -157,7 +157,7 @@ def home(request):
 			"""
     else:
         quickstartbut = """
-			<a href="/contribute" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+			<a href="/contribute/countries" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Get Started
 			</a>
 			"""
