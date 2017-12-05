@@ -1110,6 +1110,9 @@ def viewcountry(request, country):
             elif typ == "NewInfo":
                 prov = obj.fromname
                 return prov,typ
+            elif typ == "Begin":
+                prov = obj.toname
+                return prov,typ
         def events():
             dategroup = list(changes)
             subkey = typeprov
@@ -1168,6 +1171,11 @@ def viewcountry(request, country):
                 fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
+                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
+            elif typ == "Begin":
+                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Begin"'
                 prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
             return link,(prov,typ)
         events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
@@ -1392,14 +1400,14 @@ def viewevent(request, country, province):
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
-            oldinfo = '<li style="list-style:none">'+markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")+"<br><br></li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Altnerate names: '+change.fromalterns.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.fromiso.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.fromfips.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.fromhasc.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapitalname.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.fromcapital.encode("utf8")+"</li>"
-            oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.fromtype.encode("utf8")+"</li>"
+            oldinfo = '<li style="list-style:none">'+markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")+"<br><br></li>"            
+            if change.fromalterns != change.toalterns: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Altnerate names: '+change.fromalterns.encode("utf8")+"</li>"
+            if change.fromiso != change.toiso: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.fromiso.encode("utf8")+"</li>"
+            if change.fromfips != change.tofips: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.fromfips.encode("utf8")+"</li>"
+            if change.fromhasc != change.tohasc: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.fromhasc.encode("utf8")+"</li>"
+            if change.fromcapitalname != change.tocapitalname: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapitalname.encode("utf8")+"</li>"
+            if change.fromcapital != change.tocapital: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.fromcapital.encode("utf8")+"</li>"
+            if change.fromtype != change.totype: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.fromtype.encode("utf8")+"</li>"
             top = """
                             <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                             Back to {countrytext}
@@ -1416,13 +1424,13 @@ def viewevent(request, country, province):
                     """
         
             newinfo = '<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a><br><br></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.tohasc.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.tocapitalname.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.tocapital.encode("utf8")+"</li>"
-            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.totype.encode("utf8")+"</li>"
+            if change.fromalterns != change.toalterns: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
+            if change.fromiso != change.toiso: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
+            if change.fromfips != change.tofips: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
+            if change.fromhasc != change.tohasc: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.tohasc.encode("utf8")+"</li>"
+            if change.fromcapitalname != change.tocapitalname: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.tocapitalname.encode("utf8")+"</li>"
+            if change.fromcapital != change.tocapital: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.tocapital.encode("utf8")+"</li>"
+            if change.fromtype != change.totype: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.totype.encode("utf8")+"</li>"
             right = """
                             <style>
                                 #blackbackground a {{ color:white }}
@@ -1744,6 +1752,105 @@ def viewevent(request, country, province):
                         </tr>
                         </table>
                         """.format(top=top, left=left, mid=mid, right=right)
+
+    elif typ == "Begin":
+        fields = ["toname","type","status"]
+        #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
+        changes = ProvChange.objects.filter(tocountry=country, date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
+        change = next((c for c in changes.order_by("-added")), None)
+
+        if change:
+            top = """
+                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to {countrytext}
+                            </a>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            left = """
+                            <div style="clear:both; text-align: left">
+                            
+                            </div>
+            """
+
+            mid = """
+                    <h2><em>Province is created:</em></h2>
+                    """
+        
+            newinfo = '<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a><br><br></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+change.tohasc.encode("utf8")+"</li>"
+            right = """
+                            <style>
+                                #blackbackground a {{ color:white }}
+                                #blackbackground a:visited {{ color:grey }}
+                            </style>
+                            
+                            <div id="blackbackground">
+                            <h2>{newinfo}</h2>
+                            </div>  
+            """.format(newinfo=newinfo)
+            custombanner = """
+
+                            {top}
+
+                            <style>
+                            td {{vertical-align:top}}
+                            </style>
+                            
+                            <table width="99%" style="clear:both">
+                            <tr>
+                            
+                            <td style="width:31%; padding:1%">
+                            {left}
+                            </td>
+
+                            <td style="width:31%; padding:1%">
+                            {mid}
+                            </td>
+                            
+                            <td style="width:31%; padding:1%">
+                            {right}
+                            </td>
+
+                            </tr>
+                            </table>
+                            """.format(top=top, left=left, mid=mid, right=right)
+
+
+            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+            pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
+                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+
+            grids.append(dict(title="Pending Edits",
+                              content=pendingeditstable,
+                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                              width="99%",
+                              ))
+
+            oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+            oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
+                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+
+            grids.append(dict(title="Revision History",
+                              content=oldversionstable,
+                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                              width="99%",
+                              ))
+
+            # NOT SURE BOUT FROMCOUNTRY HERE...
+            conflicting = ProvChange.objects.filter(tocountry=country, date=date, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
+            conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
+                                          fields=["date","fromname","fromcountry","toname","tocountry","user","added","status"])
+
+            grids.append(dict(title="Conflicting Submissions",
+                              content=conflictingtable,
+                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                              width="99%",
+                              ))
+
+        else:
+            raise Exception('UNEXPECTED ERROR, NO BEGIN CHANGE?')
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
@@ -1970,6 +2077,9 @@ def viewchange(request, pk):
     elif change.type == "NewInfo":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
+    elif change.type == "Begin":
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Begin&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     print 99999,change.type, change
     print 1111,eventlink
 
@@ -2273,6 +2383,13 @@ EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
+             "Begin": {"label": "Begin",
+                              "short": "Marks the earliest known record for this province.",
+                              "descr": """
+                                        Description...
+                                        """,
+                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              },
                }
 
 class TypeEventRenderer(RadioFieldRenderer):
@@ -2302,7 +2419,7 @@ class TypeEventForm(forms.Form):
     step_descr = """
                     What type of event was it? 
                    """
-    type = forms.ChoiceField(choices=[("NewInfo","NewInfo"),("Split","Split"),("Merge","Merge"),("Transfer","Transfer")], widget=forms.RadioSelect(renderer=TypeEventRenderer))
+    type = forms.ChoiceField(choices=[("NewInfo","NewInfo"),("Split","Split"),("Merge","Merge"),("Transfer","Transfer"),("Begin","Begin")], widget=forms.RadioSelect(renderer=TypeEventRenderer))
 
 ##    class Meta:
 ##        widgets = {"type": forms.RadioSelect(renderer=TypeEventRenderer) }
@@ -2413,7 +2530,7 @@ class AddEventWizard(SessionWizardView):
     condition_dict = {"0": lambda wiz: True,
                       "1": lambda wiz: True,
                       "2": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Split","NewInfo") if wiz.get_cleaned_data_for_step("1") else False,
-                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Merge","Transfer") if wiz.get_cleaned_data_for_step("1") else False,
+                      "3": lambda wiz: wiz.get_cleaned_data_for_step("1")["type"] in ("Merge","Transfer","Begin") if wiz.get_cleaned_data_for_step("1") else False,
                       }
 
     country = None
@@ -2434,6 +2551,8 @@ class AddEventWizard(SessionWizardView):
                 kwargs["step_descr"] = "Please identify the province that gained territory after all the transfers?"
             elif typ == "Merge":
                 kwargs["step_descr"] = "Please identify the province that gained territory after all the mergers?"
+            elif typ == "Begin":
+                kwargs["step_descr"] = "Please identify the province for which this is the earliest known record?"
 
         return kwargs
 
@@ -2472,7 +2591,36 @@ class AddEventWizard(SessionWizardView):
             prov = data["toname"]
         elif data["type"] == "NewInfo":
             prov = data["fromname"]
+        elif data["type"] == "Begin":
+            # SPECIAL CASE, ADD CHANGE IMMEDIATELY, BC NO MORE INFO NEEDED
+            print "adding begin-change immediately", 
+            
+            fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+            formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
+            formfieldvalues["user"] = self.request.user.username
+            formfieldvalues["added"] = datetime.datetime.now()
+            formfieldvalues["bestversion"] = True
+            print formfieldvalues
 
+            eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
+            print eventvalues
+
+            objvalues = dict(eventvalues)
+            objvalues.update(formfieldvalues)
+
+            # copy toinfo to frominfo
+            for fl in 'country name alterns iso fips hasc'.split():
+                objvalues['from'+fl] = objvalues.get('to'+fl)
+            
+            print 'final objvalues',objvalues
+            obj = ProvChange.objects.create(**objvalues)
+            obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions/edits
+            print obj
+            
+            obj.save()
+
+            prov = data["toname"]
+            
         # if transfer, have to set the 3 geom vals and save to session
         # then, in addtransferchange, get the 3 geom vals from session, and set to the submit data
         # ...
