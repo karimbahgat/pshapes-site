@@ -18,26 +18,7 @@ and others.
 def recentadds(request):
     html = """
 		<table style="font-size:small"> 
-		
-			<style>
-			table {
-				border-collapse: collapse;
-				width: 100%;
-			}
 
-			th, td {
-				text-align: left;
-				padding: 8px;
-			}
-
-			tr:nth-child(even){background-color: #f2f2f2}
-
-			th {
-				background-color: orange;
-				color: white;
-			}
-			</style>
-		
 			<tr>
 				<th> 
 				</th>
@@ -240,7 +221,8 @@ def home(request):
 ##                """,
 ##                style="padding:0% 0%; background-size:100% 100%; background-image:url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxvPpRIf5PnwOmOqIz47XUiU99_7XhcfelMm5iiTrKbYiIoSXi)",
 ##                  ))
-    
+
+    # NOTE: THIS IS WHAT CAUSES FRONTPAGE CHANGE TO TOPMENU
     grids.append(dict(title="Recent Additions:",
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
