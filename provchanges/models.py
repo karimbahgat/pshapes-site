@@ -8,6 +8,45 @@ class User(OrigUser):
     institution = models.CharField(max_length=400)
                              
 
+class Vouch(models.Model):
+    "A user vouches for a particular provchange id."
+    user = models.CharField(max_length=200)
+    changeid = models.IntegerField(null=True)
+    added = models.DateTimeField()
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+
+
+class Note(models.Model):
+    "A note is assigned to a country, and optionally a prov changeid."
+    user = models.CharField(max_length=200)
+    country = models.CharField(max_length=200)
+    changeid = models.IntegerField(null=True)
+    added = models.DateTimeField()
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+    text = models.CharField(max_length=2000)
+
+
+class Comment(models.Model):
+    "A comment belongs to a note ID."
+    user = models.CharField(max_length=200)
+    note = models.IntegerField(null=True)
+    added = models.DateTimeField()
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+    text = models.CharField(max_length=2000)
+
+
 class ProvChange(models.Model):
 
     # TODO: Add verbose_name=...
