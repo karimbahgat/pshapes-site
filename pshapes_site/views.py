@@ -17,7 +17,7 @@ and others.
 
 def lists2table(request, lists, fields):
     html = """
-		<table> 
+		<table style="font-size:small"> 
 		
 			<style>
 			table {
@@ -237,12 +237,12 @@ def home(request):
 ##                        """ 
 
     grids = []
-    grids.append(dict(title="Project News:",
-                      content="""
-                            <p>October 2016: <br> Alpha Website up-and-running</p>
-                            """,
-                      width="25%",
-                      ))
+##    grids.append(dict(title="Project News:",
+##                      content="""
+##                            <p>October 2016: <br> Alpha Website up-and-running</p>
+##                            """,
+##                      width="25%",
+##                      ))
 
 ##    grids.append(dict(title="What is Pshapes?",
 ##                      content="""
@@ -281,7 +281,7 @@ def home(request):
     grids.append(dict(title="Recent Additions:",
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="65%",
+                      width="93%",
                       ))
 
     # comments
@@ -295,7 +295,7 @@ def home(request):
             rowdict['withdraw'] = '''
                             <div style="display:inline; border-radius:10px; ">
                             <a href="/dropcomment/{pk}">
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=20px/>
                             </a>
                             </div>
                                 '''.format(pk=c.pk)
@@ -304,10 +304,10 @@ def home(request):
     content = lists2table(request, lists=lists,
                                         fields=["Added","Title","User","Comment",""])
 
-    grids.append(dict(title="Recent Comments",
+    grids.append(dict(title="Recent Discussions",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="93%",
+                      width="63%",
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,

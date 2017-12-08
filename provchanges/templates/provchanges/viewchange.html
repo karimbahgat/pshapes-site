@@ -113,7 +113,7 @@
 					{% endfor %}
 				</fieldset>
 
-				<fieldset style="float:left; width:47%">
+				<fieldset style="width:47%">
 					<legend>To Province</legend>
 					{% for field in tochange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
@@ -132,23 +132,32 @@
 			
 		</div>
 
-		<br><br>
+		<br/>
 
-		<h3>Comments</h3>
-		{{ commentstable }}
+		<h3 style="clear:both">Comments</h3>
+		<div style="margin-left:20px">
+			{% if topictables %}
+				{{ topictables | safe }}
+			{% else %}
+				There are currently no comments.
+			{% endif %}
 
-		<div style="margin-left:40px">
 			<h4>Add comment:</h4>
-			<form action="/addcomment/" method="post">
-			{% csrf_token %}
-			{{ add_comment }}
-	                <input type="submit" value="Submit" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-			</form>
-		</div>
+			<div style="margin-left:40px">
+				<form action="/addcomment/" method="post">
+				{% csrf_token %}
+				{{ add_comment }}
+	                	<input type="submit" value="Submit" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+				</form>
+		</div></div>
+
+		<br/>
 
 		<h3>Pending Edits</h3>
 		{{ pendingeditstable }}
 		
+		<br/>
+
 		<h3>Revision History</h3>
 		{{ oldversionstable }}
 		

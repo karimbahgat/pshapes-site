@@ -2173,27 +2173,38 @@ def viewchange(request, pk):
             for field in val.fields.values():
                 field.widget.attrs['readonly'] = "readonly"
 
-    # comments
-    comments = Comment.objects.filter(changeid=change.changeid, status="Active").order_by("title","added") # the dash reverses the order
-    fields = ["added","title","user","text","withdraw"]
-    lists = []
-    for c in comments:
-        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
-        rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-        if rowdict['user'] == request.user.username:
-            rowdict['withdraw'] = '''
-                            <div style="display:inline; border-radius:10px; ">
-                            <a href="/dropcomment/{pk}">
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
-                            </a>
-                            </div>
-                                '''.format(pk=c.pk)
-        row = [rowdict[f] for f in fields]
-        lists.append(("",row))
-    args["commentstable"] = lists2table(request, lists=lists,
-                                        fields=["Added","Title","User","Comment",""])
+    # comments by topic
+    topictables = dict()
+    allcomments = Comment.objects.filter(changeid=change.changeid, status="Active")
+    for c in allcomments.distinct('title'):
+        title = c.title
+        print title
+        comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
+        fields = ["added","user","text","withdraw"]
+        lists = []
+        for c in comments:
+            rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+            rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
+            if rowdict['user'] == request.user.username:
+                rowdict['withdraw'] = '''
+                                <div style="display:inline; border-radius:10px; ">
+                                <a href="/dropcomment/{pk}">
+                                <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
+                                </a>
+                                </div>
+                                    '''.format(pk=c.pk)
+            row = [rowdict[f] for f in fields]
+            lists.append(("",row))
+        topictables[title] = lists2table(request, lists=lists,
+                                            fields=["Added","User","Comment",""])
+
+    args['topictables'] = "".join(("<h4>Topic: %s</h4>"%title + topictable for title,topictable in topictables.items()))
+
+    # count of all comm
+    comments = allcomments.order_by("added") # the dash reverses the order
     args['comments'] = comments
-    
+
+    # new comm    
     addcommentobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
                             added=datetime.datetime.now())
     args["add_comment"] = CommentForm(instance=addcommentobj).as_p()
