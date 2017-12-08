@@ -20,7 +20,7 @@ class Vouch(models.Model):
                               max_length=40)
 
 
-class Note(models.Model):
+class Comment(models.Model):
     "A note is assigned to a country, and optionally a prov changeid."
     user = models.CharField(max_length=200)
     country = models.CharField(max_length=200)
@@ -31,19 +31,7 @@ class Note(models.Model):
                                         ],
                               default="Active",
                               max_length=40)
-    text = models.CharField(max_length=2000)
-
-
-class Comment(models.Model):
-    "A comment belongs to a note ID."
-    user = models.CharField(max_length=200)
-    note = models.IntegerField(null=True)
-    added = models.DateTimeField()
-    status = models.CharField(choices=[("Active","Active"),
-                                       ("Withdrawn","Withdrawn"),
-                                        ],
-                              default="Active",
-                              max_length=40)
+    title = models.CharField(max_length=100)
     text = models.CharField(max_length=2000)
 
 

@@ -57,6 +57,8 @@ urlpatterns = [
     url(r'^provchange/(?P<pk>[0-9]+)/resubmit/$', "provchanges.views.resubmitchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/addvouch/$', "provchanges.views.addvouch"),
     url(r'^provchange/(?P<pk>[0-9]+)/withdrawvouch/$', "provchanges.views.withdrawvouch"),
+    url(r'^addcomment/$', "provchanges.views.addcomment"),
+    url(r'^dropcomment/(?P<pk>[0-9]+)/$', "provchanges.views.dropcomment"),
 
 
 

@@ -7,13 +7,68 @@ from django.shortcuts import render
 from django.template import Template,Context
 from django.contrib.auth.decorators import login_required
 
-from provchanges.models import ProvChange
+from provchanges.models import ProvChange, Comment, Vouch
 
 shortdescr = """
 Pshapes (pronounced p-shapes) is an open-source crowdsourcing project for creating and maintaining
 data on historical provinces, created by and for data-enthusiasts, researchers,
 and others. 
 """
+
+def lists2table(request, lists, fields):
+    html = """
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+
+				{% for field in fields %}
+                                    <th>
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+			
+			{% for url,row in lists %}
+				<tr>
+					<td>
+					{% if url %}
+                                            <a href="{{ url }}">View</a>
+                                        {% endif %}
+					</td>
+					
+                                        {% for value in row %}
+                                            <td>{{ value | safe}}</td>
+                                        {% endfor %}
+					
+				</tr>
+			{% endfor %}
+		</table>
+                """
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
+    return rendered
 
 def recentadds(request):
     html = """
@@ -227,6 +282,32 @@ def home(request):
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="65%",
+                      ))
+
+    # comments
+    comments = Comment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    fields = ["added","title","user","text","withdraw"]
+    lists = []
+    for c in comments[:3]:
+        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+        rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
+        if rowdict['user'] == request.user.username:
+            rowdict['withdraw'] = '''
+                            <div style="display:inline; border-radius:10px; ">
+                            <a href="/dropcomment/{pk}">
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
+                            </a>
+                            </div>
+                                '''.format(pk=c.pk)
+        row = [rowdict[f] for f in fields]
+        lists.append(("",row))
+    content = lists2table(request, lists=lists,
+                                        fields=["Added","Title","User","Comment",""])
+
+    grids.append(dict(title="Recent Comments",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="93%",
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,

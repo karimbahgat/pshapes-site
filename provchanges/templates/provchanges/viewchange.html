@@ -27,31 +27,38 @@
 
 		{% if canvouch and hasvouched %}
 				<div style="display:inline-block; background-color:green; color:white; border:3px solid black; border-radius:10px; padding:3px; margin:7px; color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-				{{ vouches }}
+				{{ vouches|length }}
 				<a href="/provchange/{{pk}}/withdrawvouch/">
 				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=22px />
 				</a>
 				</div>
-				<br><br>
 			
 		{% elif canvouch and not hasvouched %}
 				<div style="display:inline-block; color:white; border:3px solid black; border-radius:10px; padding:3px; margin:7px; color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-				{{ vouches }}
+				{{ vouches|length }}
 				<a href="/provchange/{{pk}}/addvouch/">
 				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=22px />
 				</a>
 				</div>
-				<br><br>
 
 		{% else %}
 				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
-				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{{ vouches }}</a>
+				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+				{{ vouches|length }}
+				</a>
 				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px />
 				</div>
-				<br><br>
 			
 		{% endif %}
 
+		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+		{{ comments|length }}
+		</a>
+		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
+		</div>
+
+		<br><br>
 
 		{% if metachange.status.value != 'NonActive' %}
 			{% if user.username == metachange.user.value or 'user.administrator' in user.get_all_permission %}
@@ -92,38 +99,52 @@
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
 				</fieldset>
-				
-				<fieldset>
-					<legend>From Province</legend>
-					{% for field in fromchange %}
-						<p>{{ field.label }}: {{ field.value }}</p>
-					{% endfor %}
-				</fieldset>
-				
+
 				<fieldset>
 					<legend>Type of Change</legend>
 					<p>Type: {{ typechange.type.value }}</p>
 				</fieldset>
 
-				{% if "Transfer" in typechange.type.value %}
-					
-					<fieldset>
-						<legend>Geo Change</legend>
-						{{ geochange.as_p }}
-					</fieldset>
-					
-				{% endif %}
-				
-				<fieldset>
+				<div>
+				<fieldset style="float:left; width:47%">
+					<legend>From Province</legend>
+					{% for field in fromchange %}
+						<p>{{ field.label }}: {{ field.value }}</p>
+					{% endfor %}
+				</fieldset>
+
+				<fieldset style="float:left; width:47%">
 					<legend>To Province</legend>
 					{% for field in tochange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
 				</fieldset>
+				</div>
+
+				{% if "Transfer" in typechange.type.value %}
+					
+					<fieldset style="clear:both">
+						<legend>Geo Change</legend>
+						{{ geochange.as_p }}
+					</fieldset>
+					
+				{% endif %}
 			
 		</div>
-		
+
 		<br><br>
+
+		<h3>Comments</h3>
+		{{ commentstable }}
+
+		<div style="margin-left:40px">
+			<h4>Add comment:</h4>
+			<form action="/addcomment/" method="post">
+			{% csrf_token %}
+			{{ add_comment }}
+	                <input type="submit" value="Submit" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+			</form>
+		</div>
 
 		<h3>Pending Edits</h3>
 		{{ pendingeditstable }}
