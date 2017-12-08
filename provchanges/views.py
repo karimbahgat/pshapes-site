@@ -1200,9 +1200,21 @@ def viewcountry(request, country):
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Begin"'
                 prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
-            return link,(prov,typ)
+
+            changeids = [c.changeid for c in items]
+            vouches=len(list(Vouch.objects.filter(changeid__in=changeids, status='Active')))
+            if vouches:
+                vouchitem = '''
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px/>
+                            </div>
+                            '''.format(vouches=vouches)
+            else:
+                vouchitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
+            return link,(prov,typ,vouchitem)
         events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
-        eventstable = lists2table(request, events, ["Province", "EventType"])
+        eventstable = lists2table(request, events, ["Province", "EventType", "Vouches"])
 
         content = eventstable
         
@@ -1446,7 +1458,14 @@ def viewevent(request, country, province):
                     <h2><em>Changed info to:</em></h2>
                     """
         
-            newinfo = '<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a><br><br></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
+            newinfo = '''<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+
+                        <div style="display:inline; border-radius:10px; ">
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+                        <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                        </div>
+				
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
             if change.fromalterns != change.toalterns: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             if change.fromiso != change.toiso: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             if change.fromfips != change.tofips: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -1616,7 +1635,15 @@ def viewevent(request, country, province):
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
         plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
         
-        splitlist = "".join(('<li style="padding:10px 0px; list-style:none">&rarr; {provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8")) for change in changes))
+        splitlist = "".join(('''<li style="padding:10px 0px; list-style:none">&rarr; {provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+
+				<div style="display:inline; border-radius:10px; ">
+				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+				</div>
+				
+                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
+                                 for change in changes))
         splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         right = """
                         <style>
@@ -1664,7 +1691,14 @@ def viewevent(request, country, province):
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
         plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
 
-        givelist = "".join(('<li style="padding:10px 0px; list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        givelist = "".join(('''<li style="padding:10px 0px; list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                            </div>
+
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -1724,7 +1758,14 @@ def viewevent(request, country, province):
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
         plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
 
-        givelist = "".join(('<li style="padding:10px 0px; list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a> &rarr;</li>'.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8")) for change in changes))
+        givelist = "".join(('''<li style="padding:10px 0px; list-style:none">{provtext} <a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                            </div>
+
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -1798,7 +1839,14 @@ def viewevent(request, country, province):
                     <h2><em>Province is created:</em></h2>
                     """
         
-            newinfo = '<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a><br><br></li>'.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"))
+            newinfo = '''<li style="font-size:smaller; list-style:none"> {provtext}<a href="/provchange/{pk}/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+
+                        <div style="display:inline; border-radius:10px; ">
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
+                        <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                        </div>
+
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -2046,7 +2094,7 @@ def lists2table(request, lists, fields):
 					</td>
 					
                                         {% for value in row %}
-                                            <td>{{ value }}</td>
+                                            <td>{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
