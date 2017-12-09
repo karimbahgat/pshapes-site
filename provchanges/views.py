@@ -839,7 +839,6 @@ def allcountries(request):
                         Read the Guidelines
                         </a>
 
-
                     </div>
     """
     

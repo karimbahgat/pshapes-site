@@ -101,7 +101,7 @@ def recentadds(request):
 			</tr>
 			</a>
 			
-			{% for change in changelist|slice:":3" %}
+			{% for change in changelist|slice:":6" %}
 				<tr>
 					<td>
 					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
@@ -277,11 +277,65 @@ def home(request):
 ##                style="padding:0% 0%; background-size:100% 100%; background-image:url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxvPpRIf5PnwOmOqIz47XUiU99_7XhcfelMm5iiTrKbYiIoSXi)",
 ##                  ))
 
+    # random check
+    obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
+    typ = {'NewInfo': 'changed information to',
+           'Breakaway': 'split into',
+           'PartTransfer': 'tranferred territory to',
+           'FullTransfer': 'merged into',
+           'Begin': 'was created'}[obj.type]
+    country = obj.fromcountry
+    fromname = "'%s'" % obj.fromname
+    toname = "'%s'" % obj.toname
+    if obj.fromcountry != obj.tocountry:
+        toname += ' (%s)' % obj.tocountry
+    if obj.type == 'Begin':
+        country = obj.tocountry
+        fromname = toname
+        toname = ""
+    vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
+    vouchicon = """
+    				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+				%s
+				</a>
+				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px />
+				</div>
+				""" % len(vouches)
+    comments = list(Comment.objects.filter(changeid=obj.changeid, status='Active'))
+    commenticon = """
+		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+		%s
+		</a>
+		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
+		</div>
+				""" % len(comments)
+    content = """
+                <h3>{country}</h3>
+                <div style="font-size:small">
+                <p>{date}</p>
+                <a href="provchange/{pk}/view">
+                <p>{fromname} {typ} {toname}</p>
+                </a>
+                <p>Source: {source}</p> 
+                
+                <div style="padding-left:50px">{vouchicon}{commenticon}</div>
+                </div>
+                """.format(date=obj.date, country=country, fromname=fromname, typ=typ, toname=toname,
+                           vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source)
+
+    grids.append(dict(title="Random Check:",
+                      content=content,
+                      #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="30%",
+                      ))
+
     # NOTE: THIS IS WHAT CAUSES FRONTPAGE CHANGE TO TOPMENU
     grids.append(dict(title="Recent Additions:",
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="93%",
+                      width="63%",
                       ))
 
     # comments
