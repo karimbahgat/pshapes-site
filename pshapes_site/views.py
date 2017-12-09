@@ -288,7 +288,7 @@ def home(request):
     comments = Comment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
     fields = ["added","title","user","text","withdraw"]
     lists = []
-    for c in comments[:3]:
+    for c in comments[:2]:
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
         rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
         if rowdict['user'] == request.user.username:
@@ -307,7 +307,7 @@ def home(request):
     grids.append(dict(title="Recent Discussions",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="63%",
+                      width="93%",
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
@@ -469,39 +469,63 @@ def download(request):
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
                     <div style="text-align:left">
                         <p>
-                        The Pshapes dataset covers only the historical changes to provinces, so requires
-                        another dataset to cover the modern boundaries.
-                        For convenience to the average user, we here provide a complete dataset that has been reverse-engineered
+                        Here we provide a complete historical boundary dataset that has been reverse-engineered
                         using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
                         <em>Natural Earth province boundaries</em></a>
                         as the starting-point. 
                         </p>
                         <p>Version: Alpha (2016-12-01)</p>
-                        <p>Status: Only some test-countries so far.</p> 
+                        <p>Size: 45 MB</p>
+                        <p>Coverage: Western Africa.</p>
                     </div>
 
                     <br>
                     <div style="text-align:right;">
                         <a href="/download/final/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        <img height=20px src="https://www.picpng.com/image/view/63838">
                         <b>Download Boundary Data</b>
                         </a>
                     </div>
                     <br>
                     """
     bannerleft = """
-                    <br>
-                    <img width="50%" src="https://lh3.googleusercontent.com/4zN3BOlFGIynfAT1-10I0nhqi7w31aIoePUbvCVCmk83D5E89a59QjhgcLN-d59u1CU=w300">
-                    """    
-    
-    grids.append(dict(title="Raw Data Dump",
-                      content="""
-                            <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
+                    <div style="text-align:center; padding:50px">
+                        <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
+		    </div>
+		    """    
 
+
+##                                The Pshapes framework uses reverse polygon geocoding to interpret
+##                                the user-contributed data and create the final historical boundary dataset.
+##                                This tool is open-source and freely available to programmers,
+##                                allowing users to create their own historical versions of any input province dataset.
+
+    grids.append(dict(title="Building Your Own", # <img width="50%" src="https://assets-cdn.github.com/images/modules/logos_page/Octocat.png">
+                      content="""
+                            <p><b>
+                                The user-contributed data can be used to build your own historical boundary datasets
+                                based on any input province data. This can be done using the Pshapes reverse polygon geocoding
+                                tool, which is open-source and freely available to programmers.
+                                </b>
+                            </p>
+
+                            <p style="text-align:right">
+                            <b><a href="https://github.com/karimbahgat/pshapes">
+                            Pshapes on GitHub
+                            <img height="30px" src="https://image.flaticon.com/icons/svg/25/25231.svg">
+                            </a></b>
+                            </p>
+                            """,
+                      width="46%",
+                      ))
+
+    grids.append(dict(title="Raw Data Dump", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
+                      content="""
                             <p>
                                 <b>
                                 The latest data dump of the user
-                                contributions data is always available on-demand. This is the data
-                                used to replicate or rebuild the pshapes dataset. 
+                                contributions data is always available on-demand. This is the raw data
+                                used to replicate or rebuild the final pshapes boundary dataset. 
 
                                 <div style="text-align:center">
                                 <table>
@@ -511,28 +535,6 @@ def download(request):
                                     </tr>
                                 </table>
                                 </div>
-                            </p>
-                            """,
-                      width="46%",
-                      ))
-
-
-    grids.append(dict(title="Build Your Own",
-                      content="""
-                            <img width="100%" border="2" src="https://thumbs.dreamstime.com/z/coding-programming-source-code-screen-colorful-abstract-data-display-software-developer-web-program-script-computer-50188994.jpg">
-
-                            <p>
-                                The Pshapes framework is primilaly just a dataset of province changes, registering
-                                only the information that changes for each time.
-                                A reverse polygon geocoding tool was therefore developed to automatically build
-                                a final dataset based on these changes, allowing integration with any third-party
-                                province datasets. This open-source tool is freely available to programmers.
-                            </p>
-
-                            <p style="text-align:right">
-                            <a href="/">
-                            <b><a href="https://github.com/karimbahgat/pshapes">Go to GitHub</a></b>
-                            </a>
                             </p>
                             """,
                       width="46%",

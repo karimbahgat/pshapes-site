@@ -717,11 +717,6 @@ def contribute(request):
                         <b>
                         <ul style="text-align:left; list-style-type: none; line-height: 30px;">
                             <li>
-                            Registered users:
-                            {users}
-                            </li>
-
-                            <li>
                             Province changes:
                             {changes}
                             </li>
@@ -782,47 +777,97 @@ def contribute(request):
 
 
 def allcountries(request):
-    bannertitle = ""
+    bannertitle = "Contributions at a Glance:"
 
+    from django.db.models import Count
     changes = ProvChange.objects.all()
-    accepted = ProvChange.objects.filter(status="Accepted")
     pending = ProvChange.objects.filter(status="Pending")
+    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
     users = User.objects.all()
-    
+
     bannerleft = """
-                    <h3 style="clear:both">Countries</h3>
-                    
-                    <div style="text-align:center">
-                        <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
-		    </div>
-    """
-    
+                <div>
+                        <div style="text-align:center">
+                            <img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
+                        </div>
+		    
+                        <b>
+                        <ul style="text-align:left; list-style-type: none; line-height: 30px;">
+                            <li>
+                            Province changes:
+                            {changes}
+                            </li>
+
+                            <li>
+                            Edits made:
+                            {modifs}
+                            </li>
+
+                            <li>
+                            Countries coded:
+                            {countrycount}
+                            </li>   
+                        </ul>
+                        </b>
+                </div>
+                        """.format(users=len(users),
+                                   changes=len(pending),
+                                   modifs=len(changes)-len(pending),
+                                   countrycount=countrycount,
+                                   )
+
+    #QUOTE
+    #Anyone who has an interest in coding some changes for one or more countries,
+    #should have the ability to do so themselves, regardless of skills or background. 
+
     bannerright = """
                     <div style="text-align:left">
 
-                        <br>
-                        <h3>Step 1:</h3>
-                        <br>
-                        Choose a country from the list below. You can browse,
-                        quality check, and suggest edits to existing province changes
-                        already submitted by other users.
+                        <br><br>
+                        <h4>Help Collect the Data</h4>
+                        Creating a global dataset of province changes is a tremendous task for any one stakeholder to undertake. 
+                        The Pshapes project is based on the idea that we can collect and maintain province change data more efficiently
+                        and transparently as a community. The idea is that anyone who has an interest in coding some changes for one or more countries,
+                        should have the ability to do so themselves.
+                        Most of the information is already available from our list of online sources, 
+                        making it easy to jump straight into it with little or no background-knowledge. 
+                        In most cases all that is required is filling out some forms. 
+
+                        <br><br>
+
+                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Read the Guidelines
+                        </a>
+
+
+                    </div>
+    """
+    
+    grids = []
+
+    content = """
+                    <h1>1</h1>
+                    <div style="text-align:left">
+                        Choose a country from the list below and begin registering historical changes.
                         After a vetting process the change will be included in the
                         next version of the data available from the website.
+
+                        You can also browse,
+                        quality check, suggest edits, and add comments to existing province changes
+                        already submitted by other users.
 
                         <style>
                             #blackbackground a { color:white }
                             #blackbackground a:visited { color:grey }
-                        </style>
-
-                        <br>
-                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Need Help?
-                        </a>
-                        
+                        </style>                        
                     </div>
-    """ 
-    
-    grids = []
+            """
+
+##    grids.append(dict(title="Instructions:",
+##                      content=content,
+##                      #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="99%",
+##                      ))
 
     from django.db.models import Count,Max,Min
 
@@ -856,7 +901,7 @@ def allcountries(request):
     countriestable = lists2table(request, lists=lists,
                                   fields=["Country","Entries","First Change","Last Change"])
     content = countriestable
-    grids.append(dict(title="Previously coded:",
+    grids.append(dict(title="Continue coding:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -881,12 +926,8 @@ def allcountries(request):
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
-
-
-    history = [("Back to Contributions","/contribute/")]
     
-    return render(request, 'pshapes_site/base_grid.html', {"history":history,
-                                                           "grids":grids,"bannertitle":bannertitle,
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 

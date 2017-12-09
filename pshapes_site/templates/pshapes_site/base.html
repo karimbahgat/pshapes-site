@@ -80,10 +80,10 @@
 							<td><a id="notcurr" href="/download/">Download</a></td>
 						{% endif %}
 						
-						{% if request.path|slice:":12" == "/contribute/" %}
-							<td><a id="current" href="/contribute/">Get Involved</a></td>
+						{% if request.path|slice:":22" == "/contribute/countries/" %}
+							<td><a id="current" href="/contribute/countries/">Get Involved</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/contribute/">Get Involved</a></td>
+							<td><a id="notcurr" href="/contribute/countries/">Get Involved</a></td>
 						{% endif %}
 						
 						{% if request.path|slice:":7" == "/about/" %}
