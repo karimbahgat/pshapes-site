@@ -79,6 +79,16 @@ def apiview(request):
         date = datetime.date(int(yr),int(mn),int(dy))
         queryset = queryset.filter(start__lte=date).filter(end__gte=date)
 
+    bbox = params.pop('bbox', None)
+    if bbox:
+        bbox = map(float, bbox.split(','))
+        print bbox
+        box = Polygon.from_bbox(bbox)
+        queryset = queryset.filter(geom__intersects=box)
+
+    tolerance = params.pop('simplify', None)
+    print 'simplify',tolerance
+
     # attribute filtering
     print 'apiparams',params
     if params:
@@ -87,9 +97,11 @@ def apiview(request):
     # convert to json
     jsondict = dict(type='FeatureCollection', features=[])
     for obj,props in zip(queryset, queryset.values('name','alterns','country','iso','fips','hasc','start','end')):
-        geom = obj.geom.simplify(0.1)
+        geom = obj.geom
+        if tolerance:
+            geom = geom.simplify(float(tolerance))
         geoj = json.loads(geom.geojson)
-        print str(geoj)[:200]
+        #print str(geoj)[:200]
         fdict = dict(type='Feature', properties=props, geometry=geoj)
         jsondict['features'].append(fdict)
 
@@ -102,13 +114,70 @@ def apiview(request):
     return response.Response(jsondict)
        
 def mapzoomtest(request):
-    # PLAN: for MapForm's render method, make it check the zoom level
-    # ...and get only the features prepared for that zoomlevel.
-    mapp = MapForm().as_p()
-    return render(request, 'pshapes_site/base_grid.html', {"custombanner":mapp})
 
-class MapForm(forms.Form):
-    point = forms.PointField(widget=forms.OpenLayersWidget(attrs={'map_width': 800, 'map_height': 500}))
+    ###
+
+    if "Name" in request.GET:
+        custombanner = '<h3 style="text-align:center; padding:10%;">Province search still under construction...</h3>'
+
+        return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner)
+                      )
+    
+    mapp = render_to_string("provshapes/mapzoomtest.html")
+
+    custombanner = mapp
+
+    grids = []
+    content = """
+    <div id="provframe">
+    None selected
+    </div>
+    
+    <script>
+    function selectfunc(feature) {
+        alterns = feature.attributes.Alterns.join("; ");
+        if (alterns) {
+            alterns = " (" + alterns + ")";
+        };
+        table = "<table>"
+            table += "<tr>"
+            table += "<td>Country: </td>"
+            table += "<td>" + feature.attributes.country + "</td>"
+            table += "</tr>"
+            
+            table += "<tr>"
+            table += "<td>Name: </td>"
+            table += "<td>" + feature.attributes.Name + alterns + "</td>"
+            table += "</tr>"
+            
+            table += "<tr>"
+            table += "<td>Time period: </td>"
+            table += "<td>" + feature.attributes.start + " to " + feature.attributes.end + "</td>"
+            table += "</tr>"
+
+            table += "<tr>"
+            table += "<td>Codes: </td>"
+            table += "<td>ISO=" + feature.attributes.ISO + ", FIPS=" + feature.attributes.FIPS + ", HASC=" + feature.attributes.HASC + "</td>"
+            table += "</tr>"
+        table += "</table>"
+        document.getElementById("provframe").innerHTML = table;
+    };
+    function unselectfunc(feature) {
+        document.getElementById("provframe").innerHTML = "None selected";
+    };
+    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, onUnselect: unselectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
+    map.addControl(selectControl);
+    selectControl.activate();
+    </script>
+    """
+    grids.append(dict(title="Province:",
+                      content=content,
+                      width="99%")
+                 )
+
+    return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
+                                                               grids=grids)
+                  )
 
 def underconstruction(request):
     grids = []

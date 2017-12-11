@@ -95,7 +95,7 @@ input[type=range]:focus::-ms-fill-upper {
 
 	<script>
 	function update_slider(date) {
-		draw_borders(date);
+                loaddata();
 		// move slider
 		curdate = new Date(date);
 		mindate = new Date(1900, 1, 1);
@@ -112,7 +112,7 @@ input[type=range]:focus::-ms-fill-upper {
 		
 		<p>
 		1900
-		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="draw_borders(document.getElementById('datetext').value);"/>
+		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
 		2015
 		<datalist id="ticks">
 		<option>1900</option>
@@ -210,16 +210,43 @@ input[type=range]:focus::-ms-fill-upper {
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([provLayer]);
 	
-	// download data
-	onsuccess = function(data) {
+	// how to render data
+	renderdata = function(data) {
 		var geojson_format = new OpenLayers.Format.GeoJSON();
 		var geoj_str = JSON.stringify(data);
 		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
 		var date = document.getElementById('datetext').value;
 		draw_borders(date);
-	}; 
-	$.getJSON("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson", onsuccess);
-	
+	};
+
+	// initiate map
+        var date = document.getElementById('datetext').value;
+        var year = date.split("-")[0]
+        var month = date.split("-")[1]
+        var day = date.split("-")[2]
+	$.getJSON("/api/?format=json&simplify=0.1&year="+year+"&month="+month+"&day="+day, renderdata);
+
+	// load data func
+	function loaddata() {
+                // load data with resolution based on zoomlevel
+                var date = document.getElementById('datetext').value;
+                var year = date.split("-")[0]
+                var month = date.split("-")[1]
+                var day = date.split("-")[2]
+
+                var bbox = map.getExtent().toArray();
+
+                var apiurl = "/api/?format=json&bbox="+bbox+"&year="+year+"&month="+month+"&day="+day
+                if (map.zoom <= 4) {
+                    $.getJSON(apiurl+"&simplify=0.1", renderdata);
+                } else if (map.zoom <= 6) {
+                    $.getJSON(apiurl+"&simplify=0.05", renderdata);
+                } else {
+                    $.getJSON(apiurl, renderdata);
+                };
+        };
+	map.events.register("zoomend", map, loaddata);
+	map.events.register("moveend", map, loaddata);
 
 	// define drawing function
 	function draw_borders(date) {
