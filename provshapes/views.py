@@ -1,7 +1,114 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
+
+from django.contrib.gis import forms
+from django.contrib.gis.geos import Polygon, MultiPolygon
+
+from .models import ProvShape
+
+from rest_framework import response
+from rest_framework import decorators
+
+import urllib2
+import json
+import datetime
+
+def update_dataset(request):
+    if 1: #'user.administrator' in request.user.get_all_permissions():
+        print 'deleting existing...'
+        ProvShape.objects.all().delete()
+        print 'downloading...'
+        raw = urllib2.urlopen('https://github.com/karimbahgat/pshapes/raw/master/processed.geojson').read()
+        datadict = json.loads(raw)
+        print 'adding', datadict.keys(), len(datadict['features'])
+        for feat in datadict['features']:
+            props = feat['properties']
+            values = dict(name=props['Name'],
+                          alterns='|'.join(props['Alterns']),
+                          country=props['country'],
+                          iso=props['ISO'],
+                          fips=props['FIPS'],
+                          hasc=props['HASC'],
+                          start=props['start'],
+                          end=props['end'],
+                          )
+            print values
+##            values = dict()
+##            for fl in ProvShape._meta.fields:
+##                flname = fl.name
+##                print flname
+##                if flname == 'id':
+##                    continue
+##                values[flname] = feat[flname]
+            if feat['geometry']['type'] == 'Polygon':
+                polys = [Polygon(*feat['geometry']['coordinates'])]
+            elif feat['geometry']['type'] == 'MultiPolygon':
+                polys = [Polygon(*poly) for poly in feat['geometry']['coordinates']]
+            else:
+                raise Exception('Geometry must be polygon or multipolygon, not %s' % feat['geometry']['type'])
+            #print str(polys)[:100]
+            values['geom'] = MultiPolygon(*polys)
+            provshape = ProvShape(**values)
+            provshape.save()
+        print 'provshapes updated!'
+        return redirect(request.META['HTTP_REFERER'])
+        
+    else:
+        print 'You do not have permission to update the provshapes dataset'
+        raise PermissionDenied
+
+@decorators.api_view(["GET"])
+def apiview(request):
+    print request.query_params
+    print "------"
+    queryset = ProvShape.objects.all()
+
+    params = dict(request.query_params.items())
+
+    frmt = params.pop('format', None)
+    
+    yr = params.pop('year', None)
+    mn = params.pop('month', None)
+    dy = params.pop('day', None)
+    
+    if all((yr,mn,dy)):
+        print 'filtering date'
+        date = datetime.date(int(yr),int(mn),int(dy))
+        queryset = queryset.filter(start__lte=date).filter(end__gte=date)
+
+    # attribute filtering
+    print 'apiparams',params
+    if params:
+        queryset = queryset.filter(**params)
+
+    # convert to json
+    jsondict = dict(type='FeatureCollection', features=[])
+    for obj,props in zip(queryset, queryset.values('name','alterns','country','iso','fips','hasc','start','end')):
+        geom = obj.geom.simplify(0.1)
+        geoj = json.loads(geom.geojson)
+        print str(geoj)[:200]
+        fdict = dict(type='Feature', properties=props, geometry=geoj)
+        jsondict['features'].append(fdict)
+
+##    from django.core.serializers import serialize
+##    jsondict = serialize('geojson', queryset,
+##                          geometry_field='geom',
+##                          #fields=('name',))
+##                         )
+    
+    return response.Response(jsondict)
+       
+def mapzoomtest(request):
+    # PLAN: for MapForm's render method, make it check the zoom level
+    # ...and get only the features prepared for that zoomlevel.
+    mapp = MapForm().as_p()
+    return render(request, 'pshapes_site/base_grid.html', {"custombanner":mapp})
+
+class MapForm(forms.Form):
+    point = forms.PointField(widget=forms.OpenLayersWidget(attrs={'map_width': 800, 'map_height': 500}))
 
 def underconstruction(request):
     grids = []

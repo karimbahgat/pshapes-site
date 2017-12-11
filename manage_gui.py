@@ -402,7 +402,7 @@ class DjangoApp(object):
         class dict_as_obj:
             def __init__(self, dictdef):
                 self.__dict__ = dictdef.copy()
-        
+
         exec("import %s.%s as tempimport" %(self.name,attr) )
 
         return dict_as_obj(tempimport.__dict__)
@@ -428,19 +428,21 @@ class DjangoApp(object):
         # register the new model in the db
         self.siteobj.update_db()
 
-    def load_geodata(self, path, modelname=None, encoding="latin"):
+    def load_geodata(self, path, modelname=None, encoding="utf8"):
 
         # autogenerate the model and mapping definition for data source
+        print 99,modelname
         if not modelname:
             modelname = os.path.splitext(os.path.split(path)[1])[0]
+        print 99,modelname
         
         # finally populate the new model to the db from the filesource
         # that would be the layermapping stuff:
         # (dont make load.py file as recommended, as it will only be needed this once)
         from django.contrib.gis.utils import LayerMapping
 
-        modelobj = self.models.__dict__[modelname]
-        modelobj_mapping = self.models.__dict__[modelname+"_mapping"]
+        modelobj = getattr(self.models, modelname)
+        modelobj_mapping = getattr(self.models, modelname.lower()+"_mapping")
 
         lm = LayerMapping(modelobj, "%s"%path, modelobj_mapping,
                           transform=False, encoding=encoding)
@@ -603,24 +605,24 @@ class AppWidget(tk2.Frame):
         # define geodata button
         _row = tk2.Frame(_butframe)
         _row.pack(fill="x")
-        def acceptfile(path):
+        def defacceptfile(path):
             self.appobj.define_geodata(path)
         self.defdatabut = tk2.Button(_row, text="Define geodata",
-                                      command=lambda: acceptfile(tk2.filedialog.askopenfilename())
+                                      command=lambda: defacceptfile(tk2.filedialog.askopenfilename())
                                       )
-        self.defdatabut.bind_dnddrop(lambda event: acceptfile(event.data[0]),
+        self.defdatabut.bind_dnddrop(lambda event: defacceptfile(event.data[0]),
                                       "Files")
         self.defdatabut.pack()
 
         # load geodata button
         _row = tk2.Frame(_butframe)
         _row.pack(fill="x")
-        def acceptfile(path):
+        def loadacceptfile(path):
             self.appobj.load_geodata(path)
         self.loaddatabut = tk2.Button(_row, text="Load geodata",
-                                      command=lambda: acceptfile(tk2.filedialog.askopenfilename())
+                                      command=lambda: loadacceptfile(tk2.filedialog.askopenfilename())
                                       )
-        self.loaddatabut.bind_dnddrop(lambda event: acceptfile(event.data[0]),
+        self.loaddatabut.bind_dnddrop(lambda event: loadacceptfile(event.data[0]),
                                       "Files")
         self.loaddatabut.pack()
 

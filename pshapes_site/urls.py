@@ -89,6 +89,11 @@ urlpatterns = [
     # (TESTING)
     url('^testgrid/$', "pshapes_site.views.testgrid"),
     url('^timetest/$', "cshapes.views.mapview"),
+    
+    url('^update/$', "provshapes.views.update_dataset"),
+    url('^api/$', "provshapes.views.apiview"),
+    url('^mapzoomtest/$', "provshapes.views.mapzoomtest"),
+    
     url(r'^admin/$', include(admin.site.urls)),
 
 

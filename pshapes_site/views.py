@@ -543,7 +543,7 @@ def download(request):
                     <br>
                     """
     bannerleft = """
-                    <div style="text-align:center; padding:50px">
+                    <div style="text-align:center; padding:20px">
                         <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
 		    </div>
 		    """    

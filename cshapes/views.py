@@ -7,7 +7,7 @@ from django.shortcuts import render
 def mapview(request):
     return render(request, 'cshapes/mapview.html')
 
-def mapview_lite(request):
+def mapview(request):
     return render(request, 'cshapes/mapview_lite.html')
 
 

@@ -218,7 +218,7 @@ input[type=range]:focus::-ms-fill-upper {
 		var date = document.getElementById('datetext').value;
 		draw_borders(date);
 	}; 
-	$.getJSON("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson", onsuccess);
+	$.getJSON("http://127.0.0.1:8000/api/?day=1&format=json&month=1&year=2010", onsuccess);
 	
 
 	// define drawing function

@@ -2426,9 +2426,13 @@ def account(request):
     
     bannerright = """
                     <br><br><br><br><br>
+                    <a href="/update" style="background-color:green; color:white; border-radius:5px; padding:5px">
+                        <b>Update Boundary Data</b>
+                    </a>
+                    <br><br>
                     <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                         <b>Logout</b>
-                        </a>
+                    </a>
                         """
     grids.append(dict(title="Your Contributions:",
                       content="table...",
