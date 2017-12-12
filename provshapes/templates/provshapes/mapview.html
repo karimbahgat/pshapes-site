@@ -1,8 +1,25 @@
 
+
+
+
+
+
+
+    <div id="listtab" style="display:none;">
+        <h4>List Results (first 50 only):</h4>
+        {{ listtable }}
+    </div>
+
+    
+
+
+
+    <div id="maptab">
+
+        <h4>Map Results:</h4>
+
 	<div class="map header" style="text-align:center; margin-top: 0; padding: 0 0 0 0;">
-   		<h3 style="color:white">
-		Historical Province Boundaries
-		</h3>
+
 	</div>
 	
 	<style>
@@ -95,7 +112,7 @@ input[type=range]:focus::-ms-fill-upper {
 
 	<script>
 	function update_slider(date) {
-		draw_borders(date);
+                loaddata();
 		// move slider
 		curdate = new Date(date);
 		mindate = new Date(1900, 1, 1);
@@ -110,9 +127,9 @@ input[type=range]:focus::-ms-fill-upper {
 	<div style="width:100%; text-align:center">
 		<input id="datetext" type="text" style="font-size:large" oninput="update_slider(document.getElementById('datetext').value);"/>
 		
-		<p>
+		<p style="font-weight:bold;">
 		1900
-		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="draw_borders(document.getElementById('datetext').value);"/>
+		<input id="dateslider" type="range" style="width:70%; background-color:orange" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
 		2015
 		<datalist id="ticks">
 		<option>1900</option>
@@ -141,7 +158,7 @@ input[type=range]:focus::-ms-fill-upper {
 	
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-	<div id="mapcontainer" style="background-color:black; width:70%; margin-left:15%; height:60vh; padding:0 0 30px 0;">
+	<div id="mapcontainer" style="width:70%; margin-left:15%; height:60vh; padding:0 0 30px 0;">
 
 	<div style="width:100%; height:100%; margins:auto;" id="map">
 	</div>
@@ -182,7 +199,7 @@ input[type=range]:focus::-ms-fill-upper {
 										{context: {
 												getLabel: function(feature) {
 													if (map.zoom > 5) {
-														return feature.attributes.Name.toUpperCase();
+														return feature.attributes.name.toUpperCase();
 													} else {
 														return '';
 													}
@@ -210,16 +227,69 @@ input[type=range]:focus::-ms-fill-upper {
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([provLayer]);
 	
-	// download data
-	onsuccess = function(data) {
+	// how to render data
+	renderdata = function(data) {
 		var geojson_format = new OpenLayers.Format.GeoJSON();
 		var geoj_str = JSON.stringify(data);
 		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
 		var date = document.getElementById('datetext').value;
 		draw_borders(date);
-	}; 
-	$.getJSON("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson", onsuccess);
-	
+	};
+
+	// initiate map
+	onstartup = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+		var date = document.getElementById('datetext').value;
+		draw_borders(date);
+                map.zoomToExtent(provLayer.getDataExtent());
+        };
+        var date = document.getElementById('datetext').value;
+        var year = date.split("-")[0]
+        var month = date.split("-")[1]
+        var day = date.split("-")[2]
+        var datadict = Object.assign({}, {format:"json", simplify:0.2, year:year, month:month, day:day}, {{ getparams|safe }});
+	$.getJSON("/api/", datadict, onstartup);
+
+	// load data func
+	function loaddata() {
+                // load data with resolution based on zoomlevel
+                var date = document.getElementById('datetext').value;
+                var year = date.split("-")[0]
+                var month = date.split("-")[1]
+                var day = date.split("-")[2]
+
+                var bbox = map.getExtent().toArray();
+
+                var apiurl = "/api/";
+                var datadict = Object.assign({}, {format:"json", bbox:bbox.join(','), year:year, month:month, day:day}, {{ getparams|safe }});
+                if (map.zoom <= 3) {
+                    datadict['simplify'] = 0.2;
+                    $.getJSON(apiurl, datadict, renderdata);
+                } else if (map.zoom <= 4) {
+                    datadict['simplify'] = 0.1;
+                    $.getJSON(apiurl, datadict, renderdata);
+                } else if (map.zoom <= 5) {
+                    datadict['simplify'] = 0.05;
+                    $.getJSON(apiurl, datadict, renderdata);
+                } else if (map.zoom <= 6) {
+                    datadict['simplify'] = 0.025;
+                    $.getJSON(apiurl, datadict, renderdata);
+                } else {
+                    $.getJSON(apiurl, datadict, renderdata);
+                };
+        };
+	map.events.register("zoomend", map, loaddata);
+	map.events.register("moveend", map, loaddata);
+
+        // assign random colors to each country
+        document.countryColors = {};
+        
+        function getRandomColor(){
+                var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
+                return color;
+        };
 
 	// define drawing function
 	function draw_borders(date) {
@@ -227,33 +297,24 @@ input[type=range]:focus::-ms-fill-upper {
 		// drop previous provs
 		provLayer.removeAllFeatures();
 		
-		// assign random colors to each country
-		// TODO: this gets random for each redraw, instead maybe just predefine a colorlist...
-		var countryColors = {};
-		
-		function getRandomColor(){
-			var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
-			return color;
-		};
-		
 		// select provs by date
 		dateFeats = [];
 		for (feat of document.allProvs) {
 			var start = feat.attributes.start;
 			var end = feat.attributes.end;
 			if (start <= date && date < end ) {
-				if (!(feat.attributes.country in countryColors)) {
+				if (!(feat.attributes.country in document.countryColors)) {
 					// assign random color for country
-					countryColors[feat.attributes.country] = getRandomColor();
+					document.countryColors[feat.attributes.country] = getRandomColor();
 				};
 				dateFeats.push(feat);
 			};
 		};
-		document.countryColors = countryColors;
 		
 		// add to layer
 		provLayer.addFeatures(dateFeats);
 	};
 	
 	</script>
-	
+
+    </div>

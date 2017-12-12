@@ -70,7 +70,7 @@ def lists2table(request, lists, fields):
     rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
     return rendered
 
-def recentadds(request):
+def recentadds(request, num=5):
     html = """
 		<table style="font-size:small"> 
 
@@ -101,7 +101,7 @@ def recentadds(request):
 			</tr>
 			</a>
 			
-			{% for change in changelist|slice:":6" %}
+			{% for change in changelist %}
 				<tr>
 					<td>
 					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
@@ -145,7 +145,7 @@ def recentadds(request):
 			{% endfor %}
 		</table>
 	    """
-    changelist = ProvChange.objects.all().order_by("-added") # the dash reverses the order
+    changelist = ProvChange.objects.all().order_by("-added")[:num]   # the dash reverses the order
     rendered = Template(html).render(Context({"request":request, "shortdescr":shortdescr, "changelist":changelist}))
     return rendered
 
@@ -331,7 +331,6 @@ def home(request):
                       width="30%",
                       ))
 
-    # NOTE: THIS IS WHAT CAUSES FRONTPAGE CHANGE TO TOPMENU
     grids.append(dict(title="Recent Additions:",
                       content=recentadds(request),
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -523,7 +522,7 @@ def download(request):
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
                     <div style="text-align:left">
                         <p>
-                        Here we provide a complete historical boundary dataset that has been reverse-engineered
+                        Here we provide the latest historical boundary dataset that has been reverse-engineered
                         using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
                         <em>Natural Earth province boundaries</em></a>
                         as the starting-point. 
@@ -557,38 +556,20 @@ def download(request):
     grids.append(dict(title="Building Your Own", # <img width="50%" src="https://assets-cdn.github.com/images/modules/logos_page/Octocat.png">
                       content="""
                             <p><b>
-                                The user-contributed data can be used to build your own historical boundary datasets
-                                based on any input province data. This can be done using the Pshapes reverse polygon geocoding
-                                tool, which is open-source and freely available to programmers.
-                                </b>
-                            </p>
-
-                            <p style="text-align:right">
-                            <b><a href="https://github.com/karimbahgat/pshapes">
-                            Pshapes on GitHub
-                            <img height="30px" src="https://image.flaticon.com/icons/svg/25/25231.svg">
-                            </a></b>
-                            </p>
-                            """,
-                      width="46%",
-                      ))
-
-    grids.append(dict(title="Raw Data Dump", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
-                      content="""
-                            <p>
-                                <b>
-                                The latest data dump of the user
-                                contributions data is always available on-demand. This is the raw data
-                                used to replicate or rebuild the final pshapes boundary dataset. 
+                                The raw user-contributed data is freely avilable and can used to build a historical boundary dataset
+                                based on any third-party province data. For your convenience we also provide the Pshapes reverse polygon geocoding
+                                tool, which is open-source and freely available to programmers. 
 
                                 <div style="text-align:center">
                                 <table>
                                     <tr>
-                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
-                                        <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
+                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>Raw Data</p></a></td>
+                                        <td style="text-align:center"><a href="https://github.com/karimbahgat/pshapes"><img width="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg"><p>GitHub</p></a></td>
                                     </tr>
                                 </table>
                                 </div>
+
+                            </b>
                             </p>
                             """,
                       width="46%",

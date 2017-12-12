@@ -2434,11 +2434,17 @@ def account(request):
                         <b>Logout</b>
                     </a>
                         """
+
+    # user contribs
+    changelist = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
+    rendered = model2table(request, '', changelist, ['user','added','fromcountry','fromname','type','status'])
+
     grids.append(dict(title="Your Contributions:",
-                      content="table...",
+                      content=rendered,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="100%",
                       ))
+    
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )

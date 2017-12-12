@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template import Template,Context
 from django.template.loader import render_to_string
 from django.core.exceptions import PermissionDenied
 
@@ -66,7 +67,7 @@ def apiview(request):
     print "------"
     queryset = ProvShape.objects.all()
 
-    params = dict(request.query_params.items())
+    params = dict(((k,v) for k,v in request.query_params.items() if v))
 
     frmt = params.pop('format', None)
     
@@ -112,70 +113,142 @@ def apiview(request):
 ##                         )
     
     return response.Response(jsondict)
-       
-def mapzoomtest(request):
+
+class SearchForm(forms.ModelForm):
+
+    class Meta:
+        model = ProvShape
+        fields = ["name","country"]
+
+def explore(request):
 
     ###
-
-    if "Name" in request.GET:
-        custombanner = '<h3 style="text-align:center; padding:10%;">Province search still under construction...</h3>'
-
-        return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner)
-                      )
     
-    mapp = render_to_string("provshapes/mapzoomtest.html")
+    #mapp = render_to_string("provshapes/mapview.html")
 
-    custombanner = mapp
+    initdict = dict(request.GET.items()) if request.GET else {}
+    formfields = SearchForm(initial=initdict).as_p()
+    bannerleft = """
+    <form action="/explore/" method="get">
+
+    %s
+    
+    <div style="padding:10px;">
+    <input type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+    </div>
+
+    </form>
+    """ % formfields
+
+    bannerright = """
+    <h3 style="color:white; text-align:left;">
+    Historical Provinces
+    </h3>
+    <div style="text-align:left">
+        <p>
+        Here you can search, browse, and view a map of all historical provinces that have been coded so far.
+        </p>
+    </div>
+    """
 
     grids = []
+
     content = """
-    <div id="provframe">
-    None selected
-    </div>
-    
-    <script>
-    function selectfunc(feature) {
-        alterns = feature.attributes.Alterns.join("; ");
-        if (alterns) {
-            alterns = " (" + alterns + ")";
-        };
-        table = "<table>"
-            table += "<tr>"
-            table += "<td>Country: </td>"
-            table += "<td>" + feature.attributes.country + "</td>"
-            table += "</tr>"
-            
-            table += "<tr>"
-            table += "<td>Name: </td>"
-            table += "<td>" + feature.attributes.Name + alterns + "</td>"
-            table += "</tr>"
-            
-            table += "<tr>"
-            table += "<td>Time period: </td>"
-            table += "<td>" + feature.attributes.start + " to " + feature.attributes.end + "</td>"
-            table += "</tr>"
-
-            table += "<tr>"
-            table += "<td>Codes: </td>"
-            table += "<td>ISO=" + feature.attributes.ISO + ", FIPS=" + feature.attributes.FIPS + ", HASC=" + feature.attributes.HASC + "</td>"
-            table += "</tr>"
-        table += "</table>"
-        document.getElementById("provframe").innerHTML = table;
-    };
-    function unselectfunc(feature) {
-        document.getElementById("provframe").innerHTML = "None selected";
-    };
-    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, onUnselect: unselectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
-    map.addControl(selectControl);
-    selectControl.activate();
-    </script>
+    <a class="toptabs" onClick="document.getElementById('maptab').style.display = 'none'; document.getElementById('listtab').style.display = '';">
+    List
+    </a>
     """
-    grids.append(dict(title="Province:",
-                      content=content,
-                      width="99%")
-                 )
+    
+    grids.append(dict(title="",
+                     content=content,
+                      style="text-align:center; font-size:large; font-weight:bold",
+                     width="10%",
+                     ))
 
-    return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
+
+    content = """
+    <a class="toptabs" onClick="document.getElementById('maptab').style.display = ''; document.getElementById('listtab').style.display = 'none';">
+    Map
+    </a>
+    """
+    
+    grids.append(dict(title="",
+                     content=content,
+                      style="text-align:center; font-size:large; font-weight:bold",
+                     width="10%",
+                     ))
+    
+
+    # main area with table and map
+    provs = ProvShape.objects.all().order_by("country", "name", "start")
+    if request.GET:
+        filterdict = dict(((k,v) for k,v in request.GET.items() if v))
+        provs = provs.filter(**filterdict)
+    else:
+        filterdict = dict()
+
+    fields = ["name","alterns","country","start","end"]
+    lists = []
+    for p in provs[:50]:
+        rowdict = dict([(f,getattr(p, f, "")) for f in fields])
+        row = [rowdict[f] for f in fields]
+        lists.append(("[Link]",row))
+
+    listtable = lists2table(request, lists, fields)
+    
+    content = render(request, 'provshapes/mapview.html',
+                          dict(listtable=listtable, getparams=json.dumps(filterdict))
+                          )
+    grids.append(dict(title="",
+                     content=content,
+                     width="100%",
+                     ))
+
+##    content = """
+##    <div id="provframe">
+##    None selected
+##    </div>
+##    
+##    <script>
+##    function selectfunc(feature) {
+##        alterns = feature.attributes.Alterns.join("; ");
+##        if (alterns) {
+##            alterns = " (" + alterns + ")";
+##        };
+##        table = "<table>"
+##            table += "<tr>"
+##            table += "<td>Country: </td>"
+##            table += "<td>" + feature.attributes.country + "</td>"
+##            table += "</tr>"
+##            
+##            table += "<tr>"
+##            table += "<td>Name: </td>"
+##            table += "<td>" + feature.attributes.Name + alterns + "</td>"
+##            table += "</tr>"
+##            
+##            table += "<tr>"
+##            table += "<td>Time period: </td>"
+##            table += "<td>" + feature.attributes.start + " to " + feature.attributes.end + "</td>"
+##            table += "</tr>"
+##
+##            table += "<tr>"
+##            table += "<td>Codes: </td>"
+##            table += "<td>ISO=" + feature.attributes.ISO + ", FIPS=" + feature.attributes.FIPS + ", HASC=" + feature.attributes.HASC + "</td>"
+##            table += "</tr>"
+##        table += "</table>"
+##        document.getElementById("provframe").innerHTML = table;
+##    };
+##    function unselectfunc(feature) {
+##        document.getElementById("provframe").innerHTML = "None selected";
+##    };
+##    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, onUnselect: unselectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
+##    map.addControl(selectControl);
+##    selectControl.activate();
+##    </script>
+##    """
+
+    return render(request, 'pshapes_site/base_grid.html', dict(bannerleft=bannerleft,
+                                                               bannerright=bannerright,
                                                                grids=grids)
                   )
 
@@ -188,91 +261,60 @@ def underconstruction(request):
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
-def explore(request):
-    return render(request, 'provshapes/explore.html')
+def lists2table(request, lists, fields):
+    html = """
+		<table> 
+		
+			<style>
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
 
-def explore(request):
-    grids = []
-    bannertitle = ""
-    custombanner = """
-                <div style="text-align:center">
-                <h2>Interactive data explorer</h2>
-                <img src="http://www.iconarchive.com/download/i66283/jommans/ironman-style/Internet-Explorer.ico">
-                <p style="text-align:center"><em>This functionality is not yet available, but will be once the first stable version is released.</em></p>
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even){background-color: #f2f2f2}
+
+			th {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr>
+				<th> 
+				</th>
+
+				{% for field in fields %}
+                                    <th>
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+			
+			{% for url,row in lists %}
+				<tr>
+					<td>
+					{% if url %}
+                                            <a href="{{ url }}">View</a>
+                                        {% endif %}
+					</td>
+					
+                                        {% for value in row %}
+                                            <td>{{ value | safe}}</td>
+                                        {% endfor %}
+					
+				</tr>
+			{% endfor %}
+		</table>
                 """
-    bannerright = ''
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
-                  )
-
-def explore(request):
-    import urllib2
-    import json
-
-    ###
-
-    if "Name" in request.GET:
-        custombanner = '<h3 style="text-align:center; padding:10%;">Province search still under construction...</h3>'
-
-        return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner)
-                      )
-    
-    mapp = render_to_string("provshapes/mapview.html")
-
-    custombanner = mapp
-
-    grids = []
-    content = """
-    <div id="provframe">
-    None selected
-    </div>
-    
-    <script>
-    function selectfunc(feature) {
-        alterns = feature.attributes.Alterns.join("; ");
-        if (alterns) {
-            alterns = " (" + alterns + ")";
-        };
-        table = "<table>"
-            table += "<tr>"
-            table += "<td>Country: </td>"
-            table += "<td>" + feature.attributes.country + "</td>"
-            table += "</tr>"
-            
-            table += "<tr>"
-            table += "<td>Name: </td>"
-            table += "<td>" + feature.attributes.Name + alterns + "</td>"
-            table += "</tr>"
-            
-            table += "<tr>"
-            table += "<td>Time period: </td>"
-            table += "<td>" + feature.attributes.start + " to " + feature.attributes.end + "</td>"
-            table += "</tr>"
-
-            table += "<tr>"
-            table += "<td>Codes: </td>"
-            table += "<td>ISO=" + feature.attributes.ISO + ", FIPS=" + feature.attributes.FIPS + ", HASC=" + feature.attributes.HASC + "</td>"
-            table += "</tr>"
-        table += "</table>"
-        document.getElementById("provframe").innerHTML = table;
-    };
-    function unselectfunc(feature) {
-        document.getElementById("provframe").innerHTML = "None selected";
-    };
-    selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc, onUnselect: unselectfunc, selectStyle: {fillColor: "turquoise", strokeWidth: 2}});
-    map.addControl(selectControl);
-    selectControl.activate();
-    </script>
-    """
-    grids.append(dict(title="Province:",
-                      content=content,
-                      width="99%")
-                 )
-
-    return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
-                                                               grids=grids)
-                  )
-
-
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
+    return rendered
 
 
 
