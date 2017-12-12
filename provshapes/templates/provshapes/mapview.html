@@ -1,113 +1,114 @@
 
 
-
-
-
-
-
-    <div id="listtab" style="display:none;">
-        <h4>List Results (first 50 only):</h4>
-        {{ listtable }}
-    </div>
-
-    
-
-
+    <h3 style="text-align: center">Historical Province Boundaries</h3>
 
     <div id="maptab">
+            <form style="text-align:center; font-weight:bold;" action="/explore/" method="get">
 
-        <h4>Map Results:</h4>
+            {{ searchform.country.label }} {{ searchform.country }}
+            {{ searchform.name.label }} {{ searchform.name }}
+            
+            <div style="padding:10px; display:inline-block;">
+            <input type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+            </div>
+
+            </form>
 
 	<div class="map header" style="text-align:center; margin-top: 0; padding: 0 0 0 0;">
-
+            <input id="datetext" type="text" style="text-align:center; font-size:large; font-weight:bold; position:relative; z-index:1000; bottom:-40px; border: 3px solid black; border-radius: 7px;" oninput="update_slider(document.getElementById('datetext').value);"/>
 	</div>
-	
+
+	<div id="mapcontainer" style="width:90%; margin-left:5%; height:60vh; padding:0 0 30px 0;">
+            <div style="width:100%; height:100%; margins:auto;" id="map">
+            </div>
+	</div>
+
 	<style>
-input[type=range] {
-  -webkit-appearance: none;
-  width: 100%;
-  margin: 5.8px 0;
-}
-input[type=range]:focus {
-  outline: none;
-}
-input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 8.4px;
-  cursor: pointer;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  background: rgb(200,200,200);
-  border-radius: 1.3px;
-  border: 0.2px solid #010101;
-}
-input[type=range]::-webkit-slider-thumb {
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  border: 2.2px solid #000000;
-  height: 20px;
-  width: 50px;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  margin-top: -6px;
-}
-input[type=range]:focus::-webkit-slider-runnable-track {
-  background: rgb(200,200,200);
-}
-input[type=range]::-moz-range-track {
-  width: 100%;
-  height: 8.4px;
-  cursor: pointer;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  background: #6f6f6f;
-  border-radius: 1.3px;
-  border: 0.2px solid #010101;
-}
-input[type=range]::-moz-range-thumb {
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  border: 2.2px solid #000000;
-  height: 20px;
-  width: 50px;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-}
-input[type=range]::-ms-track {
-  width: 100%;
-  height: 8.4px;
-  cursor: pointer;
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
-}
-input[type=range]::-ms-fill-lower {
-  background: #626262;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range]::-ms-fill-upper {
-  background: #6f6f6f;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range]::-ms-thumb {
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  border: 2.2px solid #000000;
-  height: 20px;
-  width: 50px;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-  height: 8.4px;
-}
-input[type=range]:focus::-ms-fill-lower {
-  background: #6f6f6f;
-}
-input[type=range]:focus::-ms-fill-upper {
-  background: #7c7c7c;
-}
+            input[type=range] {
+              -webkit-appearance: none;
+              width: 100%;
+              margin: 5.8px 0;
+            }
+            input[type=range]:focus {
+              outline: none;
+            }
+            input[type=range]::-webkit-slider-runnable-track {
+              width: 100%;
+              height: 8.4px;
+              cursor: pointer;
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+              background: rgb(200,200,200);
+              border-radius: 1.3px;
+              border: 0.2px solid #010101;
+            }
+            input[type=range]::-webkit-slider-thumb {
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+              border: 2.2px solid #000000;
+              height: 20px;
+              width: 50px;
+              border-radius: 3px;
+              background: #ffffff;
+              cursor: pointer;
+              -webkit-appearance: none;
+              margin-top: -6px;
+            }
+            input[type=range]:focus::-webkit-slider-runnable-track {
+              background: rgb(200,200,200);
+            }
+            input[type=range]::-moz-range-track {
+              width: 100%;
+              height: 8.4px;
+              cursor: pointer;
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+              background: #6f6f6f;
+              border-radius: 1.3px;
+              border: 0.2px solid #010101;
+            }
+            input[type=range]::-moz-range-thumb {
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+              border: 2.2px solid #000000;
+              height: 20px;
+              width: 50px;
+              border-radius: 3px;
+              background: #ffffff;
+              cursor: pointer;
+            }
+            input[type=range]::-ms-track {
+              width: 100%;
+              height: 8.4px;
+              cursor: pointer;
+              background: transparent;
+              border-color: transparent;
+              color: transparent;
+            }
+            input[type=range]::-ms-fill-lower {
+              background: #626262;
+              border: 0.2px solid #010101;
+              border-radius: 2.6px;
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+            }
+            input[type=range]::-ms-fill-upper {
+              background: #6f6f6f;
+              border: 0.2px solid #010101;
+              border-radius: 2.6px;
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+            }
+            input[type=range]::-ms-thumb {
+              box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+              border: 2.2px solid #000000;
+              height: 20px;
+              width: 50px;
+              border-radius: 3px;
+              background: #ffffff;
+              cursor: pointer;
+              height: 8.4px;
+            }
+            input[type=range]:focus::-ms-fill-lower {
+              background: #6f6f6f;
+            }
+            input[type=range]:focus::-ms-fill-upper {
+              background: #7c7c7c;
+            }
 	</style>
 
 	<script>
@@ -124,12 +125,10 @@ input[type=range]:focus::-ms-fill-upper {
 	};
 	</script>
 	
-	<div style="width:100%; text-align:center">
-		<input id="datetext" type="text" style="font-size:large" oninput="update_slider(document.getElementById('datetext').value);"/>
-		
+	<div style="width:100%; text-align:center;">		
 		<p style="font-weight:bold;">
 		1900
-		<input id="dateslider" type="range" style="width:70%; background-color:orange" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
+		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
 		2015
 		<datalist id="ticks">
 		<option>1900</option>
@@ -138,7 +137,6 @@ input[type=range]:focus::-ms-fill-upper {
 		<option>2015</option>
 		</datalist>
 		</p>
-		
 	</div>
 	
 	<script>
@@ -157,13 +155,6 @@ input[type=range]:focus::-ms-fill-upper {
 	
 	
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
-
-	<div id="mapcontainer" style="width:70%; margin-left:15%; height:60vh; padding:0 0 30px 0;">
-
-	<div style="width:100%; height:100%; margins:auto;" id="map">
-	</div>
-	
-	</div>
 	
 	<script defer="defer">
 	var map = new OpenLayers.Map('map');

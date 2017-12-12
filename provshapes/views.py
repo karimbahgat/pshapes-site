@@ -119,6 +119,7 @@ class SearchForm(forms.ModelForm):
     class Meta:
         model = ProvShape
         fields = ["name","country"]
+        widgets = dict(country=forms.Select(choices=[("","")]+[(c.country,c.country) for c in ProvShape.objects.distinct('country')]))
 
 def explore(request):
 
@@ -127,57 +128,19 @@ def explore(request):
     #mapp = render_to_string("provshapes/mapview.html")
 
     initdict = dict(request.GET.items()) if request.GET else {}
-    formfields = SearchForm(initial=initdict).as_p()
-    bannerleft = """
-    <form action="/explore/" method="get">
+    searchform = SearchForm(initial=initdict)
 
-    %s
-    
-    <div style="padding:10px;">
-    <input type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
-    </div>
+##    bannerright = """
+##    <h3 style="color:white; text-align:left;">
+##    Historical Provinces
+##    </h3>
+##    <div style="text-align:left">
+##        <p>
+##        Here you can search, browse, and view a map of all historical provinces that have been coded so far.
+##        </p>
+##    </div>
+##    """
 
-    </form>
-    """ % formfields
-
-    bannerright = """
-    <h3 style="color:white; text-align:left;">
-    Historical Provinces
-    </h3>
-    <div style="text-align:left">
-        <p>
-        Here you can search, browse, and view a map of all historical provinces that have been coded so far.
-        </p>
-    </div>
-    """
-
-    grids = []
-
-    content = """
-    <a class="toptabs" onClick="document.getElementById('maptab').style.display = 'none'; document.getElementById('listtab').style.display = '';">
-    List
-    </a>
-    """
-    
-    grids.append(dict(title="",
-                     content=content,
-                      style="text-align:center; font-size:large; font-weight:bold",
-                     width="10%",
-                     ))
-
-
-    content = """
-    <a class="toptabs" onClick="document.getElementById('maptab').style.display = ''; document.getElementById('listtab').style.display = 'none';">
-    Map
-    </a>
-    """
-    
-    grids.append(dict(title="",
-                     content=content,
-                      style="text-align:center; font-size:large; font-weight:bold",
-                     width="10%",
-                     ))
-    
 
     # main area with table and map
     provs = ProvShape.objects.all().order_by("country", "name", "start")
@@ -187,22 +150,57 @@ def explore(request):
     else:
         filterdict = dict()
 
-    fields = ["name","alterns","country","start","end"]
-    lists = []
-    for p in provs[:50]:
-        rowdict = dict([(f,getattr(p, f, "")) for f in fields])
-        row = [rowdict[f] for f in fields]
-        lists.append(("[Link]",row))
-
-    listtable = lists2table(request, lists, fields)
+    custombanner = render(request, 'provshapes/mapview.html',
+                          dict(getparams=json.dumps(filterdict), searchform=searchform),
+                          ).content
     
-    content = render(request, 'provshapes/mapview.html',
-                          dict(listtable=listtable, getparams=json.dumps(filterdict))
-                          )
-    grids.append(dict(title="",
-                     content=content,
-                     width="100%",
-                     ))
+
+    grids = []
+
+##    content = """
+##    <a class="toptabs" onClick="document.getElementById('maptab').style.display = 'none'; document.getElementById('listtab').style.display = '';">
+##    List
+##    </a>
+##    """
+##    
+##    grids.append(dict(title="",
+##                     content=content,
+##                      style="text-align:center; font-size:large; font-weight:bold",
+##                     width="10%",
+##                     ))
+##
+##
+##    content = """
+##    <a class="toptabs" onClick="document.getElementById('maptab').style.display = ''; document.getElementById('listtab').style.display = 'none';">
+##    Map
+##    </a>
+##    """
+##    
+##    grids.append(dict(title="",
+##                     content=content,
+##                      style="text-align:center; font-size:large; font-weight:bold",
+##                     width="10%",
+##                     ))
+
+
+
+    # add prov table for each country
+    for c in provs.distinct('country')[:4]: # limit to 5 countries for faster loading
+
+        fields = ["name","alterns","start","end"]
+        lists = []
+        for p in provs.filter(country=c.country):
+            rowdict = dict([(f,getattr(p, f, "")) for f in fields])
+            row = [rowdict[f] for f in fields]
+            lists.append(("[Link]",row))
+
+        listtable = lists2table(request, lists, fields)
+        
+        grids.append(dict(title=c.country,
+                         content=listtable,
+                         style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                         width="100%",
+                         ))
 
 ##    content = """
 ##    <div id="provframe">
@@ -247,8 +245,7 @@ def explore(request):
 ##    </script>
 ##    """
 
-    return render(request, 'pshapes_site/base_grid.html', dict(bannerleft=bannerleft,
-                                                               bannerright=bannerright,
+    return render(request, 'pshapes_site/base_grid.html', dict(custombanner=custombanner,
                                                                grids=grids)
                   )
 
