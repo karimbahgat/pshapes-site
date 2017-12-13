@@ -92,8 +92,13 @@ def apiview(request):
 
     # attribute filtering
     print 'apiparams',params
-    if params:
-        queryset = queryset.filter(**params)
+    # special name search
+    if 'name' in params:
+        queryset = queryset.filter(name__icontains=params['name']) | queryset.filter(alterns__icontains=params['name'])
+    # add remaining conditions
+    restdict = dict(((k,v) for k,v in params.items() if k!='name'))
+    if restdict:
+        queryset = queryset.filter(**restdict)
 
     # convert to json
     jsondict = dict(type='FeatureCollection', features=[])
@@ -145,8 +150,16 @@ def explore(request):
     # main area with table and map
     provs = ProvShape.objects.all().order_by("country", "name", "start")
     if request.GET:
+        #filterdict = dict(((k,v) for k,v in request.GET.items() if v))
+        #provs = provs.filter(**filterdict)
         filterdict = dict(((k,v) for k,v in request.GET.items() if v))
-        provs = provs.filter(**filterdict)
+        # special name search
+        if 'name' in request.GET and request.GET['name']:
+            provs = provs.filter(name__icontains=request.GET['name']) | provs.filter(alterns__icontains=request.GET['name'])
+        # add remaining conditions
+        restdict = dict(((k,v) for k,v in filterdict.items() if k!='name'))
+        if restdict:
+            provs = provs.filter(**restdict)
     else:
         filterdict = dict()
 
@@ -184,23 +197,38 @@ def explore(request):
 
 
 
-    # add prov table for each country
-    for c in provs.distinct('country')[:4]: # limit to 5 countries for faster loading
+##    # add prov table for each country
+##    for c in provs.distinct('country')[:2]: # limit to 5 countries for faster loading
+##
+##        fields = ["name","alterns","start","end"]
+##        lists = []
+##        for p in provs.filter(country=c.country):
+##            rowdict = dict([(f,getattr(p, f, "")) for f in fields])
+##            row = [rowdict[f] for f in fields]
+##            lists.append(("[Link]",row))
+##
+##        listtable = lists2table(request, lists, fields)
+##        
+##        grids.append(dict(title=c.country,
+##                         content=listtable,
+##                         style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                         width="100%",
+##                         ))
 
-        fields = ["name","alterns","start","end"]
-        lists = []
-        for p in provs.filter(country=c.country):
-            rowdict = dict([(f,getattr(p, f, "")) for f in fields])
-            row = [rowdict[f] for f in fields]
-            lists.append(("[Link]",row))
+    fields = ["name","alterns","country","start","end"]
+    lists = []
+    for p in provs[:50]:
+        rowdict = dict([(f,getattr(p, f, "")) for f in fields])
+        row = [rowdict[f] for f in fields]
+        lists.append(("[Link]",row))
 
-        listtable = lists2table(request, lists, fields)
-        
-        grids.append(dict(title=c.country,
-                         content=listtable,
-                         style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                         width="100%",
-                         ))
+    listtable = lists2table(request, lists, fields)
+    
+    grids.append(dict(title="Results (first 50 only)",#"Results (showing %s of %s):" % (min(len(provs),50), len(provs)),
+                     content=listtable,
+                     style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                     width="100%",
+                     ))
 
 ##    content = """
 ##    <div id="provframe">

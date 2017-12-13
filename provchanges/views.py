@@ -2426,7 +2426,7 @@ def account(request):
     
     bannerright = """
                     <br><br><br><br><br>
-                    <a href="/update" style="background-color:green; color:white; border-radius:5px; padding:5px">
+                    <a href="/update" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
                         <b>Update Boundary Data</b>
                     </a>
                     <br><br>

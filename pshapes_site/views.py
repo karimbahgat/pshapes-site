@@ -314,13 +314,14 @@ def home(request):
     content = """
                 <h3>{country}</h3>
                 <div style="font-size:small">
-                <p>{date}</p>
-                <a href="provchange/{pk}/view">
-                <p>{fromname} {typ} {toname}</p>
+                <p><b>{date}:</b> {fromname} {typ} {toname}</p>
+                <p><em>(Source: {source})</em></p> 
+
+                <a href="provchange/{pk}/view" style="background-color:rgb(58,180,74); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+                View
                 </a>
-                <p>Source: {source}</p> 
                 
-                <div style="padding-left:50px">{vouchicon}{commenticon}</div>
+                <div style="">{vouchicon}{commenticon}</div>
                 </div>
                 """.format(date=obj.date, country=country, fromname=fromname, typ=typ, toname=toname,
                            vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source)
