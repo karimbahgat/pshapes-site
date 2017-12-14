@@ -761,10 +761,6 @@ def contribute(request):
                         Get Started
                         </a>
 
-                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Read the Guidelines
-                        </a>
-
 
                     </div>
     """
@@ -834,10 +830,6 @@ def allcountries(request):
                         In most cases all that is required is filling out some forms. 
 
                         <br><br>
-
-                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Read the Guidelines
-                        </a>
 
                     </div>
     """
@@ -1333,10 +1325,6 @@ def viewcountry(request, country):
                             </li>
                         </ul>
                         </p>
-
-                        <a href="/guidelines" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Need Help?
-                        </a>
                         
                         </div>
                 """

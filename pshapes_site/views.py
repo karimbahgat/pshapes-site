@@ -3,7 +3,7 @@
 Static page views.
 
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import Template,Context
 from django.contrib.auth.decorators import login_required
 
@@ -368,15 +368,64 @@ def home(request):
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
                   )
 
-def about(request):
-    return render(request, 'pshapes_site/about.html')
+##def about(request):
+##    return render(request, 'pshapes_site/about.html')
+
+about_menu = """
+                    <br>
+
+                    <style>
+                    li {padding-bottom:5px}
+                    </style>
+                    
+                    <div style="text-align:left">
+
+                        <h4>Common Questions</h4>
+
+                        <style>
+                            .blackbackground a { color:white }
+                            .blackbackground a:visited { color:white }
+                        </style>
+
+                        <ul class="blackbackground">
+                        <li><a href="/about/whatispshapes/">What is Pshapes?</a></li>
+                        <li><a href="/about/motivation/">Motivation and Background</a></li>
+                        <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
+                        <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
+                        <li><a href="/about/howitworks/">How Does It Work?</a></li>
+                        <li><a href="/about/contact/">Contact</a></li>
+                        </ul>
+
+                    </div>
+            """
+
+about_banner = """
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+                        
+                        <td style="width:30%; padding:1%; text-align:center; padding:10px; margin:0px; vertical-align:top">
+                        {left}
+                        </td>
+                        
+                        <td style="width:65%; padding:1%; padding:0px; padding-bottom:30px; margin:0px; vertical-align:top; text-align:center">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """
+
+about_grid = []
 
 def about(request):
+    return redirect("/about/whatispshapes")
+
+def about_whatispshapes(request):
     grids = []
     bannertitle = ""
     bannerright = """
                     <br>
-                    <h3 style="text-align:left">About the Pshapes Project</h3>
+                    <h3 style="text-align:left">What is Pshapes?</h3>
                     <div style="text-align:left">
                         <p>
                         The idea behind the Pshapes project is very simple. Most databases of administrative areas avilable today
@@ -386,43 +435,28 @@ def about(request):
                         as well as a method for reconstructing the world's boundaries based on these changes.
                         </p>
                     </div>
-                    """
-    bannerleft = """
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
+                  )
+
+def about_motivation(request):
+    grids = []
+    bannertitle = ""
+    bannerright = """
                     <br>
-                    <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
-                    """
+                    <h3 style="text-align:left">Motivation and Background</h3>
+                    <div class="blackbackground" style="text-align:left">
 
-    grids.append(dict(title="Why Crowdsourcing?",
-                      content="""
-                                <p>
-                                The Pshapes project has a very different structure than other administrative area datasets.
-                                Instead of being carefully collected and coded by a handful of experts, the project has focused
-                                on the speed, efficiency, and quality control of a crowdsourcing approach. Such an approach is only
-                                possible because it was realized that a lot of the work required to make spatially
-                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
-                                repeating the same steps over and over. These repetative tasks can be automated,
-                                while the information needed is actually fairly straightforward and do not require any
-                                expert knowledge or skills.
-                                </p>
-
-                                <p>
-                                This is why we broke these two processes apart: letting users and other contributors take care
-                                of the data entry through the website's user-friendly interface. Then we leave the more difficult parts
-                                of constructing the final dataset up to an automated algorithm with expert supervision.
-                                </p>                                
-                            """,
-                      width="95%",
-                      ))
-
-    grids.append(dict(title="Background and Motivation",
-                      content="""
                         <p>
                         The Pshapes project was first inspired by <a href="http://nils.weidmann.ws/projects/cshapes.html">the Cshapes dataset</a>, which tracks historical
                         country borders and changes since 1946. Hence, the name Pshapes to parallel the Cshapes dataset. 
                         </p>
 
                         <p>
-                        No such historical data exists yet for subnational administrative boundaries (see "Existing Boundary Datasets"). 
+                        No such historical data exists yet for subnational administrative boundaries (see "Aren't There Other Datasets?"). 
                         Sub-national administrative area and boundary data 
                         have in recent years become essential for many analysts and policy makers.
                         The data that currently exist are great for representing
@@ -453,31 +487,37 @@ def about(request):
                         for not only to uncover administrative units' changes for past historical periods,
                         but also to help keep track of future changes as they occur. 
                         </p>
-                            """,
-                      width="95%",
-                      ))
+                        
+                        </div>
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
+                  )
 
+def about_otherdata(request):
+    grids = []
+    bannertitle = ""
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">What About Other Boundary Data?</h3>
+                    <div class="blackbackground" style="text-align:left">
 
-    grids.append(dict(title="Existing Boundary Datasets",
-                      content="""
                                 <p>
-                                For users that are looking for administrative boundary datasets to use in mapping or
-                                analysis there are several options currently available.
+                                Although there are several administrative boundary datasets currently available,
+                                researchers looking to use these for any type of longitudinal 
+                                short or long term historical purpose will quickly find that these become quite limited.
                                 </p>
 
                                 <p>
-                                The strongest and possibly only contender to the Pshapes dataset in terms of historical
+                                The most similar alternative to the Pshapes dataset in terms of historical
                                 changes is <a href="http://www.fao.org/geonetwork/srv/en/metadata.show?id=12691">
-                                the UN's Global Administrative Units Layer (GAUL) data</a>,
-                                which provides yearly snapshots back to 1990. But these data are not publically
-                                availabe to all, and its restrictive license prohibits certain uses.
+                                the UN's Global Administrative Units Layer (GAUL) data</a>.
+                                But these data only provide yearly snapshots,
+                                don't extend further back than 1990, are not publically availabe to all,
+                                and its restrictive license prohibits certain uses.
                                 </p>
-
-                                <p>
-                                Another possible source for historical administrative boundaries is
-                                <a href="https://international.ipums.org/international/gis_yrspecific_1st.shtml">
-                                the IPUMS GIS boundary files</a>. These are only available for a selection of developing countries,
-                                and are only provided as year-specific snapshots which varies across countries. 
 
                                 <p>
                                 In the public domain, possibly the most widely used dataset is <a href=
@@ -491,28 +531,206 @@ def about(request):
                                 light weight and permissive license is <a href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
                                 the Natural Earth Admin-1 dataset of states and provinces.</a>
                                 These data however are also just a snapshot in time, and are not frequently updated.
+                                The same applies to <a href="http://quattroshapes.com/">the Quattroshapes dataset</a>, which extends the
+                                Natural Earth data to include 2nd and lower-level divisions
                                 </p>
 
                                 <p>
-                                Along similar lines, there is also <a href="http://quattroshapes.com/">the Quattroshapes dataset</a>,
-                                an extended version of the
-                                Natural Earth dataset that also includes 2nd and lower-level divisions. However,
-                                due to the varied data sources it is based on, the true legal status and license of the data
-                                remains somewhat dubious. It is also not clear whether this will be updated in the future.
+                                Another possible source for historical administrative boundaries is
+                                <a href="https://international.ipums.org/international/gis_yrspecific_1st.shtml">
+                                the IPUMS GIS boundary files</a>. While these include historical changes, they only provide
+                                snapshots for years in which censuses were held, the boundaries are specific to census tracts, 
+                                and the files are only available for a selection of developing countries.
+                                </p>
+
+                                <p>
+                                Similarly, the <a href="https://spatialdata.dhsprogram.com/boundaries/">
+                                DHS survey program's Spatial Data Repository</a> has started providing historical province
+                                boundary data, but only for the survey-specific sampling regions and years,
+                                and limited to developing countries.
+                                </p>
+                        </div>
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
+                  )
+
+def about_whycrowdsourcing(request):
+    grids = []
+    bannertitle = ""
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">Why Crowdsourcing?</h3>
+                    <div style="text-align:left">
+                                <p>
+                                The Pshapes project has a very different structure than other administrative area datasets.
+                                </p>
+
+                                <p>
+                                Instead of being carefully collected and coded by a handful of experts, the project has focused
+                                on the speed, efficiency, and quality control of a crowdsourcing approach.
+                                Due to the vast amount of work in coding all historical changes for the entire globe,
+                                crowdsourcing helps spread the cost of coding and increases the incentives for contributing. 
+
+                                <p>Such an approach is only
+                                possible because it was realized that a lot of the work required to make spatially
+                                integrated boundary data is wasted on duplicative and strenous work by GIS experts manually
+                                repeating the same steps over and over. These repetative tasks can be automated,
+                                while the information needed is actually fairly straightforward and do not require any
+                                expert knowledge or skills.
+                                </p>
+
+                                <p>
+                                This is why we broke these two processes apart:
+                                <ul>
+                                <li>Letting users and other contributors take care
+                                of the data entry through the website's user-friendly interface, </li>
+                                <li>while leaving the more difficult parts
+                                of constructing the final dataset up to an automated algorithm with expert supervision.</li>
+                                </ul>
+                                </p>
+
+                        </div>
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
+                  )
+
+def about_howitworks(request):
+    grids = []
+    bannertitle = ""
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">How Does It Work?</h3>
+                    <div style="text-align:left">
+
+                            <p>
+                            Since Pshapes is based on the idea of 
+                            automating the more technical and repepative tasks, this means that we need a system
+                            that can successfully process the user information and construct the final dataset at a later point.
+                            </p>
+
+                            <p>
+                            We describe this system her:
+                            </p>
+
+                            <ol>
+
+                                <li>
+                                The system starts by asking for a
+                                complete global dataset of province boundaries reflecting how the situation looks like
+                                on a given (preferably recent) date. This can be any third-party dataset, including the ones listed earlier. 
+                                </li>
+
+                                <li>It then increments through the events listed in the Pshapes change-data, starting with the
+                                most recent and going gradually further back in time. 
+                                </li>
+
+                                <li>
+                                As the Pshapes change-events are processed in reverse chronological order, they can be boiled down to three basic types.
+                                </li>
+
+                                    <ul>
+
+                                    <li>
+                                    <b>NewInfo</b>
+                                    Most changes simply involve changes to a province name or code. These events are handled
+                                    by simply noting the start-date of the existing modern province, and then adding a new province
+                                    that ends on that same date. Any subsequent changes involving that province will in turn result in
+                                    registering its start-date, before again adding the next historical iteration of that province.
+                                    <br><br>
+                                    </li>
+
+                                    <li>
+                                    <b>Splits</b>
+                                    If on a given date a split event was registered, this means that the current state of our boundary
+                                    dataset contains all the resulting breakaway
+                                    provinces and that these used to belong to a single large province. To
+                                    recreate this older province all we have to do is glue together the geometries of the provinces
+                                    that were registered as splitting away (incl. the remnants of the original province in case
+                                    the split was incomplete).
+                                    <br><br>
+                                    </li>
+                                    
+                                    <li>
+                                    <b>Transfers and Mergers</b>
+                                    The last type of change include events where a province receives territory from one or
+                                    more other provinces. 
+                                    If the receiving province was pre-existing then we are talking about a partial transfer of
+                                    territory. Since our boundary data represents the larger version of the province after it
+                                    received the territory, all that is needed is to cut off the piece that was received (based on a
+                                    cookie-cutter polygon that users draw when encountering such events) and glue it
+                                    back together to the province that originally gave away the territory.
+                                    The same principle applies if the receiving province did not previously exist but instead came
+                                    into existence as a result of two or more such transfers.
+                                    Finally, transfers can also involve the full transfer of entire provinces that afterwards cease to exist.
+                                    These are often known as mergers or annexations, but they are handled in the same way as other transfers
+                                    of territories: cut it off and give it back to its previous owner.
+                                    <br><br>
+                                    </li>
+
+                                    </ul>
+
+                                <li>
+                                Multiple complex configuratios of these changes can occur in a single event,
+                                and when processed in this way, the jigzaw puzzle of broken off parts and changing
+                                ownerships will reorganize itself to recreate how the provinces
+                                looked prior to the event.
+                                </li>
+
+                                <li>
+                                Through repeating this process we can reverse geocode our
+                                way back in time for as long as we have a continuous list of changes. 
+                                </li>
+
+                            </ol>
+
+                            <p>
+                            By having this automated system in place, this enables use to simplify the data collection strategy so that users
+                            only code the pieces of information or parts that changed (not performing the actual modifications).
+                            </p>
+
+                            <p>
+                            One of the benefits of automating the dataset construction, is that performing 
+                            iterative manual changes would have required that the reference dataset be chosen in advance, essentially
+                            locking in and tying down all the labor to that particular data, making it vulnerable to any particular
+                            errors or reconsiderations discovered later on.
+                            By focusing on replication and automation we can 
+                            instead harness all the work put in so it can be reused for multiple different purposes. 
+                            </p>
+                                
+                        </div>
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
+                  )
+
+def about_contact(request):
+    grids = []
+    bannertitle = ""
+    bannerright = """
+                    <br>
+                    <h3 style="text-align:left">Contact</h3>
+                    <div style="text-align:left">
+                                <p>
+                                We welcome any questions, issues, or feature requests you may have.
+                                </p>
+                                <p>
+                                To do so, please contact Karim Bahgat (karim.bahgat.norway@gmail.com). 
                                 </p>                                
-                            """,
-                      width="95%",
-                      ))
+
+                        </div>
+                            """
+    bannerleft = about_menu
+    custombanner = about_banner.format(left=bannerleft, right=bannerright)
     
-    grids.append(dict(title="Contact",
-                      content="""
-                            For questions, issues, or feature requests, please contact
-                            Karim Bahgat (karim.bahgat.norway@gmail.com). 
-                            """,
-                      width="95%",
-                      ))
-    
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
                   )
 
 def download(request):
@@ -554,27 +772,47 @@ def download(request):
 ##                                This tool is open-source and freely available to programmers,
 ##                                allowing users to create their own historical versions of any input province dataset.
 
-    grids.append(dict(title="Building Your Own", # <img width="50%" src="https://assets-cdn.github.com/images/modules/logos_page/Octocat.png">
+    grids.append(dict(title="Raw Data Dump", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
                       content="""
-                            <p><b>
-                                The raw user-contributed data is freely avilable and can used to build a historical boundary dataset
-                                based on any third-party province data. For your convenience we also provide the Pshapes reverse polygon geocoding
-                                tool, which is open-source and freely available to programmers. 
+                                <b>
+                                The latest data dump of the user
+                                contributions data is always available on-demand. This is the raw data
+                                used to replicate or rebuild the pshapes dataset.
 
                                 <div style="text-align:center">
                                 <table>
                                     <tr>
-                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>Raw Data</p></a></td>
-                                        <td style="text-align:center"><a href="https://github.com/karimbahgat/pshapes"><img width="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg"><p>GitHub</p></a></td>
+                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
+                                        <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
                                     </tr>
                                 </table>
                                 </div>
 
-                            </b>
-                            </p>
-                            """,
+                                </b>
+                               """,
                       width="46%",
                       ))
+
+    grids.append(dict(title="Building Your Own", # <img width="50%"
+                      content="""
+                                <b>
+                                <table>
+                                <tr>
+                                    <td>
+                                    The Pshapes framework uses reverse polygon geocoding to interpret
+                                    the user-contributed data and create the final historical boundary dataset.
+                                    This tool is open-source and freely available to programmers,
+                                    allowing users to create their own historical versions of any input province dataset.
+                                    </td>
+
+                                    <td style="text-align:center"><a href="https://github.com/karimbahgat/pshapes"><img width="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg"><p>GitHub</p></a></td>
+
+                                </table>
+                                </tr>
+                                </b>
+                                """,
+                      width="46%",
+                      ))                      
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
