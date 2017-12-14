@@ -107,9 +107,9 @@ STATIC_URL = '/static/'
 INSTALLED_APPS = list(INSTALLED_APPS)
 
 # geo enable
-GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal202.dll"
-GEOS_LIBRARY_PATH = "C:/OSGeo4W/bin/geos_c.dll"
-PROJ_LIBRARY_PATH = "C:/OSGeo4W/bin/proj.dll"
+#GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal202.dll"
+#GEOS_LIBRARY_PATH = "C:/OSGeo4W/bin/geos_c.dll"
+#PROJ_LIBRARY_PATH = "C:/OSGeo4W/bin/proj.dll"
 import dj_database_url
 DATABASES['default'] =  dj_database_url.config()
 DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
