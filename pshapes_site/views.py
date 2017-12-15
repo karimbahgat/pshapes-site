@@ -323,8 +323,8 @@ def home(request):
                 
                 <div style="">{vouchicon}{commenticon}</div>
                 </div>
-                """.format(date=obj.date, country=country, fromname=fromname, typ=typ, toname=toname,
-                           vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source)
+                """.format(date=obj.date, country=country.encode("utf8"), fromname=fromname.encode("utf8"), typ=typ, toname=toname.encode("utf8"),
+                           vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source.encode("utf8"))
 
     grids.append(dict(title="Random Check:",
                       content=content,

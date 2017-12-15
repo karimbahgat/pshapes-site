@@ -33,10 +33,10 @@ urlpatterns = [
     # -----------
     # CONTRIBUTE
     url('^contribute/$', "provchanges.views.contribute"),
-    url('^guidelines/$', "provchanges.views.guidelines_understanding"),
-    url('^guidelines/understanding/$', "provchanges.views.guidelines_understanding"),
-    url('^guidelines/codingrules/$', "provchanges.views.guidelines_codingrules"),
-    url('^guidelines/mapping/$', "provchanges.views.guidelines_mapping"),
+    #url('^guidelines/$', "provchanges.views.guidelines_understanding"),
+    #url('^guidelines/understanding/$', "provchanges.views.guidelines_understanding"),
+    #url('^guidelines/codingrules/$', "provchanges.views.guidelines_codingrules"),
+    #url('^guidelines/mapping/$', "provchanges.views.guidelines_mapping"),
 
     # country
     url('^contribute/view/(?P<country>[^/]+)/$', "provchanges.views.viewcountry"),

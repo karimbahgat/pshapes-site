@@ -7,9 +7,15 @@
 
             {{ searchform.country.label }} {{ searchform.country }}
             {{ searchform.name.label }} {{ searchform.name }}
+
+            <script>
+            submitsearch = function() {
+                    document.getElementById("searchbutton").click();
+                }
+            </script>
             
             <div style="padding:10px; display:inline-block;">
-            <input type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+            <input id="searchbutton" type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
             </div>
 
             </form>
@@ -293,8 +299,8 @@
 		for (feat of document.allProvs) {
 			var start = feat.attributes.start;
 			var end = feat.attributes.end;
-			if (start <= date && date < end ) {
-				if (!(feat.attributes.country in document.countryColors)) {
+			if (start <= date && end > date ) {
+				if ( ! (feat.attributes.country in document.countryColors)) {
 					// assign random color for country
 					document.countryColors[feat.attributes.country] = getRandomColor();
 				};

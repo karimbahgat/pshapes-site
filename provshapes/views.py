@@ -124,7 +124,8 @@ class SearchForm(forms.ModelForm):
     class Meta:
         model = ProvShape
         fields = ["name","country"]
-        widgets = dict(country=forms.Select(choices=[("","")]+[(c.country,c.country) for c in ProvShape.objects.distinct('country')]))
+        widgets = dict(country=forms.Select(attrs={'onchange':'submitsearch()'},
+                                            choices=[("","")]+[(c.country,c.country) for c in ProvShape.objects.distinct('country')]))
 
 def explore(request):
 

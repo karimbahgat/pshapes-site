@@ -1304,27 +1304,238 @@ def viewcountry(request, country):
                             #blackbackground a:visited { color:grey }
                         </style>
                         
-                        <div id="blackbackground" style="text-align: left">
-                        <h3>Step 2:</h3>
-                        <p>Read up on the administrative change-history at the <a target="_blank" href="http://www.statoids.com">the Statoids website</a>
-                        and register new events to the timeline below.</p>
-                        <h4>Alternative Sources:</h4>
-                        <p style="font-size:medium; font-style:italic">
-                        <ul>
+                        <div id="blackbackground" style="text-align: left;">
 
-                            <li>
-                            <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                            </li>
 
-                            <li>
-                            <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
-                            </li>
+                        <b>
+                        <a id="instrnext" style="float:right; padding:5px" onclick="nextstep()">Next</a>
+                        <a id="instrprev" style="float:right; padding:5px" onclick="prevstep()">Prev</a>
+                        </b>
 
-                            <li>
-                            <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
-                            </li>
-                        </ul>
-                        </p>
+                        <h3>Instructions:</h3>
+
+                        <style>
+                        .instrnotsel {
+                            font-size: medium;
+                        }
+                        .instrsel {
+                            font-size: xx-large;
+                        }
+                        </style>
+
+                        <script>
+                        function showinstruction(num) {
+                            var steps = document.getElementById("instrsteps").children
+                            for (var i = 0; i < steps.length; i++) {
+                                var step = steps[i];
+                                step.style.display = "none";
+                            };
+                            document.getElementById("instrstepheader").innerHTML = num;
+                            document.getElementById("instr"+num).style.display = "block";
+                            
+                            if (num == 1) {
+                                document.getElementById("instrprev").style.display = "none";
+                            } else if (num == steps.length) {
+                                document.getElementById("instrnext").style.display = "none";
+                            } else {
+                                document.getElementById("instrprev").style.display = "block";
+                                document.getElementById("instrnext").style.display = "block";
+                            };
+                        };
+
+                        function nextstep() {
+                            var curstep = document.getElementById("instrstepheader").innerHTML;
+                            var newstep = parseInt(curstep) + 1;
+                            showinstruction(newstep);
+                        };
+
+                        function prevstep() {
+                            var curstep = document.getElementById("instrstepheader").innerHTML;
+                            var newstep = parseInt(curstep) - 1;
+                            showinstruction(newstep);
+                        };
+                        </script>
+
+                        <h1 id="instrstepheader" style="display:none;">1</h1>
+
+                        <div id="instrsteps">
+                        
+                            <div id="instr1">
+                                <h2>1 - Read up</h2>
+                                <p>
+                                Read up on the administrative history of the country, starting in the present time and working yourself backwards.
+                                </p>
+                                <h4>Recommended Sources:</h4>
+                                <p style="font-size:medium; font-style:italic">
+                                <ul>
+                                    <li>
+                                    <a target="_blank" href="http://www.statoids.com">Statoids website</a>
+                                    </li>
+                                    
+                                    <li>
+                                    <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                                    </li>
+
+                                    <li>
+                                    <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
+                                    </li>
+
+                                    <li>
+                                    <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
+                                    </li>
+                                </ul>
+                                </p>
+                            </div>
+
+                            <div id="instr2">
+                                <h2>2 - Dates</h2>
+                                <p>
+                                Each time you encounter a new date, register the date to the timeline.
+                                </p>
+                                <p>
+                                If the exact date is not known, then just set the date to the earliest
+                                possible date (e.g. 1st of the month, or 1st of january of the year).
+                                </p>
+                            </div>
+
+                            <div id="instr3">
+                                <h2>3 - Levels</h2>
+                                <p>
+                                For each date, look for changes to the the first-level administrative areas,
+                                the highest level in a country.
+                                </p>
+                                <p>
+                                Some countries have a special administrative level between the national and
+                                1st level, often referred to as "regions". These tend to be so big that sometimes there are only two of them.
+                                In Pshapes we prefer to ignore these regions and instead focus on the level below. When in doubt follow
+                                a rule that they should be small enough to provide good variation within the country and big enough that it
+                                is feasible to get complete information on all of its changes.
+                                </p>
+                                <p>
+                                If unsure about the correct level, leave a comment.
+                                </p>
+                            </div>
+
+                            <div id="instr4">
+                                <h2>4 - Adding Events</h2>
+                                <p>
+                                On any given date, a province may experience one or more of the four basic event types:
+                                information, mergers, transfers, and splits. An event may involve multiple individual
+                                changes, such as a province splitting into multiple new provinces. 
+                                </p>
+                                <p>
+                                To identify the province involved in an event, note that
+                                provinces are linked together either via their name, or any of their
+                                identifier codes, so try to keep these consistent with existing entries.
+                                </p>
+                                <p>
+                                For events where all provinces experienced the same change, e.g. changed from
+                                'province' to 'district', or a country merged entirely into another country,
+                                you may set the name to * (star) to avoid having to register each province
+                                individually. 
+                                </p>
+                            </div>
+
+                            <div id="instr5">
+                                <h2>5 - Mapping</h2>
+                                <p>
+                                One of the great things about the Pshapes project is that for the vast majority of province changes we do not
+                                need to consult historical maps or use valuable time on geocoding.
+                                </p>
+                                <p>
+                                For some types of changes however there is simply no way around it. In these situations, namely mergers and
+                                partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. To do this you will
+                                need to locate an image file of a historical map and to georeference it at the <a target="_blank" href="http://mapwarper.net/">MapWarper website</a>.
+                                </p>
+
+                                <p>
+                                <h4>Recommended Map Sources:</h4>
+                                <ul>
+                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
+                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
+                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+                                </ul>
+                                </p>
+                            </div>
+
+                            <div id="instr6">
+                                <h2>6 - Minor Changes</h2>
+                                <p>
+                                In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
+                                listed as partial territorial transfers and drawn roughly by hand.
+                                </p>
+                                <p>
+                                However, if the change seems very small,
+                                or if there are too many of these types of minor changes, it is okay to ignore most of them and only focus on
+                                the big changes.
+                                </p>
+                            </div>
+
+                            <div id="instr7">
+                                <h2>7 - Between Countries</h2>
+                                <p>
+                                Sometimes you will come across cases where territory might be
+                                transferred to or change ownership from one country to another.
+                                Especially as you go further back in time you may encounter historic countries that don't exist anymore. 
+                                </p>
+                                <p>
+                                The way to code changes between countries is to
+                                register the event as usual, except changing the from-country field.
+                                </p>
+                                <p>
+                                For instance, for each of the ex-Soviet
+                                countries all of their provinces must be registered as changing info from the Soviet Union. The new country name
+                                as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
+                                </p>
+                            </div>
+
+                            <div id="instr8">
+                                <h2>8 - Defining Countries</h2>
+                                <p>
+                                It might not always be clear what constitutes a country. At all times follow what seems to have been the most
+                                internationally recognized country-units and names.
+                                </p>
+                                <p>
+                                For territories under foreign colonial rule, these should be
+                                coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
+                                changes in their official name, avoid changing the country name.
+                                </p>
+                            </div>
+
+                            <div id="instr9">
+                                <h2>9 - Finished?</h2>
+                                <p>
+                                If you are finished coding a country or believe it's not possible to code further
+                                back in time, then indicate this by adding the special "Begin" event.
+                                </p>
+                                <p>
+                                Set this for all provinces (name = *) with the date
+                                as the date beyond which we lack information about the administrative units.
+                                </p>
+                                <p>
+                                Begin events are important for reverse geocoding and visualizing provinces,
+                                especially for provinces that don't change much. 
+                                <p>
+                                Setting a Begin event does not not have to be final or definitive. It will always be possible to code a little further back in time, or others may sit on information
+                                that you don't have. When the situation changes, you may simply edit your own Begin event, or others
+                                may add their own Begin events. 
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <script>
+                        showinstruction(1)
+                        </script>
                         
                         </div>
                 """
@@ -1340,7 +1551,7 @@ def viewcountry(request, country):
                         {left}
                         </td>
                         
-                        <td style="width:48%; padding:1%; padding:0px; margin:0px">
+                        <td style="width:48%; padding:1%; padding:0px; margin:0px; vertical-align:text-top;">
                         {right}
                         </td>
 
@@ -2494,35 +2705,35 @@ from django.forms.widgets import RadioFieldRenderer
 EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                          "short": "A change was made to a province's name, codes, or capital.",
                           "descr": """
-                                    Description...
+                                    
                                     """,
                           "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                           },
               "Split": {"label": "Split",
-                               "short": "A province split into multiple new ones",
+                               "short": "A province split into multiple new ones or lost territory to one or more breakaway regions.",
                               "descr": """
-                                        Description...
+                                        
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
              "Merge": {"label": "Merge",
                               "short": "One or more provinces merged entirely into another province.",
                               "descr": """
-                                        Description...
+                                        
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
              "Transfer": {"label": "Transfer",
                               "short": "One or more provinces gave parts of their territories to another province.",
                               "descr": """
-                                        Description...
+                                        
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
              "Begin": {"label": "Begin",
                               "short": "Marks the earliest known record for this province.",
                               "descr": """
-                                        Description...
+                                        
                                         """,
                               "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
                               },
