@@ -221,9 +221,10 @@ def home(request):
                     </div>
                     <br>
                     """ % shortdescr
+    #<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
     bannerleft = """
                     <br>
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
+                    <img src="/static/webfrontimg.png" width="80%%">
                     <p>
                     %s
                     </p>
@@ -487,6 +488,11 @@ def about_motivation(request):
                         for not only to uncover administrative units' changes for past historical periods,
                         but also to help keep track of future changes as they occur. 
                         </p>
+
+                        <p>
+                        The Pshapes project is the work of <a href="https://github.com/karimbahgat">Karim Bahgat</a> and started development in 2016,
+                        but was not finalized for alpha release until late 2017. 
+                        </p>
                         
                         </div>
                             """
@@ -615,7 +621,7 @@ def about_howitworks(request):
                             </p>
 
                             <p>
-                            We describe this system her:
+                            The final dataset is created as follows:
                             </p>
 
                             <ol>
@@ -690,7 +696,7 @@ def about_howitworks(request):
                             </ol>
 
                             <p>
-                            By having this automated system in place, this enables use to simplify the data collection strategy so that users
+                            By having this automated system in place, this enables us to simplify the data collection strategy so that users
                             only code the pieces of information or parts that changed (not performing the actual modifications).
                             </p>
 
@@ -719,10 +725,13 @@ def about_contact(request):
                     <h3 style="text-align:left">Contact</h3>
                     <div style="text-align:left">
                                 <p>
-                                We welcome any questions, issues, or feature requests you may have.
+                                The Pshapes framework is still in early alpha version and continually evolving.
+                                As a community platform the main goal is to make it as easy and user-friendly as
+                                possible. 
                                 </p>
                                 <p>
-                                To do so, please contact Karim Bahgat (karim.bahgat.norway@gmail.com). 
+                                For any questions, issues, or feature requests,
+                                please contact Karim Bahgat (karim.bahgat.norway@gmail.com). 
                                 </p>                                
 
                         </div>
@@ -762,7 +771,7 @@ def download(request):
                     """
     bannerleft = """
                     <div style="text-align:center; padding:20px">
-                        <img style="width:100%" src="https://upload.wikimedia.org/wikipedia/commons/0/09/BlankMap-World-v2.png">
+                        <img style="width:100%" src="/static/webdownloadimg.png">
 		    </div>
 		    """    
 

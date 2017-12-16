@@ -99,7 +99,7 @@ urlpatterns = [
     url('^update/$', "provshapes.views.update_dataset"),
     url('^api/$', "provshapes.views.apiview"),
     
-    url(r'^admin/$', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 
 
     

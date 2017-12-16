@@ -2707,35 +2707,35 @@ EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                           "descr": """
                                     
                                     """,
-                          "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                          "img": '<img style="width:100px" src="/static/webnewinfo.png"/>',
                           },
               "Split": {"label": "Split",
                                "short": "A province split into multiple new ones or lost territory to one or more breakaway regions.",
                               "descr": """
                                         
                                         """,
-                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              "img": '<img style="width:100px" src="/static/websplit.png"/>',
                               },
              "Merge": {"label": "Merge",
                               "short": "One or more provinces merged entirely into another province.",
                               "descr": """
                                         
                                         """,
-                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              "img": '<img style="width:100px" src="/static/webmerge.png"/>',
                               },
              "Transfer": {"label": "Transfer",
                               "short": "One or more provinces gave parts of their territories to another province.",
                               "descr": """
                                         
                                         """,
-                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              "img": '<img style="width:100px" src="/static/webtransfer.png"/>',
                               },
              "Begin": {"label": "Begin",
                               "short": "Marks the earliest known record for this province.",
                               "descr": """
                                         
                                         """,
-                              "img": '<img style="width:100px" src="http://www.gov.mb.ca/conservation/climate/images/climate_affect.jpg"/>',
+                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
                               },
                }
 
