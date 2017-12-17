@@ -32,7 +32,7 @@ urlpatterns = [
 
     # -----------
     # CONTRIBUTE
-    url('^contribute/$', "provchanges.views.contribute"),
+    #url('^contribute/$', "provchanges.views.contribute"),
     #url('^guidelines/$', "provchanges.views.guidelines_understanding"),
     #url('^guidelines/understanding/$', "provchanges.views.guidelines_understanding"),
     #url('^guidelines/codingrules/$', "provchanges.views.guidelines_codingrules"),

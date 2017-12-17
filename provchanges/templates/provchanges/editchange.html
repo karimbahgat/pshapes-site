@@ -20,25 +20,27 @@
 					<legend>General Information</legend>
 					{{ generalchange.as_p }}
 				</fieldset>
-				
-				<fieldset>
-					<legend>From Province</legend>
-					{{ fromchange.as_p }}
-				</fieldset>
-				
+
 				<fieldset>
 					<legend>Type of Change</legend>
 					{{ typechange.as_p }}
 				</fieldset>
 				
-				<fieldset>
-					<legend>Geo Change</legend>
-					{{ geochange.as_p }}
+				<div>
+				<fieldset style="float:left; width:47%">
+					<legend>From Province</legend>
+					{{ fromchange.as_p }}
 				</fieldset>
-				
-				<fieldset>
+
+				<fieldset style="width:47%">
 					<legend>To Province</legend>
 					{{ tochange.as_p }}
+				</fieldset>
+				</div>
+				
+				<fieldset>
+					<legend>Geo Change</legend>
+					{{ geochange.as_simple }}
 				</fieldset>
 				
 				<input type="submit" value="Submit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; float:right; margin:10px;">
