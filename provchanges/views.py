@@ -38,6 +38,21 @@ class CommentForm(forms.ModelForm):
                    'status':forms.HiddenInput(),
                    }
 
+class ReplyForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = 'user country changeid added status title text'.split()
+        widgets = {"text":forms.Textarea(attrs=dict(cols=90,rows=5)),
+                   'title':forms.HiddenInput(),
+                   'user':forms.HiddenInput(),
+                   'country':forms.HiddenInput(),
+                   'changeid':forms.HiddenInput(),
+                   'added':forms.HiddenInput(),
+                   'status':forms.HiddenInput(),
+                   }
+
+@login_required
 def addcomment(request):
     data = request.POST
     if 'changeid' in data:
@@ -49,6 +64,7 @@ def addcomment(request):
         print 'comment added'
     return redirect(request.META['HTTP_REFERER'])
 
+@login_required
 def dropcomment(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
     comment.status = 'Withdrawn'
@@ -56,6 +72,7 @@ def dropcomment(request, pk):
     print 'comment dropped'
     return redirect(request.META['HTTP_REFERER'])
 
+@login_required
 def addvouch(request, pk):
     # pk belongs to provchange
     change = get_object_or_404(ProvChange, pk=pk)
@@ -72,6 +89,7 @@ def addvouch(request, pk):
             vouch.save()
     return redirect(request.META['HTTP_REFERER'])
 
+@login_required
 def withdrawvouch(request, pk):
     vouch = get_object_or_404(Vouch, user=request.user.username, changeid=pk)
     if request.user.username == vouch.user:
@@ -1786,36 +1804,39 @@ def viewevent(request, country, province):
                             """.format(top=top, left=left, mid=mid, right=right)
 
 
-            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
-            pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
-                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
-
-            grids.append(dict(title="Pending Edits",
-                              content=pendingeditstable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
-
-            oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
-            oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
-                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
-
-            grids.append(dict(title="Revision History",
-                              content=oldversionstable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
+##            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+##            if pendingedits:
+##                pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
+##                                          fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+##
+##                grids.append(dict(title="Pending Edits",
+##                                  content=pendingeditstable,
+##                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                                  width="99%",
+##                                  ))
+##
+##            oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+##            if oldversions:
+##                oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
+##                                          fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+##
+##                grids.append(dict(title="Revision History",
+##                                  content=oldversionstable,
+##                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                                  width="99%",
+##                                  ))
 
             # NOT SURE BOUT FROMCOUNTRY HERE...
             conflicting = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
-            conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
-                                          fields=["date","type","fromname","toname","country","user","added","status"])
+            if conflicting:
+                conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
+                                              fields=["date","type","fromname","toname","country","user","added","status"])
 
-            grids.append(dict(title="Conflicting Submissions",
-                              content=conflictingtable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
+                grids.append(dict(title="Conflicting Submissions",
+                                  content=conflictingtable,
+                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                                  width="99%",
+                                  ))
 
         else:
             # newinfo event just added, so no change objects yet
@@ -2164,36 +2185,38 @@ def viewevent(request, country, province):
                             """.format(top=top, left=left, mid=mid, right=right)
 
 
-            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
-            pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
-                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
-
-            grids.append(dict(title="Pending Edits",
-                              content=pendingeditstable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
-
-            oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
-            oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
-                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
-
-            grids.append(dict(title="Revision History",
-                              content=oldversionstable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
+##            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+##            pendingeditstable = model2table(request, title="New Edits:", objects=pendingedits,
+##                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+##
+##            grids.append(dict(title="Pending Edits",
+##                              content=pendingeditstable,
+##                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                              width="99%",
+##                              ))
+##
+##            oldversions = ProvChange.objects.filter(changeid=change.changeid, status="NonActive").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
+##            oldversionstable = model2table(request, title="Revision History:", objects=oldversions,
+##                                      fields=["date","type","fromname","fromcountry","toname","tocountry","user","added","status"])
+##
+##            grids.append(dict(title="Revision History",
+##                              content=oldversionstable,
+##                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                              width="99%",
+##                              ))
 
             # NOT SURE BOUT FROMCOUNTRY HERE...
-            conflicting = ProvChange.objects.filter(tocountry=country, date=date, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
-            conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
-                                          fields=["date","fromname","fromcountry","toname","tocountry","user","added","status"])
+            # NOTE: not matching on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting
+            conflicting = ProvChange.objects.filter(tocountry=country, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
+            if conflicting:
+                conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
+                                              fields=["date","fromname","fromcountry","toname","tocountry","user","added","status"])
 
-            grids.append(dict(title="Conflicting Submissions",
-                              content=conflictingtable,
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
+                grids.append(dict(title="Conflicting Submissions",
+                                  content=conflictingtable,
+                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                                  width="99%",
+                                  ))
 
         else:
             raise Exception('UNEXPECTED ERROR, NO BEGIN CHANGE?')
@@ -2467,14 +2490,14 @@ def viewchange(request, pk):
                 field.widget.attrs['readonly'] = "readonly"
 
     # comments by topic
-    topictables = dict()
+    topics = []
     allcomments = Comment.objects.filter(changeid=change.changeid, status="Active")
     for c in allcomments.distinct('title'):
         title = c.title
         print title
         comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
         fields = ["added","user","text","withdraw"]
-        lists = []
+        rows = []
         for c in comments:
             rowdict = dict([(f,getattr(c, f, "")) for f in fields])
             rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
@@ -2486,12 +2509,24 @@ def viewchange(request, pk):
                                 </a>
                                 </div>
                                     '''.format(pk=c.pk)
-            row = [rowdict[f] for f in fields]
-            lists.append(("",row))
-        topictables[title] = lists2table(request, lists=lists,
-                                            fields=["Added","User","Comment",""])
+            rows.append(rowdict)
+        addreplyobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
+                                added=datetime.datetime.now(), title=title)
+        replyform = ReplyForm(instance=addreplyobj).as_p()
+        topics.append((title,rows,replyform))
 
-    args['topictables'] = "".join(("<h4>Topic: %s</h4>"%title + topictable for title,topictable in topictables.items()))
+    print topics
+
+    #topics = [(title,comm) for title,comm in sorted(topics.items(), key=lambda t,c: c[0]['added'])]
+    args['topics'] = topics
+
+    # try to emulate https://cloud.netlifyusercontent.com/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b549e4a7-f9d9-4f64-b597-21c7d8f2a166/facebook-comments.png
+    # user icon: "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
+
+
+    
+
+    
 
     # count of all comm
     comments = allcomments.order_by("added") # the dash reverses the order
@@ -2500,7 +2535,7 @@ def viewchange(request, pk):
     # new comm    
     addcommentobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
                             added=datetime.datetime.now())
-    args["add_comment"] = CommentForm(instance=addcommentobj).as_p()
+    args["new_comment"] = CommentForm(instance=addcommentobj).as_p()
                 
     html = render(request, 'provchanges/viewchange.html', args)
         
@@ -2690,9 +2725,9 @@ def account(request):
 
     # user contribs
     changelist = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
-    rendered = model2table(request, '', changelist, ['user','added','fromcountry','fromname','type','status'])
+    rendered = model2table(request, '', changelist[:50], ['user','added','fromcountry','fromname','type','status'])
 
-    grids.append(dict(title="Your Contributions:",
+    grids.append(dict(title="Your Contributions (last 50 only):",
                       content=rendered,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="100%",
