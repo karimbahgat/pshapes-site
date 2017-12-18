@@ -2807,7 +2807,7 @@ def account(request):
     if request.user.is_staff:
         bannerright = """
                         <br><br><br><br><br>
-                        <a href="/update" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
+                        <a href="/update" onClick="alert('The website boundary data will now be updated (from GitHub), this may take a while.');" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
                             <b>Update Boundary Data</b>
                         </a>
                         <br><br>

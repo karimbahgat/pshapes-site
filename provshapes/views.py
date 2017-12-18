@@ -16,45 +16,51 @@ from rest_framework import decorators
 import urllib2
 import json
 import datetime
+import threading
 
 def update_dataset(request):
     if request.user.is_staff:
-        print 'deleting existing...'
-        ProvShape.objects.all().delete()
-        print 'downloading...'
-        raw = urllib2.urlopen('https://github.com/karimbahgat/pshapes/raw/master/processed.geojson').read()
-        datadict = json.loads(raw)
-        print 'adding', datadict.keys(), len(datadict['features'])
-        for feat in datadict['features']:
-            props = feat['properties']
-            values = dict(name=props['Name'],
-                          alterns='|'.join(props['Alterns']),
-                          country=props['country'],
-                          iso=props['ISO'],
-                          fips=props['FIPS'],
-                          hasc=props['HASC'],
-                          start=props['start'],
-                          end=props['end'],
-                          )
-            print values
-##            values = dict()
-##            for fl in ProvShape._meta.fields:
-##                flname = fl.name
-##                print flname
-##                if flname == 'id':
-##                    continue
-##                values[flname] = feat[flname]
-            if feat['geometry']['type'] == 'Polygon':
-                polys = [Polygon(*feat['geometry']['coordinates'])]
-            elif feat['geometry']['type'] == 'MultiPolygon':
-                polys = [Polygon(*poly) for poly in feat['geometry']['coordinates']]
-            else:
-                raise Exception('Geometry must be polygon or multipolygon, not %s' % feat['geometry']['type'])
-            #print str(polys)[:100]
-            values['geom'] = MultiPolygon(*polys)
-            provshape = ProvShape(**values)
-            provshape.save()
-        print 'provshapes updated!'
+        def work():
+            print 'deleting existing...'
+            ProvShape.objects.all().delete()
+            print 'downloading...'
+            raw = urllib2.urlopen('https://github.com/karimbahgat/pshapes/raw/master/processed.geojson').read()
+            datadict = json.loads(raw)
+            print 'adding', datadict.keys(), len(datadict['features'])
+            for feat in datadict['features']:
+                props = feat['properties']
+                values = dict(name=props['Name'],
+                              alterns='|'.join(props['Alterns']),
+                              country=props['country'],
+                              iso=props['ISO'],
+                              fips=props['FIPS'],
+                              hasc=props['HASC'],
+                              start=props['start'],
+                              end=props['end'],
+                              )
+                print values
+    ##            values = dict()
+    ##            for fl in ProvShape._meta.fields:
+    ##                flname = fl.name
+    ##                print flname
+    ##                if flname == 'id':
+    ##                    continue
+    ##                values[flname] = feat[flname]
+                if feat['geometry']['type'] == 'Polygon':
+                    polys = [Polygon(*feat['geometry']['coordinates'])]
+                elif feat['geometry']['type'] == 'MultiPolygon':
+                    polys = [Polygon(*poly) for poly in feat['geometry']['coordinates']]
+                else:
+                    raise Exception('Geometry must be polygon or multipolygon, not %s' % feat['geometry']['type'])
+                #print str(polys)[:100]
+                values['geom'] = MultiPolygon(*polys)
+                provshape = ProvShape(**values)
+                provshape.save()
+            print 'provshapes updated!'
+        t = threading.Thread(target=work)
+        t.daemon = True
+        t.start()
+        print 'updating provshapes, thread started, this may take a while'
         return redirect(request.META['HTTP_REFERER'])
         
     else:
