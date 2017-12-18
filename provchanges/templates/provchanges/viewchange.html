@@ -53,7 +53,7 @@
 
 		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
 		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-		{{ comments|length }}
+		{{ comments }}
 		</a>
 		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
 		</div>
@@ -61,7 +61,7 @@
 		<br><br>
 
 		{% if metachange.status.value != 'NonActive' %}
-			{% if user.username == metachange.user.value or 'user.administrator' in user.get_all_permission %}
+			{% if user.username == metachange.user.value or user.is_staff %}
 				<a href="/provchange/{{pk}}/withdraw/" style="float:right; background-color:crimson; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 				Withdraw?
 				</a>
@@ -69,7 +69,7 @@
 			{% endif %}
 			
 		{% elif metachange.status.value == 'NonActive' %}
-			{% if user.username == metachange.user.value or 'user.administrator' in user.get_all_permission %}
+			{% if user.username == metachange.user.value or user.is_staff %}
 				<a href="/provchange/{{pk}}/resubmit/" style="float:right; background-color:green; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 				Resubmit?
 				</a>
@@ -134,53 +134,10 @@
 
 		<br/>
 
-		<h3 style="clear:both">Comments</h3>
+                <h3>Comments:</h3>
 		<div style="margin-left:20px">
-			{% if topics %}
-                            {% for title,comments,replyform in topics %}
-                                <div style="font-size:small; padding-left:10px; padding-right:10px;" >
-                                    <img style="padding:10px; clear:both; float:left" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
-                                    <div style="background-color:orange; border-radius:5px; float:left; padding:10px; width:90%">
-                                        <h3>{{ title }}</h3>
-                                        <h4>{{ comments.0.user }}</h4>
-                                        <p>{{ comments.0.text }}</p>
-                                        <p style="float:right">{{ comments.0.added }}</p>
-                                    </div>
-
-                                    {% for comment in comments|slice:"1:" %}
-                                    <div style="padding-left:40px; padding-right:10px;" >
-                                        <img style="clear:both; float:left; padding:10px" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
-                                        <div style="float:left; padding:10px; width:90%">
-                                            <h4>{{ comment.user }}</h4>
-                                            <p>{{ comment.text }}</p>
-                                            <p style="float:right">{{ comments.0.added }}</p>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-
-                                    <div style="margin-left:40px">
-                                            <h4 onClick="var replyform = document.getElementById('replyform{{ forloop.counter0 }}'); replyform.style.display = replyform.style.display === 'none' ? '' : 'none';" style="text-decoration:underline; clear:both; margin-left:20px; padding:10px">Reply</h4>
-                                            <form id="replyform{{ forloop.counter0 }}" style="display:none; padding-left:80px" action="/addcomment/" method="post">
-                                            {% csrf_token %}
-                                            {{ replyform }}
-                                            <input type="submit" value="Reply" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                                            </form>
-                                    </div>
-                                    
-                                </div>
-                            {% endfor %}
-			{% else %}
-				There are currently no comments.
-			{% endif %}
-
-			<h4 style="clear:both; margin-left:20px">New comment:</h4>
-			<div style="margin-left:60px">
-				<form action="/addcomment/" method="post">
-				{% csrf_token %}
-				{{ new_comment }}
-	                	<input type="submit" value="Submit" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-				</form>
-		</div></div>
+		{{ topics }}
+		</div>
 
 		<br/>
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template import Template,Context
+from django.template import Template,Context,RequestContext
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -55,13 +55,20 @@ class ReplyForm(forms.ModelForm):
 @login_required
 def addcomment(request):
     data = request.POST
-    if 'changeid' in data:
+    if isinstance(data.get('changeid'), int):
         # change-specific comment
         commentinst = Comment(user=request.user.username, country=data['country'], changeid=data['changeid'],
                             added=datetime.datetime.now(),
                               title=data['title'], text=data['text'])
         commentinst.save()
-        print 'comment added'
+        print 'change-specific comment added'
+    else:
+        # country comment
+        commentinst = Comment(user=request.user.username, country=data['country'],
+                            added=datetime.datetime.now(),
+                              title=data['title'], text=data['text'])
+        commentinst.save()
+        print 'country comment added'
     return redirect(request.META['HTTP_REFERER'])
 
 @login_required
@@ -179,7 +186,7 @@ def registration(request):
         print obj
         obj.save()
 
-        html = redirect("/contribute/")
+        html = redirect("/contribute/countries/")
 
     elif request.method == "GET":
         args = {'logininfo': LoginInfoForm(),
@@ -199,7 +206,7 @@ def login(request):
         print user
         if user is not None:
             auth_login(request, user)
-            html = redirect("/contribute/")
+            html = redirect("/contribute/countries/")
         else:
             args = {'login': LoginForm(),
                     'errormessage': "Could not find that username or password",
@@ -1492,7 +1499,7 @@ def viewcountry(request, country):
                                 <h2>4 - Adding Events</h2>
                                 <p>
                                 On any given date, a province may experience one or more of the four basic event types:
-                                information, mergers, transfers, and splits. An event may involve multiple individual
+                                new information, mergers, transfers, and splits. An event may involve multiple individual
                                 changes, such as a province splitting into multiple new provinces. 
                                 </p>
                                 <p>
@@ -1501,8 +1508,8 @@ def viewcountry(request, country):
                                 identifier codes, so try to keep these consistent with existing entries.
                                 </p>
                                 <p>
-                                For events where all provinces experienced the same change, e.g. changed from
-                                'province' to 'district', or a country merged entirely into another country,
+                                For events where all provinces in a country experienced the same change, e.g.
+                                a country merged entirely into another country,
                                 you may set the name to * (star) to avoid having to register each province
                                 individually. 
                                 </p>
@@ -1651,6 +1658,14 @@ def viewcountry(request, country):
                               style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                               width="99%",
                               ))
+
+        allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
+        content = "<br><br><hr><h3>Questions & Comments:</h3>" + comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )
@@ -2406,7 +2421,7 @@ def lists2table(request, lists, fields):
 
 def withdrawchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
-    if request.user.username == change.user or 'user.administrator' in request.user.get_all_permission():
+    if request.user.username == change.user or request.user.is_staff():
         change.status = "NonActive"
         change.save()
 
@@ -2414,11 +2429,94 @@ def withdrawchange(request, pk):
 
 def resubmitchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
-    if request.user.username == change.user or 'user.administrator' in request.user.get_all_permission():
+    if request.user.username == change.user or request.user.is_staff():
         change.status = "Pending"
         change.save()
 
     return redirect("/provchange/{pk}/view/".format(pk=pk) )
+
+def comments2html(request, allcomments, country, changeid=None, commentheadercolor="orange"):
+    topics = []
+    for c in allcomments.distinct('title'):
+        title = c.title
+        print title
+        comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
+        fields = ["added","user","text","withdraw"]
+        rows = []
+        for c in comments:
+            rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+            rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
+            if rowdict['user'] == request.user.username:
+                rowdict['withdraw'] = '''
+                                <div style="display:inline; border-radius:10px; ">
+                                <a href="/dropcomment/{pk}">
+                                <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
+                                </a>
+                                </div>
+                                    '''.format(pk=c.pk)
+            rows.append(rowdict)
+        addreplyobj = Comment(user=request.user.username, country=country, changeid=changeid,
+                                added=datetime.datetime.now(), title=title)
+        replyform = ReplyForm(instance=addreplyobj).as_p()
+        topics.append((title,rows,replyform))
+
+    print topics
+
+    # new comm    
+    addcommentobj = Comment(user=request.user.username, country=country, changeid=changeid,
+                            added=datetime.datetime.now())
+    new_comment = CommentForm(instance=addcommentobj).as_p()
+    
+    # template
+    templ = """
+			{% if topics %}
+                            {% for title,comments,replyform in topics %}
+                                <div style="font-size:small; padding-left:10px; padding-right:10px;" >
+                                    <img style="padding:10px; clear:both; float:left" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
+                                    <div style="float:left; padding:0px; width:90%">
+                                        <h3 style="background-color:{{ commentheadercolor }}; padding:5px; border-radius:5px;">{{ title }}</h3>
+                                        <p style="float:right">{{ comments.0.added }}</p>
+                                        <h4>{{ comments.0.user }}</h4>
+                                        <p>{{ comments.0.text }}</p>
+                                    </div>
+
+                                    {% for comment in comments|slice:"1:" %}
+                                    <div style="padding-left:65px; padding-right:10px;" >
+                                        <img style="clear:both; float:left; padding:10px" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
+                                        <div style="float:left; padding:0px; width:90%">
+                                            <p style="float:right">{{ comments.0.added }}</p>
+                                            <h4>{{ comment.user }}</h4>
+                                            <p>{{ comment.text }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+
+                                    <div style="margin-left:40px">
+                                            <h4 onClick="var replyform = document.getElementById('replyform{{ forloop.counter0 }}'); replyform.style.display = replyform.style.display === 'none' ? '' : 'none';" style="text-decoration:underline; clear:both; margin-left:80px; padding:10px">Reply</h4>
+                                            <form id="replyform{{ forloop.counter0 }}" style="display:none; padding-left:80px" action="/addcomment/" method="post">
+                                            {% csrf_token %}
+                                            {{ replyform }}
+                                            <input type="submit" value="Reply" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                                            </form>
+                                    </div>
+                                    
+                                </div>
+                            {% endfor %}
+			{% else %}
+				There are currently no comments.
+			{% endif %}
+
+			<h4 style="clear:both; margin-left:20px">New comment:</h4>
+			<div style="margin-left:60px">
+				<form action="/addcomment/" method="post">
+				{% csrf_token %}
+				{{ new_comment }}
+	                	<input type="submit" value="Comment" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+				</form>
+		</div>
+		"""
+    rendered = Template(templ).render(RequestContext(request, {'topics':topics, 'new_comment':new_comment, 'commentheadercolor':commentheadercolor}))
+    return rendered
 
 def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
@@ -2490,35 +2588,35 @@ def viewchange(request, pk):
                 field.widget.attrs['readonly'] = "readonly"
 
     # comments by topic
-    topics = []
     allcomments = Comment.objects.filter(changeid=change.changeid, status="Active")
-    for c in allcomments.distinct('title'):
-        title = c.title
-        print title
-        comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
-        fields = ["added","user","text","withdraw"]
-        rows = []
-        for c in comments:
-            rowdict = dict([(f,getattr(c, f, "")) for f in fields])
-            rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-            if rowdict['user'] == request.user.username:
-                rowdict['withdraw'] = '''
-                                <div style="display:inline; border-radius:10px; ">
-                                <a href="/dropcomment/{pk}">
-                                <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
-                                </a>
-                                </div>
-                                    '''.format(pk=c.pk)
-            rows.append(rowdict)
-        addreplyobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
-                                added=datetime.datetime.now(), title=title)
-        replyform = ReplyForm(instance=addreplyobj).as_p()
-        topics.append((title,rows,replyform))
-
-    print topics
+##    topics = []
+##    for c in allcomments.distinct('title'):
+##        title = c.title
+##        print title
+##        comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
+##        fields = ["added","user","text","withdraw"]
+##        rows = []
+##        for c in comments:
+##            rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+##            rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
+##            if rowdict['user'] == request.user.username:
+##                rowdict['withdraw'] = '''
+##                                <div style="display:inline; border-radius:10px; ">
+##                                <a href="/dropcomment/{pk}">
+##                                <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
+##                                </a>
+##                                </div>
+##                                    '''.format(pk=c.pk)
+##            rows.append(rowdict)
+##        addreplyobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
+##                                added=datetime.datetime.now(), title=title)
+##        replyform = ReplyForm(instance=addreplyobj).as_p()
+##        topics.append((title,rows,replyform))
+##
+##    print topics
 
     #topics = [(title,comm) for title,comm in sorted(topics.items(), key=lambda t,c: c[0]['added'])]
-    args['topics'] = topics
+    args['topics'] = comments2html(request, allcomments, change.fromcountry, change.changeid)
 
     # try to emulate https://cloud.netlifyusercontent.com/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b549e4a7-f9d9-4f64-b597-21c7d8f2a166/facebook-comments.png
     # user icon: "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
@@ -2529,13 +2627,8 @@ def viewchange(request, pk):
     
 
     # count of all comm
-    comments = allcomments.order_by("added") # the dash reverses the order
+    comments = allcomments.count()
     args['comments'] = comments
-
-    # new comm    
-    addcommentobj = Comment(user=request.user.username, country=change.fromcountry, changeid=change.changeid,
-                            added=datetime.datetime.now())
-    args["new_comment"] = CommentForm(instance=addcommentobj).as_p()
                 
     html = render(request, 'provchanges/viewchange.html', args)
         
@@ -2711,16 +2804,25 @@ def account(request):
 ##                <br>
 ##                """.format(userinfoform=userform.as_p())
 
-    
-    bannerright = """
-                    <br><br><br><br><br>
-                    <a href="/update" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
-                        <b>Update Boundary Data</b>
-                    </a>
-                    <br><br>
-                    <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                        <b>Logout</b>
-                    </a>
+    if request.user.is_staff:
+        bannerright = """
+                        <br><br><br><br><br>
+                        <a href="/update" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
+                            <b>Update Boundary Data</b>
+                        </a>
+                        <br><br>
+                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                        </a>
+                        """
+    else:
+        bannerright = """
+                        <br><br><br><br><br>
+                        
+                        <br><br>
+                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                        </a>
                         """
 
     # user contribs

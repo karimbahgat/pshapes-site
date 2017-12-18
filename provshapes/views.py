@@ -18,7 +18,7 @@ import json
 import datetime
 
 def update_dataset(request):
-    if 1: #'user.administrator' in request.user.get_all_permissions():
+    if request.user.is_staff:
         print 'deleting existing...'
         ProvShape.objects.all().delete()
         print 'downloading...'
