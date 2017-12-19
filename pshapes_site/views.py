@@ -207,10 +207,6 @@ def home(request):
                         out the data collection effort. Suggestions
                         and feature requests are welcome.</em>
                         </p>
-
-                        <p style="font-size:smaller"><em>Disclaimer: All website pictures and graphics are
-                        currently just placeholders and will be replaced in the final version.</em>
-                        </p>
                     </div>
 
                     <br>
@@ -341,7 +337,7 @@ def home(request):
 
     # comments
     comments = Comment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
-    fields = ["added","title","user","text","withdraw"]
+    fields = ["added","country","title","user","text","withdraw"]
     lists = []
     for c in comments[:2]:
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
@@ -357,7 +353,7 @@ def home(request):
         row = [rowdict[f] for f in fields]
         lists.append(("",row))
     content = lists2table(request, lists=lists,
-                                        fields=["Added","Title","User","Comment",""])
+                                        fields=["Added","Country","Title","User","Comment",""])
 
     grids.append(dict(title="Recent Discussions",
                       content=content,
@@ -578,7 +574,7 @@ def about_whycrowdsourcing(request):
                                 Instead of being carefully collected and coded by a handful of experts, the project has focused
                                 on the speed, efficiency, and quality control of a crowdsourcing approach.
                                 Due to the vast amount of work in coding all historical changes for the entire globe,
-                                crowdsourcing helps spread the cost of coding and increases the incentives for contributing. 
+                                crowdsourcing helps spread the cost of coding and lowers the bar for contributing. 
 
                                 <p>Such an approach is only
                                 possible because it was realized that a lot of the work required to make spatially
@@ -701,12 +697,12 @@ def about_howitworks(request):
                             </p>
 
                             <p>
-                            One of the benefits of automating the dataset construction, is that performing 
-                            iterative manual changes would have required that the reference dataset be chosen in advance, essentially
+                            Doing these same iterative changes manually by hand would have 
+                            required that the reference dataset be chosen in advance, essentially
                             locking in and tying down all the labor to that particular data, making it vulnerable to any particular
                             errors or reconsiderations discovered later on.
-                            By focusing on replication and automation we can 
-                            instead harness all the work put in so it can be reused for multiple different purposes. 
+                            By focusing on replication and automation we can more efficiently 
+                            harness and reuse all the work put into the collective data collection. 
                             </p>
                                 
                         </div>

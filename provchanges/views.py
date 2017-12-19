@@ -55,7 +55,7 @@ class ReplyForm(forms.ModelForm):
 @login_required
 def addcomment(request):
     data = request.POST
-    if isinstance(data.get('changeid'), int):
+    if data.get('changeid'):
         # change-specific comment
         commentinst = Comment(user=request.user.username, country=data['country'], changeid=data['changeid'],
                             added=datetime.datetime.now(),
@@ -74,9 +74,10 @@ def addcomment(request):
 @login_required
 def dropcomment(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
-    comment.status = 'Withdrawn'
-    comment.save()
-    print 'comment dropped'
+    if request.user.username == comment.user:
+        comment.status = 'Withdrawn'
+        comment.save()
+        print 'comment dropped'
     return redirect(request.META['HTTP_REFERER'])
 
 @login_required
@@ -1842,7 +1843,7 @@ def viewevent(request, country, province):
 ##                                  ))
 
             # NOT SURE BOUT FROMCOUNTRY HERE...
-            conflicting = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
+            conflicting = ProvChange.objects.filter(status__in="Active Pending", fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
             if conflicting:
                 conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
                                               fields=["date","type","fromname","toname","country","user","added","status"])
@@ -2222,7 +2223,7 @@ def viewevent(request, country, province):
 
             # NOT SURE BOUT FROMCOUNTRY HERE...
             # NOTE: not matching on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting
-            conflicting = ProvChange.objects.filter(tocountry=country, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
+            conflicting = ProvChange.objects.filter(status__in="Active Pending", tocountry=country, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
             if conflicting:
                 conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
                                               fields=["date","fromname","fromcountry","toname","tocountry","user","added","status"])
@@ -2834,6 +2835,32 @@ def account(request):
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="100%",
                       ))
+
+    # comments
+    comments = Comment.objects.filter(user=request.user.username, status="Active").order_by("-added") # the dash reverses the order
+    fields = ["added","country","title","text","withdraw"]
+    lists = []
+    for c in comments[:10]:
+        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+        rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
+        if c.user == request.user.username:
+            rowdict['withdraw'] = '''
+                            <div style="display:inline; border-radius:10px; ">
+                            <a href="/dropcomment/{pk}">
+                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=20px/>
+                            </a>
+                            </div>
+                                '''.format(pk=c.pk)
+        row = [rowdict[f] for f in fields]
+        lists.append(("",row))
+    content = lists2table(request, lists=lists,
+                                        fields=["Added","Country","Title","Comment",""])
+
+    grids.append(dict(title="Your Comments (last 10 only):",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="93%",
+                      ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
                                                            "bannerleft":bannerleft, "bannerright":bannerright}
@@ -2888,7 +2915,7 @@ class SourceEventForm(forms.ModelForm):
         if sources:
             mostcommon = sources[0]
             sources = sorted(set(sources))
-            self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(size=90))
+            self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(type="text",size=120,autocomplete="on"))
             self.fields['source'].initial = mostcommon
         
 from django.forms.widgets import RadioFieldRenderer
@@ -3014,7 +3041,7 @@ class DateForm(forms.Form):
     step_descr = """
                     On what date did the changes occur? 
                    """
-    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2016+1)])
+    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2016+1)], initial=1950)
     month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
     day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
 
@@ -3847,7 +3874,7 @@ class GeoChangeForm(forms.ModelForm):
                         <br>
                         Instructions:
                         <br>
-                        {{ geoinstruct }}
+                        {{ geoinstruct | safe }}
 
                         </div>
                         
@@ -3864,7 +3891,7 @@ class GeoChangeForm(forms.ModelForm):
                 </script>
                 """.format(geoj=geoj_str)
         
-        rendered = Template(html).render(Context({"form":self, 'geointruct':geoinstruct}))
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
         return rendered
 
     def as_simple(self):
