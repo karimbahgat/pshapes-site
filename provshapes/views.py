@@ -29,12 +29,12 @@ def update_dataset(request):
             print 'adding', datadict.keys(), len(datadict['features'])
             for feat in datadict['features']:
                 props = feat['properties']
-                values = dict(name=props['Name'],
-                              alterns='|'.join(props['Alterns']),
+                values = dict(name=props['name'],
+                              alterns='|'.join(props['alterns']),
                               country=props['country'],
-                              iso=props['ISO'],
-                              fips=props['FIPS'],
-                              hasc=props['HASC'],
+                              iso=props['iso'],
+                              fips=props['fips'],
+                              hasc=props['hasc'],
                               start=props['start'],
                               end=props['end'],
                               )

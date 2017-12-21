@@ -231,7 +231,60 @@
 		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
 		var date = document.getElementById('datetext').value;
 		draw_borders(date);
+                label_countries();
 	};
+
+	// country centers
+	var labelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
+                                               fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
+                                               fontSize:"${getFontSize}", label:"${getLabel}"}, 
+                                                {context: {
+                                                                getLabel: function(feature) {
+                                                                        return feature.attributes.country.toUpperCase();
+                                                                        },
+                                                                getFontSize: function(feature) {
+                                                                        if (map.zoom > 5) {
+                                                                            return 19;
+                                                                        } else if (map.zoom > 3) {
+                                                                            return 10;
+                                                                        } else if (map.zoom > 2) {
+                                                                            return 4;
+                                                                        } else {
+                                                                            return 0.01;
+                                                                        }
+                                                                },
+                                                            },
+                                                })
+	
+	var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:labelStyle});
+	map.addLayers([cntrLayer]);
+	
+	label_countries = function() {
+            // drop previous
+            cntrLayer.removeAllFeatures();
+            
+            // calc bbox for each country
+            var cntrBox = {};
+            for (feat of document.allProvs) {
+                bounds = feat.geometry.getBounds();
+                if (!bounds) { continue; }
+                if ( !(feat.attributes.country in cntrBox)) {
+                    cntrBox[feat.attributes.country] = bounds;
+                } else {
+                    cntrBox[feat.attributes.country].extend(bounds);
+                };
+            };
+
+            // add to layer
+            var feats = [];
+            for (cntr of Object.keys(cntrBox)) {
+                var bounds = cntrBox[cntr];
+                var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
+                                                     {country:cntr});
+                feats.push(feat);
+            };
+	    cntrLayer.addFeatures(feats);
+        };
 
 	// initiate map
 	onstartup = function(data) {
@@ -239,7 +292,8 @@
 		var geoj_str = JSON.stringify(data);
 		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
 		var date = document.getElementById('datetext').value;
-		draw_borders(date);
+                draw_borders(date);
+                label_countries();
                 map.zoomToExtent(provLayer.getDataExtent());
         };
         var date = document.getElementById('datetext').value;
@@ -297,15 +351,11 @@
 		// select provs by date
 		dateFeats = [];
 		for (feat of document.allProvs) {
-			var start = feat.attributes.start;
-			var end = feat.attributes.end;
-			if (start <= date && end > date ) {
-				if ( ! (feat.attributes.country in document.countryColors)) {
-					// assign random color for country
-					document.countryColors[feat.attributes.country] = getRandomColor();
-				};
-				dateFeats.push(feat);
-			};
+                        if ( ! (feat.attributes.country in document.countryColors)) {
+                                // assign random color for country
+                                document.countryColors[feat.attributes.country] = getRandomColor();
+                        };
+                        dateFeats.push(feat);
 		};
 		
 		// add to layer

@@ -377,6 +377,8 @@ about_menu = """
                     
                     <div style="text-align:left">
 
+                        <img src="/static/pshapes pen2 transp.png" width="100%">
+
                         <h4>Common Questions</h4>
 
                         <style>
