@@ -20,15 +20,20 @@ import threading
 
 def update_dataset(request):
     if request.user.is_staff:
+        print 'getting data...'
+        raw = request.FILES['file'].read()
         def work():
             print 'deleting existing...'
             ProvShape.objects.all().delete()
-            print 'downloading...'
-            raw = urllib2.urlopen('https://github.com/karimbahgat/pshapes/raw/master/processed.geojson').read()
+            print 'parsing json...'
+            #raw = open(request.FILES['file'].temporary_file_path().replace('\\','/'), 'rb').read() #urllib2.urlopen('https://github.com/karimbahgat/pshapes/raw/master/processed.geojson').read()
             datadict = json.loads(raw)
             print 'adding', datadict.keys(), len(datadict['features'])
             for feat in datadict['features']:
                 props = feat['properties']
+                if not props['start'] or props['start']=='None':
+                    print 'missing start date, not adding:', props
+                    continue
                 values = dict(name=props['name'],
                               alterns='|'.join(props['alterns']),
                               country=props['country'],

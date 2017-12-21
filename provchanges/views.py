@@ -2755,6 +2755,25 @@ def account_edit(request):
         return render(request, 'provchanges/accountedit.html', {"user":request.user, "userinfoform":form}
                       )
 
+class UploadFileForm(forms.Form):
+    file = forms.FileField()
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(UploadFileForm, self).__init__(*args, **kwargs)
+
+    def as_p(self):
+        templ = """
+                    <form method="post" action="/update/" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form }}
+                        <input type="submit" value="Update Boundary Data" onClick="alert('The website boundary data will now be updated, this may take a while.');" style="font-weight:bold; background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
+                        </input>
+                    </form>
+                """
+        rendered = Template(templ).render(RequestContext(self.request, {'form':self}))
+        return rendered
+
 @login_required
 def account(request):
     userobj = User.objects.get(username=request.user)
@@ -2806,16 +2825,16 @@ def account(request):
 ##                """.format(userinfoform=userform.as_p())
 
     if request.user.is_staff:
+        uploadform = UploadFileForm(request=request).as_p()
         bannerright = """
                         <br><br><br><br><br>
-                        <a href="/update" onClick="alert('The website boundary data will now be updated (from GitHub), this may take a while.');" style="background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
-                            <b>Update Boundary Data</b>
-                        </a>
+                        {uploadform}
+                        
                         <br><br>
                         <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Logout</b>
                         </a>
-                        """
+                        """.format(uploadform=uploadform)
     else:
         bannerright = """
                         <br><br><br><br><br>
