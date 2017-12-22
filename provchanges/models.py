@@ -85,7 +85,11 @@ class ProvChange(models.Model):
                                          ("Prefecture","Prefecture"),
                                          ("Department","Department"),
                                          ("Governate","Governate"),
-                                         ("Other...","Other...")
+                                         ("Territory","Territory"),
+                                         ("Commune","Commune"),
+                                         ("Circumscription","Circumscription"),
+                                         ("Cercle","Cercle"),
+                                         ("Other...","Other..."),
                                          ],
                                 verbose_name=u"From province type",
                                 max_length=40, blank=True)
@@ -108,6 +112,10 @@ class ProvChange(models.Model):
                                          ("Prefecture","Prefecture"),
                                          ("Department","Department"),
                                          ("Governate","Governate"),
+                                         ("Territory","Territory"),
+                                         ("Commune","Commune"),
+                                         ("Circumscription","Circumscription"),
+                                         ("Cercle","Cercle"),
                                          ("Other...","Other...")
                                          ],
                                 verbose_name=u"To province type",
