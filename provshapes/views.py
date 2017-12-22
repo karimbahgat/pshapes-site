@@ -23,6 +23,12 @@ def update_dataset(request):
         print 'getting data...'
         raw = request.FILES['file'].read()
         def work():
+            print 'caching json for download'
+            from django.core.files import File
+            writer = File(open('pshapes_download.json','wb'))
+            print writer.name
+            writer.write(raw)
+            writer.close()
             print 'deleting existing...'
             ProvShape.objects.all().delete()
             print 'parsing json...'
@@ -61,7 +67,9 @@ def update_dataset(request):
                 values['geom'] = MultiPolygon(*polys)
                 provshape = ProvShape(**values)
                 provshape.save()
+                
             print 'provshapes updated!'
+            
         t = threading.Thread(target=work)
         t.daemon = True
         t.start()

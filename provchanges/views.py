@@ -2778,6 +2778,11 @@ class UploadFileForm(forms.Form):
 def account(request):
     userobj = User.objects.get(username=request.user)
     userform = UserInfoForm(instance=userobj)
+
+    changes = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
+    pending = ProvChange.objects.filter(user=request.user.username, status="Pending")
+    comments = Comment.objects.filter(user=request.user.username, status="Active").order_by("-added") # the dash reverses the order
+    
     grids = []
     bannertitle = "User Settings for '%s'" % request.user
     
@@ -2808,10 +2813,11 @@ def account(request):
                 <div style="text-align:center">
                     <a href="/account/edit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                         Edit
-                    </a>
+                    </a>                    
                 </div>
                 <br>
-                """.format(userinfoform=userform.as_p())
+                """.format(userinfoform=userform.as_p(),
+                           )
 
 ##    for field in userform.fields.values():
 ##        field.widget.attrs['readonly'] = "readonly"
@@ -2845,18 +2851,45 @@ def account(request):
                         </a>
                         """
 
-    # user contribs
-    changelist = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
-    rendered = model2table(request, '', changelist[:50], ['user','added','fromcountry','fromname','type','status'])
+    # stats
+##    qstats = """
+##                    <b>
+##                    <table style="font-size:small">
+##                    <tr style="vertical-align:text-top">
+##                        <td>
+##                        <h2>{changes}</h2>
+##                        Total Contributions
+##                        </td>
+##                        <td>
+##                        <h2>{modifs}</h2>
+##                        Edits Made
+##                        </td>
+##                        <td>
+##                        <h2>{comments}</h2>
+##                        Comments
+##                        </td>
+##                    </tr>
+##                    </table>
+##                    </b>
+##            """.format(changes=changes.count(),
+##                       modifs=changes.count() - pending.count(),
+##                       comments=comments.count())
+##    grids.append(dict(title="Overview:",
+##                      content=qstats,
+##                      style="padding:0; margins:0",#background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="100%",
+##                      ))    
 
-    grids.append(dict(title="Your Contributions (last 50 only):",
+    # user contribs
+    rendered = model2table(request, '', changes[:50], ['user','added','fromcountry','fromname','type','status'])
+
+    grids.append(dict(title="Your Contributions (last 50 only):", #most recent, 1-%s of %s):" % (min(changes.count(),50), changes.count()),
                       content=rendered,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="100%",
                       ))
 
     # comments
-    comments = Comment.objects.filter(user=request.user.username, status="Active").order_by("-added") # the dash reverses the order
     fields = ["added","country","title","text","withdraw"]
     lists = []
     for c in comments[:10]:
@@ -2875,7 +2908,7 @@ def account(request):
     content = lists2table(request, lists=lists,
                                         fields=["Added","Country","Title","Comment",""])
 
-    grids.append(dict(title="Your Comments (last 10 only):",
+    grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="93%",

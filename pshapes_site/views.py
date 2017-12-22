@@ -8,6 +8,7 @@ from django.template import Template,Context
 from django.contrib.auth.decorators import login_required
 
 from provchanges.models import ProvChange, Comment, Vouch
+from provshapes.models import ProvShape
 
 shortdescr = """
 Pshapes (pronounced p-shapes) is an open-source crowdsourcing project for creating and maintaining
@@ -743,6 +744,9 @@ def about_contact(request):
 def download(request):
     grids = []
     bannertitle = ""
+    import os, datetime
+    versiondate = datetime.datetime.fromtimestamp(os.path.getmtime('pshapes_download.json')).strftime('%Y-%m-%d')
+    size = os.path.getsize('pshapes_download.json') >> 20 # mb
     bannerright = """
                     <br>
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
@@ -753,9 +757,8 @@ def download(request):
                         <em>Natural Earth province boundaries</em></a>
                         as the starting-point. 
                         </p>
-                        <p>Version: Alpha (2016-12-01)</p>
-                        <p>Size: 45 MB</p>
-                        <p>Coverage: Western Africa.</p>
+                        <p>Version: Alpha ({versiondate})</p>
+                        <p>Size: {size} MB</p>
                     </div>
 
                     <br>
@@ -766,7 +769,7 @@ def download(request):
                         </a>
                     </div>
                     <br>
-                    """
+                    """.format(versiondate=versiondate, size=size)
     bannerleft = """
                     <div style="text-align:center; padding:20px">
                         <img style="width:100%" src="/static/webdownloadimg.png">
@@ -828,13 +831,30 @@ def download_final(request):
     from django.http import HttpResponse
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="pshapes_natearth_final.json"'
-    import csv, datetime, urllib
-    raw = urllib.urlopen("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson").read()
+    # TODO: this is super slow, better to create the file when updating, then just serving that file
+    # ...
+    raw = open('pshapes_download.json', 'rb').read()
+    # get geojson
+##    import datetime
+##    def encode(val):
+##        if isinstance(val, datetime.date):
+##            return val.isoformat()
+##        elif val is None:
+##            return None
+##        else:
+##            return val.encode("utf8")
+##    fields = "name alterns country iso fips hasc start end".split()
+##    geoj = {'type': 'FeatureCollection', 'features':[]}
+##    for obj in ProvShape.objects.all():
+##        geoj['features'].append({'properties':dict([(f,encode(getattr(obj, f))) for f in fields]),
+##                                 'geometry':obj.geom.geojson, # json serializer creates weird backslashes, better to make manually...
+##                                 })
+##    # dump to json string
+##    import json
+##    raw = json.dumps(geoj)
+    # return
     response.write(raw)
     return response
-
-    #TODO: in future, create github releases of the data and maybe just redirect to there
-    #return redirect("http://raw.githubusercontent.com/karimbahgat/pshapes/master/processed.geojson")
 
 def download_raw(request):
     from django.http import HttpResponse
