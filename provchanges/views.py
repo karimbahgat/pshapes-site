@@ -30,7 +30,7 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = 'user country changeid added status title text'.split()
-        widgets = {"text":forms.Textarea(attrs=dict(cols=90,rows=5)),
+        widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
                    'user':forms.HiddenInput(),
                    'country':forms.HiddenInput(),
                    'changeid':forms.HiddenInput(),
@@ -43,7 +43,7 @@ class ReplyForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = 'user country changeid added status title text'.split()
-        widgets = {"text":forms.Textarea(attrs=dict(cols=90,rows=5)),
+        widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
                    'title':forms.HiddenInput(),
                    'user':forms.HiddenInput(),
                    'country':forms.HiddenInput(),
@@ -2475,19 +2475,35 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
                                 <div style="font-size:small; padding-left:10px; padding-right:10px;" >
                                     <img style="padding:10px; clear:both; float:left" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
                                     <div style="float:left; padding:0px; width:90%">
-                                        <h3 style="background-color:{{ commentheadercolor }}; padding:5px; border-radius:5px;">{{ title }}</h3>
-                                        <p style="float:right">{{ comments.0.added }}</p>
-                                        <h4>{{ comments.0.user }}</h4>
-                                        <p>{{ comments.0.text }}</p>
+                                        <h3 style="background-color:{{ commentheadercolor }}; color:white; padding:5px; border-radius:5px;">{{ title }}</h3>
+                                        <p style="float:right;">
+                                            {{ comments.0.added }}
+                                            {% if request.user.username == comments.0.user %}
+                                                <a href="/dropcomment/{pk}">
+                                                    <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
+                                                </a>
+                                            {% endif %}
+                                        </p>
+                                        <h4>
+                                        {{ comments.0.user }}
+                                        </h4>
+                                        <p style="float:left">{{ comments.0.text }}</p>
                                     </div>
 
                                     {% for comment in comments|slice:"1:" %}
                                     <div style="padding-left:65px; padding-right:10px;" >
                                         <img style="clear:both; float:left; padding:10px" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
                                         <div style="float:left; padding:0px; width:90%">
-                                            <p style="float:right">{{ comments.0.added }}</p>
+                                            <p style="float:right">
+                                                {{ comments.0.added }}
+                                                {% if request.user.username == comment.user %}
+                                                    <a href="/dropcomment/{pk}">
+                                                        <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
+                                                    </a>
+                                                {% endif %}
+                                            </p>
                                             <h4>{{ comment.user }}</h4>
-                                            <p>{{ comment.text }}</p>
+                                            <p style="float:left">{{ comment.text }}</p>
                                         </div>
                                     </div>
                                     {% endfor %}
@@ -3982,7 +3998,7 @@ class GeoChangeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(GeoChangeForm, self).clean()
-        if self.otherfeats:
+        if cleaned_data and self.otherfeats:
             othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
             diff = cleaned_data["transfer_geom"].difference(othergeoms)
             if diff.geom_type != "MultiPolygon":

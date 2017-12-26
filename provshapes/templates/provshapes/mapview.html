@@ -192,37 +192,77 @@
 	<script>
 
 	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4, fontSize:12, label:"${getLabel}"}, //, labelOffsetX:"${getLabelOffsetX}", labelOffsetY:"${getLabelOffsetY}"},
+	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4},
 										{context: {
-												getLabel: function(feature) {
-													if (map.zoom > 5) {
-														return feature.attributes.name.toUpperCase();
-													} else {
-														return '';
-													}
-												},
 												getColor: function(feature) {
 													return document.countryColors[feature.attributes.country];
 												},
-												
-												// not working yet
-												/*
-												getLabelOffsetX: function(feature) {
-													var midpx = feature.geometry.getBounds().getCenterPixel().x;
-													return 400 //midpx*100;
-												},
-												getLabelOffsetY: function(feature) {
-													var midpy = feature.geometry.getBounds().getCenterPixel().y;
-													return 400 //midpy*100;
-												},
-												*/
-												
-												// instead make a separate layer of polygon centroid and label those
-												// ... 
 											}
 										});
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([provLayer]);
+
+	// province centers
+	var provLabelStyle = new OpenLayers.Style({fillOpacity:0, fontSize:"${getFontSize}", label:"${getLabel}"},
+										{context: {
+												getLabel: function(feature) {
+													if (map.zoom > 5) {
+														return feature.attributes.name.toUpperCase();
+													} else if (map.zoom > 3) {
+														return feature.attributes.name.substring(0,4).toUpperCase();
+                                                                                                        } else {
+														return '';
+													}},
+                                                                                                getFontSize: function(feature) {
+													if (map.zoom > 5) {
+														return 11;
+													} else if (map.zoom > 3) {
+														return 6;
+                                                                                                        } else {
+														return '';
+													}}
+												}})
+	var provLabelLayer = new OpenLayers.Layer.Vector("ProvinceCenters", {styleMap:provLabelStyle});
+	map.addLayers([provLabelLayer]);
+
+        function getMaxPoly(polys) {
+              // https://stackoverflow.com/questions/37306548/how-to-show-one-label-per-multi-polygon-in-open-layers-3
+              var polyObj = [];
+              //now need to find which one is the greater and so label only this
+              for (var b = 0; b < polys.length; b++) {
+                polyObj.push({ poly: polys[b], area: polys[b].getArea() });
+              };
+              polyObj.sort(function (a, b) { return a.area - b.area });
+
+              return polyObj[polyObj.length - 1].poly;
+        }
+
+	label_provs = function() {
+            // drop previous
+            provLabelLayer.removeAllFeatures();
+
+            if (map.zoom > 3) {
+            
+                // calc bbox for each
+                var feats = [];
+                for (feat of document.allProvs) {
+                    if (!feat.geometry) {
+                        continue;
+                    };
+                    
+                    if (feat.geometry.components.length == 1) {
+                        var labpoint = feat.geometry.getCentroid();
+                    } else {
+                        var labpoint = getMaxPoly(feat.geometry.components).getCentroid();
+                    };
+                    var feat = new OpenLayers.Feature.Vector(labpoint,
+                                                             feat.attributes);
+                    feats.push(feat);
+                };
+                provLabelLayer.addFeatures(feats);
+
+            };
+        };
 	
 	// how to render data
 	renderdata = function(data) {
@@ -232,10 +272,11 @@
 		var date = document.getElementById('datetext').value;
 		draw_borders(date);
                 label_countries();
+                label_provs();
 	};
 
 	// country centers
-	var labelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
+	var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
                                                fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
                                                fontSize:"${getFontSize}", label:"${getLabel}"}, 
                                                 {context: {
@@ -256,7 +297,7 @@
                                                             },
                                                 })
 	
-	var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:labelStyle});
+	var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:countryLabelStyle});
 	map.addLayers([cntrLayer]);
 	
 	label_countries = function() {
@@ -294,6 +335,7 @@
 		var date = document.getElementById('datetext').value;
                 draw_borders(date);
                 label_countries();
+                label_provs();
                 map.zoomToExtent(provLayer.getDataExtent());
         };
         var date = document.getElementById('datetext').value;
