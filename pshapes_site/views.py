@@ -315,7 +315,7 @@ def home(request):
                 <p><b>{date}:</b> {fromname} {typ} {toname}</p>
                 <p><em>(Source: {source})</em></p> 
 
-                <a href="provchange/{pk}/view" style="background-color:rgb(58,180,74); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; border: 1px solid white; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
                 View
                 </a>
                 
@@ -744,9 +744,7 @@ def about_contact(request):
 def download(request):
     grids = []
     bannertitle = ""
-    import os, datetime
-    versiondate = datetime.datetime.fromtimestamp(os.path.getmtime('pshapes_download.json')).strftime('%Y-%m-%d')
-    size = os.path.getsize('pshapes_download.json') >> 20 # mb
+    versiondate = "bleh..."
     bannerright = """
                     <br>
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
@@ -758,7 +756,6 @@ def download(request):
                         as the starting-point. 
                         </p>
                         <p>Version: Alpha ({versiondate})</p>
-                        <p>Size: {size} MB</p>
                     </div>
 
                     <br>
@@ -769,7 +766,7 @@ def download(request):
                         </a>
                     </div>
                     <br>
-                    """.format(versiondate=versiondate, size=size)
+                    """.format(versiondate=versiondate)
     bannerleft = """
                     <div style="text-align:center; padding:20px">
                         <img style="width:100%" src="/static/webdownloadimg.png">
@@ -828,13 +825,14 @@ def download(request):
                   )
 
 def download_final(request):
-    from django.http import HttpResponse
-    response = HttpResponse(content_type='text/csv')
+    from provshapes.views import apiview
+    #request.GET = request.GET.copy()
+    #request.GET['simplify'] = 0.001
+    response = apiview(request)
+    print type(response)
     response['Content-Disposition'] = 'attachment; filename="pshapes_natearth_final.json"'
-    # TODO: this is super slow, better to create the file when updating, then just serving that file
-    # ...
-    raw = open('pshapes_download.json', 'rb').read()
-    # get geojson
+    
+##    # get geojson
 ##    import datetime
 ##    def encode(val):
 ##        if isinstance(val, datetime.date):
@@ -853,7 +851,7 @@ def download_final(request):
 ##    import json
 ##    raw = json.dumps(geoj)
     # return
-    response.write(raw)
+    
     return response
 
 def download_raw(request):

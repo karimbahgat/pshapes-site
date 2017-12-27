@@ -2446,15 +2446,8 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
         rows = []
         for c in comments:
             rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+            rowdict['pk'] = c.pk
             rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-            if rowdict['user'] == request.user.username:
-                rowdict['withdraw'] = '''
-                                <div style="display:inline; border-radius:10px; ">
-                                <a href="/dropcomment/{pk}">
-                                <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=30px/>
-                                </a>
-                                </div>
-                                    '''.format(pk=c.pk)
             rows.append(rowdict)
         addreplyobj = Comment(user=request.user.username, country=country, changeid=changeid,
                                 added=datetime.datetime.now(), title=title)
@@ -2479,7 +2472,7 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
                                         <p style="float:right;">
                                             {{ comments.0.added }}
                                             {% if request.user.username == comments.0.user %}
-                                                <a href="/dropcomment/{pk}">
+                                                <a href="/dropcomment/{{ comments.0.pk }}">
                                                     <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
                                                 </a>
                                             {% endif %}
@@ -2497,7 +2490,7 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
                                             <p style="float:right">
                                                 {{ comments.0.added }}
                                                 {% if request.user.username == comment.user %}
-                                                    <a href="/dropcomment/{pk}">
+                                                    <a href="/dropcomment/{{ comment.pk }}">
                                                         <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
                                                     </a>
                                                 {% endif %}

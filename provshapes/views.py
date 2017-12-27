@@ -23,12 +23,6 @@ def update_dataset(request):
         print 'getting data...'
         raw = request.FILES['file'].read()
         def work():
-            print 'caching json for download'
-            from django.core.files import File
-            writer = File(open('pshapes_download.json','wb'))
-            print writer.name
-            writer.write(raw)
-            writer.close()
             print 'deleting existing...'
             ProvShape.objects.all().delete()
             print 'parsing json...'
@@ -119,13 +113,27 @@ def apiview(request):
     if restdict:
         queryset = queryset.filter(**restdict)
 
+    import time
+    t=time.time()
+
     # convert to json
     jsondict = dict(type='FeatureCollection', features=[])
-    for obj,props in zip(queryset, queryset.values('name','alterns','country','iso','fips','hasc','start','end')):
-        geom = obj.geom
+    for props in queryset.values('geom','name','alterns','country','iso','fips','hasc','start','end'):
+        geom = props.pop('geom')
+        props['start'] = props['start'].isoformat()
+        props['end'] = props['end'].isoformat()
         if tolerance:
-            geom = geom.simplify(float(tolerance))
-        geoj = json.loads(geom.geojson)
+            geom = geom.simplify(float(tolerance), preserve_topology=True) # topology option fixes provs disappearing at distant zoom levels
+        # OPT 1
+        #geoj = json.loads(geom.geojson)
+        # OPT 2
+        geoj = dict(type=geom.geom_type,
+                    coordinates=geom.coords)
+
+        # NOTE: wkt or hex is way faster (ca 75%)
+        # TODO: maybe consider using that in future...
+        #geoj = geom.wkt #.hex
+
         #print str(geoj)[:200]
         fdict = dict(type='Feature', properties=props, geometry=geoj)
         jsondict['features'].append(fdict)
@@ -135,8 +143,24 @@ def apiview(request):
 ##                          geometry_field='geom',
 ##                          #fields=('name',))
 ##                         )
+        
+    print time.time()-t
     
-    return response.Response(jsondict)
+##    # to raw string
+##    raw = json.dumps(jsondict)
+##    print time.time()-t
+##    from django.http import HttpResponse
+##    response = HttpResponse(content_type='application/json')
+##    response.write(raw)
+##    print time.time()-t
+
+    # alternative json response
+    from django.http import JsonResponse
+    response = JsonResponse(jsondict)
+    print time.time()-t
+    
+    return response
+    #return response.Response(jsondict)
 
 class SearchForm(forms.ModelForm):
 
