@@ -58,7 +58,10 @@ def update_dataset(request):
                 else:
                     raise Exception('Geometry must be polygon or multipolygon, not %s' % feat['geometry']['type'])
                 #print str(polys)[:100]
-                values['geom'] = MultiPolygon(*polys)
+                geom = MultiPolygon(*polys)
+                values['geom'] = geom
+                values['geoj'] = geom.geojson
+                values['geoj_simple'] = geom.simplify(0.2, preserve_topology=True).geojson
                 provshape = ProvShape(**values)
                 provshape.save()
                 
@@ -117,18 +120,42 @@ def apiview(request):
     t=time.time()
 
     # convert to json
+    def getgeoj(props):
+        geojstring = props.pop(geofield)
+        geoj = json.loads(geojstring)
+        return geoj
+
+    # speed and size optimization for geometries
+    # main bottleneck is creating geojson from geometry object
+    # solving this by fetching precomputed and/or pre-simplified geojson strings
+    if tolerance and float(tolerance) == 0.2:
+        # 0.2 degree simplification is requested for highest world/continental zoom level
+        # get these really fast from precomputed simplified geojson string
+        geofield = 'geoj_simple'
+    elif tolerance:
+        # less than 0.2 degrees is for approaching regions and countries
+        # get the raw geometry objects and do custom simplify
+        geofield = 'geom'
+        def getgeoj(props):
+            geom = props.pop(geofield)
+            geom = geom.simplify(float(tolerance), preserve_topology=True) # topology option fixes provs disappearing at distant zoom levels
+            geoj = dict(type=geom.geom_type,
+                        coordinates=geom.coords)
+            return geoj
+    else:
+        # no simplification means very close zoom or downloading full dataset
+        # so get precomputed fully detailed geojson string
+        geofield = 'geoj'
+    print 'geofield',geofield
+    
+    fields = [geofield,'name','alterns','country','iso','fips','hasc','start','end']
+        
     jsondict = dict(type='FeatureCollection', features=[])
-    for props in queryset.values('geom','name','alterns','country','iso','fips','hasc','start','end'):
-        geom = props.pop('geom')
+    for props in queryset.values(*fields):        
         props['start'] = props['start'].isoformat()
         props['end'] = props['end'].isoformat()
-        if tolerance:
-            geom = geom.simplify(float(tolerance), preserve_topology=True) # topology option fixes provs disappearing at distant zoom levels
-        # OPT 1
-        #geoj = json.loads(geom.geojson)
-        # OPT 2
-        geoj = dict(type=geom.geom_type,
-                    coordinates=geom.coords)
+
+        geoj = getgeoj(props)
 
         # NOTE: wkt or hex is way faster (ca 75%)
         # TODO: maybe consider using that in future...

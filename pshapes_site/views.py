@@ -744,7 +744,7 @@ def about_contact(request):
 def download(request):
     grids = []
     bannertitle = ""
-    versiondate = "bleh..."
+    versiondate = ProvShape.objects.first().added
     bannerright = """
                     <br>
                     <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
