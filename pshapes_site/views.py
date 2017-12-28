@@ -767,11 +767,71 @@ def download(request):
                     </div>
                     <br>
                     """.format(versiondate=versiondate)
+##    bannerleft = """
+##                    <div style="text-align:center; padding:20px">
+##                        <img style="width:100%" src="/static/webdownloadimg.png">
+##		    </div>
+##		    """
     bannerleft = """
-                    <div style="text-align:center; padding:20px">
-                        <img style="width:100%" src="/static/webdownloadimg.png">
-		    </div>
-		    """    
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+            <div style="width:90%; height:40vh; margins:auto; background-color:white;" id="map">
+            </div>
+	
+	<script defer="defer">
+	var map = new OpenLayers.Map('map', {allOverlays: true,
+                                            background: 'white',
+                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            controls: [],
+                                            });
+	</script>
+
+        <script>
+	// empty country layer
+	var style = new OpenLayers.Style({fillColor:"gray", strokeWidth:0.4, strokeColor:'white'},
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+        
+	// empty province layer
+	var style = new OpenLayers.Style({fillColor:"blue", fillOpacity:0.5, strokeWidth:0.4, strokeColor:'white'},
+					);
+	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([provLayer]);
+
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		feats = [];
+		for (feat of countries) {
+                        feats.push(feat);
+		};
+		map.zoomToExtent([-170,70,180,-40]);
+		//map.zoomToExtent([-150,70,150,-70]);
+		//map.zoomToExtent([-80,30,80,-30]);
+		countryLayer.addFeatures(feats);
+	};
+
+        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
+        renderprovs = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		dateFeats = [];
+		for (feat of allProvs) {
+                        dateFeats.push(feat);
+		};
+		provLayer.addFeatures(dateFeats);
+	};
+
+        $.getJSON('/api', {simplify:0.2}, renderprovs);
+        
+        </script>
+	"""
 
 
 ##                                The Pshapes framework uses reverse polygon geocoding to interpret
