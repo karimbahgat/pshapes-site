@@ -117,7 +117,7 @@ def apiview(request):
         bbox = map(float, bbox.split(','))
         print bbox
         box = Polygon.from_bbox(bbox)
-        queryset = queryset.filter(geom__intersects=box)
+        queryset = queryset.filter(geom__bboverlaps=box)
 
     # attribute filtering
     print 'apiparams',params
@@ -143,7 +143,7 @@ def apiview(request):
         geojstring = props.pop('geoj')
         geoj = json.loads(geojstring)
 
-        # NOTE: wkt or hex is way faster (ca 75%)
+        # NOTE: wkt or hex is way faster than real-time geojson (ca 75%)
         # TODO: maybe consider using that in future...
         #geoj = geom.wkt #.hex
 

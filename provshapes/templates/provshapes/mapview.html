@@ -25,7 +25,7 @@
 	</div>
 
 	<div id="mapcontainer" style="width:90%; margin-left:5%; height:60vh; padding:0 0 30px 0;">
-            <div style="width:100%; height:100%; margins:auto;" id="map">
+            <div style="width:100%; height:100%; margins:auto; background-color:rgb(141,168,198);" id="map">
             </div>
 	</div>
 
@@ -163,29 +163,31 @@
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 	
 	<script defer="defer">
-	var map = new OpenLayers.Map('map', {resolutions: [0.75,0.55,0.35,0.25,0.17,0.12,0.08,0.06,0.04,0.02,0.01,0.005]});
-	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
-		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
+	var map = new OpenLayers.Map('map', {resolutions: [0.75,0.55,0.35,0.25,0.17,0.12,0.08,0.06,0.04,0.02,0.01,0.005,0.0025,0.0012,0.0006,0.0003],
+                                             allOverlays: true,
+                                             });
+
+	// background country layer
+	var style = new OpenLayers.Style({fillColor:"rgb(244,244,244)", strokeWidth:0.4, strokeColor:'rgb(177,177,177)'},
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
 		
-	var worldsat = new OpenLayers.Layer.WMS( "OpenLayers WMS",
-		"http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?", {layers: 'GEBCO_LATEST'} );	
-		
-	var xyz = new OpenLayers.Layer.XYZ(
-		"Dark XYZ",
-		[
-			"http://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
-			"http://b.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
-			"http://c.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
-			"http://d.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
-		], {
-			sphericalMercator: true,
-			wrapDateLine: false,
-		}
-	);
-	
-	var stamen = new OpenLayers.Layer.XYZ("Stamen",["http://tile.stamen.com/watercolor/${z}/${x}/${y}.jpg"]);
-	
-	map.addLayer(wms);
+		feats = [];
+		for (feat of countries) {
+                        feats.push(feat);
+		};
+		map.zoomToExtent([-170,70,180,-40]);
+		//map.zoomToExtent([-150,70,150,-70]);
+		//map.zoomToExtent([-80,30,80,-30]);
+		countryLayer.addFeatures(feats);
+	};
+        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
 	map.zoomToMaxExtent();
 	</script>
 
@@ -336,7 +338,7 @@
                 draw_borders(date);
                 label_countries();
                 label_provs();
-                map.zoomToExtent(provLayer.getDataExtent());
+                //map.zoomToExtent(provLayer.getDataExtent());
         };
         var date = document.getElementById('datetext').value;
         var year = date.split("-")[0]

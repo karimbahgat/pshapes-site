@@ -15,7 +15,7 @@ class ProvShape(models.Model):
     start = models.DateField()
     end = models.DateField()
 
-    simplify = models.FloatField(null=True) # allows varying levels of detail
+    simplify = models.FloatField(db_index=True, null=True) # allows varying levels of detail
     geom = models.MultiPolygonField(srid=4326)
     geoj = models.TextField(null=True) # precomputed geojson string
     

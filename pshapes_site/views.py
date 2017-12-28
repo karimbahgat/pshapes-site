@@ -780,7 +780,6 @@ def download(request):
 	
 	<script defer="defer">
 	var map = new OpenLayers.Map('map', {allOverlays: true,
-                                            background: 'white',
                                             resolutions: [0.5,0.6,0.7,0.8,0.9,1],
                                             controls: [],
                                             });
@@ -788,13 +787,13 @@ def download(request):
 
         <script>
 	// empty country layer
-	var style = new OpenLayers.Style({fillColor:"gray", strokeWidth:0.4, strokeColor:'white'},
+	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
 					);
 	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([countryLayer]);
         
 	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"blue", fillOpacity:0.5, strokeWidth:0.4, strokeColor:'white'},
+	var style = new OpenLayers.Style({fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:'white'},
 					);
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([provLayer]);
