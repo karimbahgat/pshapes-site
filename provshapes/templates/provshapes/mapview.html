@@ -39,10 +39,6 @@
                   width: 210px;
                   height: 50px;
                   cursor: pointer;
-                  background: -webkit-repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
-                  background: -moz-repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
-                  background: repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
-                  background-size: 100% 8px;
                   font-size: 16px;
                 }
                 input[type='range'],
@@ -229,25 +225,66 @@
 	};
 	</script>
 	
-	<div class="dateslidercontainer" style="width:100%; text-align:center;">		
-		<p style="font-weight:bold;">
-		<a id="sliderStartLabel">{{ dates.0 }}</a>
-		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
-		<a id="sliderEndLabel">{{ dates|last }}</a>
-                <datalist id="ticks">
+	<div class="dateslidercontainer" style="margin-left:15%; width:70%; white-space:nowrap;">
+                <div id="ticks" style="position:relative; bottom:-30px;">
                     <script>
                     var ticks = document.getElementById('ticks');
                     for (d of dates) {
                         curdate = new Date(d);
                         var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
-                        var fraction = fraction.toFixed(7) // round to max decimals of slider step option
-                        var opt = document.createElement('option');
-                        opt.value = fraction;
-                        opt.innerHTML = fraction;
-                        ticks.appendChild(opt);
+                        var tick = document.createElement('div');
+                        tick.innerHTML = "!"
+                        tick.style.position = "absolute";
+                        tick.style.color = "orange"
+                        tick.style.marginLeft = fraction * 100 + "%";
+                        ticks.appendChild(tick);
                     };
                     </script>
-                </datalist>
+                </div>
+                                                             
+                <a id="sliderdatetext" style="color:white; background-color:orange; text-align:center; font-size:large; font-weight:bold; z-index:1000; border: none; border-radius: 7px; padding:4px; position:relative;">
+                    YYYY-MM-DD
+                </a>
+                                                             
+		<p style="font-weight:bold;">
+		<input id="dateslider" type="range" style="width:100%; background-color:black;" value="1" min="0" max="1" step="0.0000001" oninput="updatedate(this.value)" onchange="loaddata();"/>
+
+                <div id="slidelabels" style="position:relative; top:-30px;">
+                    <script>
+                    var labels = document.getElementById('slidelabels');
+                    var yrrange = maxdate.getFullYear() - mindate.getFullYear();
+                    //alert("yrrange:"+yrrange);
+                    if (yrrange > 0) {
+                        if (yrrange < 10) {
+                            step = 1
+                        } else if (yrrange < 30) {
+                            step = 5
+                        } else if (yrrange < 100) {
+                            step = 10
+                        } else {
+                            step = 25
+                        };
+                        //alert("step size:"+step);
+                        startyr = Math.ceil(mindate.getFullYear()/step) * step
+                        //alert("startyr:"+startyr);
+                        endyr = maxdate.getFullYear();
+                        //alert("endyr:"+endyr);
+                        var yr;
+                        for (yr = startyr; yr < endyr; yr += step) {
+                            //alert(yr);
+                            curdate = new Date(yr, 1, 1);
+                            var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
+                            var lab = document.createElement('div');
+                            lab.innerHTML = yr
+                            lab.style.position = "absolute";
+                            lab.style.color = "gray"
+                            lab.style.marginLeft = fraction * 100 + "%";
+                            labels.appendChild(lab);
+                        }
+                    };
+                    </script>
+                </div>
+                                                             
 		</p>
 	</div>
 	
@@ -255,8 +292,14 @@
 	function updatedate(fraction) {
 		var daterange = maxdate.getTime() - mindate.getTime();
 		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
+                // map title
 		datetext = document.getElementById("datetext");
 		datetext.value = newdate.toISOString().slice(0,10);
+                // slider text
+                datetext = document.getElementById("sliderdatetext");
+                datetext.innerHTML = newdate.toISOString().slice(0,10);
+                datetext.style.marginLeft = fraction * 100 + "%"
+                datetext.style.left = "-" + datetext.offsetWidth/2 + "px"
 	};
 	updatedate(1); // max at default
 	</script>

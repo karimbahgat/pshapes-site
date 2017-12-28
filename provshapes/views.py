@@ -206,6 +206,10 @@ def explore(request):
 
     # main area with table and map
     provs = ProvShape.objects.all() #.order_by("country", "name", "start")
+
+    # ignore simplified versions
+    provs = provs.filter(simplify=0)
+    
     if request.GET:
         #filterdict = dict(((k,v) for k,v in request.GET.items() if v))
         #provs = provs.filter(**filterdict)
