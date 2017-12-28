@@ -163,7 +163,7 @@
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 	
 	<script defer="defer">
-	var map = new OpenLayers.Map('map');
+	var map = new OpenLayers.Map('map', {resolutions: [0.75,0.55,0.35,0.25,0.17,0.12,0.08,0.06,0.04,0.02,0.01,0.005]});
 	var wms = new OpenLayers.Layer.WMS( "OpenLayers WMS",
 		"http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
 		
@@ -206,17 +206,17 @@
 	var provLabelStyle = new OpenLayers.Style({fillOpacity:0, fontSize:"${getFontSize}", label:"${getLabel}"},
 										{context: {
 												getLabel: function(feature) {
-													if (map.zoom > 5) {
+													if (map.resolution < 0.04) {
 														return feature.attributes.name.toUpperCase();
-													} else if (map.zoom > 3) {
+													} else if (map.resolution < 0.08) {
 														return feature.attributes.name.substring(0,4).toUpperCase();
                                                                                                         } else {
 														return '';
 													}},
                                                                                                 getFontSize: function(feature) {
-													if (map.zoom > 5) {
+													if (map.resolution < 0.04) {
 														return 11;
-													} else if (map.zoom > 3) {
+													} else if (map.resolution < 0.08) {
 														return 6;
                                                                                                         } else {
 														return '';
@@ -284,11 +284,11 @@
                                                                         return feature.attributes.country.toUpperCase();
                                                                         },
                                                                 getFontSize: function(feature) {
-                                                                        if (map.zoom > 5) {
+                                                                        if (map.resolution < 0.06) {
                                                                             return 19;
-                                                                        } else if (map.zoom > 3) {
+                                                                        } else if (map.resolution < 0.12) {
                                                                             return 10;
-                                                                        } else if (map.zoom > 2) {
+                                                                        } else if (map.resolution < 0.25) {
                                                                             return 4;
                                                                         } else {
                                                                             return 0.01;
@@ -357,16 +357,17 @@
 
                 var apiurl = "/api/";
                 var datadict = Object.assign({}, {format:"json", bbox:bbox.join(','), year:year, month:month, day:day}, {{ getparams|safe }});
-                if (map.zoom <= 3) {
+                //alert(map.resolution);
+                if (map.resolution >= 0.17) {
                     datadict['simplify'] = 0.2;
                     $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.zoom <= 4) {
+                } else if (map.resolution >= 0.08) {
                     datadict['simplify'] = 0.1;
                     $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.zoom <= 5) {
+                } else if (map.resolution >= 0.04) {
                     datadict['simplify'] = 0.05;
                     $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.zoom <= 6) {
+                } else if (map.resolution >= 0.02) {
                     datadict['simplify'] = 0.025;
                     $.getJSON(apiurl, datadict, renderdata);
                 } else {
