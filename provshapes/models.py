@@ -14,11 +14,11 @@ class ProvShape(models.Model):
     hasc = models.CharField(max_length=10, null=True)
     start = models.DateField()
     end = models.DateField()
-    
-    geoj = models.TextField(null=True) # precomputed geojson strings, 
-    geoj_simple = models.TextField(null=True)
-    
+
+    simplify = models.FloatField(null=True) # allows varying levels of detail
     geom = models.MultiPolygonField(srid=4326)
+    geoj = models.TextField(null=True) # precomputed geojson string
+    
     objects = models.GeoManager()
 
 

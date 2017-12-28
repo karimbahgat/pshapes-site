@@ -59,11 +59,16 @@ def update_dataset(request):
                     raise Exception('Geometry must be polygon or multipolygon, not %s' % feat['geometry']['type'])
                 #print str(polys)[:100]
                 geom = MultiPolygon(*polys)
-                values['geom'] = geom
-                values['geoj'] = geom.geojson
-                values['geoj_simple'] = geom.simplify(0.2, preserve_topology=True).geojson
-                provshape = ProvShape(**values)
-                provshape.save()
+
+                for tolerance in [0.2,0.1,0.05,0.025,0]:
+                    _geom = geom.simplify(tolerance, preserve_topology=True)
+                    if _geom.geom_type == 'Polygon':
+                        _geom = MultiPolygon([_geom])
+                    values['simplify'] = tolerance
+                    values['geom'] = _geom
+                    values['geoj'] = _geom.geojson
+                    provshape = ProvShape(**values)
+                    provshape.save()
                 
             print 'provshapes updated!'
             
@@ -86,7 +91,17 @@ def apiview(request):
     params = dict(((k,v) for k,v in request.query_params.items() if v))
 
     frmt = params.pop('format', None)
-    
+
+    # speed and size optimization for geometries
+    # main bottleneck is creating geojson from geometry object
+    # solving this by fetching precomputed and/or pre-simplified geojson strings
+    tolerance = float(params.pop('simplify', 0))
+    print 'simplify',tolerance
+    if not tolerance in [0.2,0.1,0.05,0.025,0]:
+        raise Exception('simplify parameter must be one of %s' % [0.2,0.1,0.05,0.025,0])
+    queryset = queryset.filter(simplify=tolerance)
+
+    # date filter
     yr = params.pop('year', None)
     mn = params.pop('month', None)
     dy = params.pop('day', None)
@@ -96,15 +111,13 @@ def apiview(request):
         date = datetime.date(int(yr),int(mn),int(dy))
         queryset = queryset.filter(start__lte=date).filter(end__gte=date)
 
+    # bbox filter
     bbox = params.pop('bbox', None)
     if bbox:
         bbox = map(float, bbox.split(','))
         print bbox
         box = Polygon.from_bbox(bbox)
         queryset = queryset.filter(geom__intersects=box)
-
-    tolerance = params.pop('simplify', None)
-    print 'simplify',tolerance
 
     # attribute filtering
     print 'apiparams',params
@@ -120,42 +133,15 @@ def apiview(request):
     t=time.time()
 
     # convert to json
-    def getgeoj(props):
-        geojstring = props.pop(geofield)
-        geoj = json.loads(geojstring)
-        return geoj
-
-    # speed and size optimization for geometries
-    # main bottleneck is creating geojson from geometry object
-    # solving this by fetching precomputed and/or pre-simplified geojson strings
-    if tolerance and float(tolerance) == 0.2:
-        # 0.2 degree simplification is requested for highest world/continental zoom level
-        # get these really fast from precomputed simplified geojson string
-        geofield = 'geoj_simple'
-    elif tolerance:
-        # less than 0.2 degrees is for approaching regions and countries
-        # get the raw geometry objects and do custom simplify
-        geofield = 'geom'
-        def getgeoj(props):
-            geom = props.pop(geofield)
-            geom = geom.simplify(float(tolerance), preserve_topology=True) # topology option fixes provs disappearing at distant zoom levels
-            geoj = dict(type=geom.geom_type,
-                        coordinates=geom.coords)
-            return geoj
-    else:
-        # no simplification means very close zoom or downloading full dataset
-        # so get precomputed fully detailed geojson string
-        geofield = 'geoj'
-    print 'geofield',geofield
-    
-    fields = [geofield,'name','alterns','country','iso','fips','hasc','start','end']
+    fields = ['geoj','name','alterns','country','iso','fips','hasc','start','end']
         
     jsondict = dict(type='FeatureCollection', features=[])
     for props in queryset.values(*fields):        
         props['start'] = props['start'].isoformat()
         props['end'] = props['end'].isoformat()
 
-        geoj = getgeoj(props)
+        geojstring = props.pop('geoj')
+        geoj = json.loads(geojstring)
 
         # NOTE: wkt or hex is way faster (ca 75%)
         # TODO: maybe consider using that in future...
