@@ -30,6 +30,101 @@
 	</div>
 
 	<style>
+
+                input[type='range'] {
+                  box-sizing: border-box;
+                  border: 0px solid transparent;
+                  padding: 0px;
+                  margin: 0px;
+                  width: 210px;
+                  height: 50px;
+                  cursor: pointer;
+                  background: -webkit-repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
+                  background: -moz-repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
+                  background: repeating-linear-gradient(90deg, #777, #777 2px, transparent 1px, transparent 40px) no-repeat 50% 50%;
+                  background-size: 100% 8px;
+                  font-size: 16px;
+                }
+                input[type='range'],
+                input[type='range']::-webkit-slider-runnable-track,
+                input[type='range']::-webkit-slider-thumb {
+                  -webkit-appearance: none;
+                }
+                input[type='range']::-webkit-slider-runnable-track {
+                  box-sizing: border-box;
+                  width: 200px;
+                  height: 5px;
+                  border-radius: 2px;
+                  background: #777;
+                }
+                input[type='range']::-moz-range-track {
+                  box-sizing: border-box;
+                  width: 200px;
+                  height: 5px;
+                  border-radius: 2px;
+                  padding: 0px;
+                  background: white;
+                }
+                input[type='range']::-moz-range-thumb {
+                  box-sizing: border-box;
+                  padding: 0px;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  border: 5px solid orange;
+                  background: white;
+                }
+                input[type='range']::-ms-track {
+                  box-sizing: border-box;
+                  width: 210px;
+                  height: 5px;
+                  border-radius: 2px;
+                  padding: 0px;
+                  background: #777;
+                  color: #777;
+                }
+                input[type='range']::-webkit-slider-thumb {
+                  box-sizing: border-box;
+                  padding: 0px;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  border: 5px solid orange;
+                  margin-top: -8px;
+                  background: white;
+                }
+                input[type='range']::-ms-thumb {
+                  box-sizing: border-box;
+                  padding: 0px;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  border: 5px solid orange;
+                  background: white;
+                }
+                input[type="range"]::-ms-fill-lower {
+                  background: transparent;
+                }
+                input[type='range']:focus {
+                  outline: none;
+                }
+
+                .dateslidercontainer:after {
+                  position: absolute;
+                  color: #777;
+                  content: '0 0.3 0.6 0.9';
+                  padding: 40px;
+                  word-spacing: 20px;
+                  left: 0px;
+                  top: 0px;
+                  z-index: -1;
+                }
+                .dateslidercontainer {
+                  padding: 0px;
+                  position: relative;
+                }
+
+	/*
             input[type=range] {
               -webkit-appearance: none;
               width: 100%;
@@ -40,7 +135,7 @@
             }
             input[type=range]::-webkit-slider-runnable-track {
               width: 100%;
-              height: 8.4px;
+              height: 2.4px;
               cursor: pointer;
               box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
               background: rgb(200,200,200);
@@ -63,7 +158,7 @@
             }
             input[type=range]::-moz-range-track {
               width: 100%;
-              height: 8.4px;
+              height: 2.4px;
               cursor: pointer;
               box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
               background: #6f6f6f;
@@ -81,7 +176,7 @@
             }
             input[type=range]::-ms-track {
               width: 100%;
-              height: 8.4px;
+              height: 2.4px;
               cursor: pointer;
               background: transparent;
               border-color: transparent;
@@ -115,28 +210,44 @@
             input[type=range]:focus::-ms-fill-upper {
               background: #7c7c7c;
             }
+        */
 	</style>
 
 	<script>
 	var dates = {{ dates|safe }};
 	mindate = new Date(dates[0]);
 	maxdate = new Date(dates[dates.length-1]);
+	var daterange = maxdate.getTime() - mindate.getTime();
+	
 	function update_slider(date) {
                 loaddata();
 		// move slider
 		curdate = new Date(date);
-		var daterange = maxdate.getTime() - mindate.getTime();
 		var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
 		slider = document.getElementById('dateslider');
 		slider.value = fraction;
 	};
 	</script>
 	
-	<div style="width:100%; text-align:center;">		
+	<div class="dateslidercontainer" style="width:100%; text-align:center;">		
 		<p style="font-weight:bold;">
 		<a id="sliderStartLabel">{{ dates.0 }}</a>
-		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" oninput="updatedate(this.value)" onchange="loaddata();"/>
+		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
 		<a id="sliderEndLabel">{{ dates|last }}</a>
+                <datalist id="ticks">
+                    <script>
+                    var ticks = document.getElementById('ticks');
+                    for (d of dates) {
+                        curdate = new Date(d);
+                        var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
+                        var fraction = fraction.toFixed(7) // round to max decimals of slider step option
+                        var opt = document.createElement('option');
+                        opt.value = fraction;
+                        opt.innerHTML = fraction;
+                        ticks.appendChild(opt);
+                    };
+                    </script>
+                </datalist>
 		</p>
 	</div>
 	
