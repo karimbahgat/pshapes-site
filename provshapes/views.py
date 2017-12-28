@@ -180,7 +180,7 @@ class SearchForm(forms.ModelForm):
     class Meta:
         model = ProvShape
         fields = ["name","country"]
-        widgets = dict(country=forms.Select(attrs={'onchange':'submitsearch()'},
+        widgets = dict(country=forms.Select(attrs={'onchange':'submitsearch();'},
                                             choices=[("","")]+[(c.country,c.country) for c in ProvShape.objects.distinct('country')]))
 
 def explore(request):
@@ -205,7 +205,7 @@ def explore(request):
 
 
     # main area with table and map
-    provs = ProvShape.objects.all().order_by("country", "name", "start")
+    provs = ProvShape.objects.all() #.order_by("country", "name", "start")
     if request.GET:
         #filterdict = dict(((k,v) for k,v in request.GET.items() if v))
         #provs = provs.filter(**filterdict)
@@ -220,10 +220,13 @@ def explore(request):
     else:
         filterdict = dict()
 
+    dates = [p.start.isoformat() for p in provs.order_by('start').distinct('start')]
+    dates.append( provs.order_by('end').last().end.isoformat() )
+    print dates
     custombanner = render(request, 'provshapes/mapview.html',
-                          dict(getparams=json.dumps(filterdict), searchform=searchform),
+                          dict(getparams=json.dumps(filterdict), searchform=
+                               searchform, dates=dates),
                           ).content
-    
 
     grids = []
 

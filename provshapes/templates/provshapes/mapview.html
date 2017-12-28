@@ -118,12 +118,13 @@
 	</style>
 
 	<script>
+	var dates = {{ dates|safe }};
+	mindate = new Date(dates[0]);
+	maxdate = new Date(dates[dates.length-1]);
 	function update_slider(date) {
                 loaddata();
 		// move slider
 		curdate = new Date(date);
-		mindate = new Date(1900, 1, 1);
-		maxdate = new Date(2014, 12, 31);
 		var daterange = maxdate.getTime() - mindate.getTime();
 		var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
 		slider = document.getElementById('dateslider');
@@ -133,28 +134,20 @@
 	
 	<div style="width:100%; text-align:center;">		
 		<p style="font-weight:bold;">
-		1900
-		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" list="ticks" oninput="updatedate(this.value)" onchange="loaddata();"/>
-		2015
-		<datalist id="ticks">
-		<option>1900</option>
-		<option>1950</option>
-		<option>2000</option>
-		<option>2015</option>
-		</datalist>
+		<a id="sliderStartLabel">{{ dates.0 }}</a>
+		<input id="dateslider" type="range" style="width:70%; background-color:black" value="1" min="0" max="1" step="0.0000001" oninput="updatedate(this.value)" onchange="loaddata();"/>
+		<a id="sliderEndLabel">{{ dates|last }}</a>
 		</p>
 	</div>
 	
 	<script>
 	function updatedate(fraction) {
-		mindate = new Date(1900, 1, 1);
-		maxdate = new Date(2014, 12, 31);
 		var daterange = maxdate.getTime() - mindate.getTime();
 		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
 		datetext = document.getElementById("datetext");
 		datetext.value = newdate.toISOString().slice(0,10);
 	};
-	updatedate(0.99); // max at default
+	updatedate(1); // max at default
 	</script>
 	
 	
