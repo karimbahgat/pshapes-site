@@ -30,7 +30,20 @@
 						color: white;
 						}
 
+                                        th.topmenu, td.topmenu {
+                                                text-align: left;
+                                                padding: 8px;
+                                        }
+
+                                        tr.topmenu:nth-child(even){background-color: #f2f2f2}
+
+                                        th.topmenu {
+                                                background-color: orange;
+                                                color: white;
+                                        }
+
 					table.topmenu {
+                                                border-collapse: collapse;
 						width:100%; 
 						white-space: nowrap; 
 						clear:both; 
@@ -43,39 +56,39 @@
 
 					<table class="topmenu">
 						
-						<tr>
+						<tr class="topmenu">
 						{% if request.path == "/" %}
-							<td><a id="current" href="/">Home</a></td>
+							<td class="topmenu"><a id="current" href="/">Home</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/">Home</a></td>
+							<td class="topmenu"><a id="notcurr" href="/">Home</a></td>
 						{% endif %}
 
 						{% if request.path|slice:":9" == "/explore/" %}
-							<td><a id="current" href="/explore/">Map</a></td>
+							<td class="topmenu"><a id="current" href="/explore/">Map</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/explore/">Map</a></td>
+							<td class="topmenu"><a id="notcurr" href="/explore/">Map</a></td>
 						{% endif %}
 
 						{% if request.path|slice:":10" == "/download/" %}
-							<td><a id="current" href="/download/">Download</a></td>
+							<td class="topmenu"><a id="current" href="/download/">Download</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/download/">Download</a></td>
+							<td class="topmenu"><a id="notcurr" href="/download/">Download</a></td>
 						{% endif %}
 						
 						{% if request.path|slice:":22" == "/contribute/countries/" %}
-							<td><a id="current" href="/contribute/countries/">Get Involved</a></td>
+							<td class="topmenu"><a id="current" href="/contribute/countries/">Get Involved</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/contribute/countries/">Get Involved</a></td>
+							<td class="topmenu"><a id="notcurr" href="/contribute/countries/">Get Involved</a></td>
 						{% endif %}
 						
 						{% if request.path|slice:":7" == "/about/" %}
-							<td><a id="current" href="/about/">About</a></td>
+							<td class="topmenu"><a id="current" href="/about/">About</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/about/">About</a></td>
+							<td class="topmenu"><a id="notcurr" href="/about/">About</a></td>
 						{% endif %}
 						
-						<td><form action="/explore" type="GET"><input type="text" name="name" placeholder="Find a province" style="float:left; width:100px; padding:3px; text-decoration: none; border-radius:10px"></input></form></td>
-						<td><a href="/account/"><img style="width:22px; height:22px; vertical-align:center" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"></a></td>
+						<td class="topmenu"><form action="/explore" type="GET"><input type="text" name="name" placeholder="Find a province" style="float:left; width:100px; padding:3px; text-decoration: none; border-radius:10px"></input></form></td>
+						<td class="topmenu"><a href="/account/"><img style="width:22px; height:22px; vertical-align:center" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"></a></td>
 						</tr>
 					
 					</table>

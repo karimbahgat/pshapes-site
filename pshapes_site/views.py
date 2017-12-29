@@ -846,7 +846,7 @@ def download(request):
                                 used to replicate or rebuild the pshapes dataset.
 
                                 <div style="text-align:center">
-                                <table>
+                                <table style="padding-top:20px; width:100%">
                                     <tr>
                                         <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
                                         <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
