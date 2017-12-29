@@ -1842,18 +1842,6 @@ def viewevent(request, country, province):
 ##                                  width="99%",
 ##                                  ))
 
-            # NOT SURE BOUT FROMCOUNTRY HERE...
-            conflicting = ProvChange.objects.filter(status__in="Active Pending", fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(pk=change.pk)
-            if conflicting:
-                conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
-                                              fields=["date","type","fromname","toname","country","user","added","status"])
-
-                grids.append(dict(title="Conflicting Submissions",
-                                  content=conflictingtable,
-                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                                  width="99%",
-                                  ))
-
         else:
             # newinfo event just added, so no change objects yet
             oldinfo = '<li style="list-style:none">'+markcountrychange(country, request.GET["fromname"], request.GET["fromcountry"]).encode("utf8")+"</li>"
@@ -2221,19 +2209,6 @@ def viewevent(request, country, province):
 ##                              width="99%",
 ##                              ))
 
-            # NOT SURE BOUT FROMCOUNTRY HERE...
-            # NOTE: not matching on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting
-            conflicting = ProvChange.objects.filter(status__in="Active Pending", tocountry=country, type="Begin", toname=prov, bestversion=True).exclude(pk=change.pk)
-            if conflicting:
-                conflictingtable = model2table(request, title="Conflicting Submissions:", objects=conflicting,
-                                              fields=["date","fromname","fromcountry","toname","tocountry","user","added","status"])
-
-                grids.append(dict(title="Conflicting Submissions",
-                                  content=conflictingtable,
-                                  style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                                  width="99%",
-                                  ))
-
         else:
             raise Exception('UNEXPECTED ERROR, NO BEGIN CHANGE?')
     
@@ -2301,30 +2276,32 @@ def model2table(request, title, objects, fields):
 		<table class="modeltable"> 
 		
 			<style>
-			table {
+			table.modeltable {
 				border-collapse: collapse;
 				width: 100%;
 			}
 
-			th, td {
+			th.modeltable, td.modeltable {
 				text-align: left;
 				padding: 8px;
 			}
 
-			tr:nth-child(even){background-color: #f2f2f2}
+			tr.modeltable:nth-child(even){background-color: #f2f2f2}
 
-			th {
+			tr.modeltable:nth-child(odd){background-color: white}
+
+			th.modeltable {
 				background-color: orange;
 				color: white;
 			}
 			</style>
 		
-			<tr>
-				<th> 
+			<tr class="modeltable">
+				<th class="modeltable"> 
 				</th>
 
 				{% for field in fields %}
-                                    <th>
+                                    <th class="modeltable">
                                         <b>{{ field }}</b>
                                     </th>
                                 {% endfor %}
@@ -2335,13 +2312,13 @@ def model2table(request, title, objects, fields):
                         {% if changelist %}
 			
                             {% for pk,changerow in changelist %}
-                                    <tr>
-                                            <td>
+                                    <tr class="modeltable">
+                                            <td class="modeltable">
                                                 <a href="{% url 'viewchange' pk=pk %}">View</a>
                                             </td>
                                             
                                             {% for value in changerow %}
-                                                <td>{{ value }}</td>
+                                                <td class="modeltable">{{ value }}</td>
                                             {% endfor %}
                                             
                                     </tr>
@@ -2349,10 +2326,10 @@ def model2table(request, title, objects, fields):
 
                         {% else %}
 
-                            <tr>
-                            <td></td>
+                            <tr class="modeltable">
+                            <td class="modeltable"></td>
                             {% for _ in fields %}
-                                <td> - </td>
+                                <td class="modeltable"> - </td>
                             {% endfor %}
                             </tr>
 
@@ -2367,33 +2344,35 @@ def model2table(request, title, objects, fields):
 
 def lists2table(request, lists, fields):
     html = """
-		<table> 
+		<table class="listtable"> 
 		
 			<style>
-			table {
+			table.listtable {
 				border-collapse: collapse;
 				width: 100%;
 			}
 
-			th, td {
+			th.listtable, td.listtable {
 				text-align: left;
 				padding: 8px;
 			}
 
-			tr:nth-child(even){background-color: #f2f2f2}
+			tr.listtable:nth-child(even){background-color: #f2f2f2}
 
-			th {
+			tr.listtable:nth-child(odd){background-color: white}
+
+			th.listtable {
 				background-color: orange;
 				color: white;
 			}
 			</style>
 		
-			<tr>
-				<th> 
+			<tr class="listtable">
+				<th class="listtable"> 
 				</th>
 
 				{% for field in fields %}
-                                    <th>
+                                    <th class="listtable">
                                         <b>{{ field }}</b>
                                     </th>
                                 {% endfor %}
@@ -2402,15 +2381,15 @@ def lists2table(request, lists, fields):
 			</a>
 			
 			{% for url,row in lists %}
-				<tr>
-					<td>
+				<tr class="listtable">
+					<td class="listtable">
 					{% if url %}
                                             <a href="{{ url }}">View</a>
                                         {% endif %}
 					</td>
 					
                                         {% for value in row %}
-                                            <td>{{ value | safe}}</td>
+                                            <td class="listtable">{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
@@ -2531,6 +2510,16 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
 def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
 
+    if change.type in "NewInfo Breakaway":
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, date=change.date, type=change.type, fromname=change.fromname, bestversion=True).exclude(pk=change.pk)
+        conflictingfields = ["date","type","fromname","fromcountry","toname","user","added","status"]
+    elif change.type in "PartTransfer FullTransfer Begin":
+        # UNSURE: should we not match on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting?
+        # on other hand one should be able to say begin for specific provinces, so not necessarily true...
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.toname, bestversion=True).exclude(pk=change.pk)
+        conflictingfields = ["date","type","fromname","toname","tocountry","user","added","status"]
+
+    notes = []
     if not change.bestversion:
         note = """
                 <div style="background-color:rgb(248,234,150); outline: black solid thick; padding:1%%; font-family: comic sans ms">
@@ -2541,8 +2530,89 @@ def viewchange(request, pk):
                 </div>
                 <br>
                 """ % ProvChange.objects.get(changeid=change.changeid, bestversion=True).pk
-    else:
-        note = ""
+        notes.append(note)
+    if conflicting:
+        # custom table
+        html = """
+                    <table class="conftable"> 
+                    
+                            <style>
+                            table.conftable {
+                                    border-collapse: collapse;
+                                    width: 100%;
+                            }
+
+                            th.conftable, td.conftable {
+                                    text-align: left;
+                                    padding: 8px;
+                            }
+
+                            tr.conftable:nth-child(even){background-color: none}
+
+                            tr.conftable:nth-child(odd){background-color: none}
+
+                            th.conftable {
+                                    background-color: crimson;
+                                    color: white;
+                            }
+                            </style>
+                    
+                            <tr class="conftable">
+                                    <th class="conftable"> 
+                                    </th>
+
+                                    {% for field in fields %}
+                                        <th class="conftable">
+                                            <b>{{ field }}</b>
+                                        </th>
+                                    {% endfor %}
+                                        
+                            </tr>
+                            </a>
+
+                            {% if changelist %}
+                            
+                                {% for pk,changerow in changelist %}
+                                        <tr class="conftable">
+                                                <td class="conftable">
+                                                    <a href="{% url 'viewchange' pk=pk %}">View</a>
+                                                </td>
+                                                
+                                                {% for value in changerow %}
+                                                    <td class="conftable">{{ value }}</td>
+                                                {% endfor %}
+                                                
+                                        </tr>
+                                {% endfor %}
+
+                            {% else %}
+
+                                <tr class="conftable">
+                                <td class="conftable"></td>
+                                {% for _ in fields %}
+                                    <td class="conftable"> - </td>
+                                {% endfor %}
+                                </tr>
+
+                            {% endif %}
+                                
+                    </table>
+                    """
+        changelist = [(change.pk, [getattr(change,field) for field in conflictingfields]) for change in conflicting]
+        conflictingtable = Template(html).render(Context({"request":request, "fields":conflictingfields, "changelist":changelist}))
+
+        
+        note = """
+                <div style="background-color:rgb(248,234,150); outline: black solid thick; padding:1%%; font-family: comic sans ms">
+                <p style="font-size:large; font-weight:bold">Note:</p>
+                <p style="font-size:medium; font-style:italic">
+                There seems to be conflicting versions of this change:
+                </p>
+                    %s
+                </div>
+                <br>
+                """ % conflictingtable
+        notes.append(note)
 
     if change.type == "Breakaway":
         params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
@@ -2575,7 +2645,7 @@ def viewchange(request, pk):
     hasvouched = bool(vouches)
 
     args = {'pk': pk,
-            'note': note,
+            'notes': notes,
             'canvouch': canvouch,
             'hasvouched': hasvouched,
             'vouches': vouches,

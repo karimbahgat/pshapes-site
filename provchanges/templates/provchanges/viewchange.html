@@ -11,8 +11,6 @@
 		Province Change
 		</h3>
 		
-		{{ note|safe }}
-		
 		<br>
 		
 		{% if eventlink %}
@@ -58,8 +56,6 @@
 		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
 		</div>
 
-		<br><br>
-
 		{% if metachange.status.value != 'NonActive' %}
 			{% if user.username == metachange.user.value or user.is_staff %}
 				<a href="/provchange/{{pk}}/withdraw/" style="float:right; background-color:crimson; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -81,6 +77,10 @@
 		</div>
 		
 		<br><br>
+
+		{% for note in notes %}
+                    {{ note|safe }}
+                {% endfor %}
 		
 		<div>
 			
