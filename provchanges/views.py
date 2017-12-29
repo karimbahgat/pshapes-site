@@ -1217,19 +1217,19 @@ def viewcountry(request, country):
             typ = obj.type
             if typ == "FullTransfer":
                 prov = obj.toname
-                return prov,"Merge"
+                return prov,"Merge",obj.fromcountry,obj.tocountry
             elif typ == "PartTransfer":
                 prov = obj.toname
-                return prov,"Transfer"
+                return prov,"Transfer",obj.fromcountry,obj.tocountry
             elif typ == "Breakaway":
                 prov = obj.fromname
-                return prov,"Split"
+                return prov,"Split",obj.fromcountry,obj.tocountry
             elif typ == "NewInfo":
                 prov = obj.fromname
-                return prov,typ
+                return prov,typ,obj.fromcountry,obj.tocountry
             elif typ == "Begin":
                 prov = obj.toname
-                return prov,typ
+                return prov,typ,obj.fromcountry,obj.tocountry
         def events():
             dategroup = list(changes)
             subkey = typeprov
@@ -1266,34 +1266,42 @@ def viewcountry(request, country):
 
         events = events()
         
-        def getlinkrow(date,prov,typ,items):
+        def getlinkrow(date,prov,typ,fromcountry,tocountry,items):
             items = list(items)
             firstitem = items[0]
+            # link should point to country that was different, if any
+            if fromcountry and fromcountry == country:
+                linkcountry = fromcountry
+            elif tocountry and tocountry == country:
+                linkcountry = tocountry
+            else:
+                linkcountry = country
+                
             if typ == "NewInfo":
-                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
+                fields = ["fromcountry","tocountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
-                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="NewInfo"'
+                prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Split":
-                fields = ["fromcountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
+                fields = ["fromcountry","tocountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
-                prov = markcountrychange(country, firstitem.fromname, firstitem.fromcountry)
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Split"'
+                prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Merge":
-                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Merge"'
-                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Merge"'
+                prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Transfer":
-                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Transfer"'
-                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Transfer"'
+                prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Begin":
-                fields = ["tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
                 params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Begin"'
-                prov = markcountrychange(country, firstitem.toname, firstitem.tocountry)
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Begin"'
+                prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
 
             changeids = [c.changeid for c in items]
             vouches=len(list(Vouch.objects.filter(changeid__in=changeids, status='Active')))
@@ -1307,7 +1315,7 @@ def viewcountry(request, country):
             else:
                 vouchitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
             return link,(prov,typ,vouchitem)
-        events = [getlinkrow(date,prov,typ,items) for (date,(prov,typ)),items in events]
+        events = [getlinkrow(date,prov,typ,fromcountry,tocountry,items) for (date,(prov,typ,fromcountry,tocountry)),items in events]
         eventstable = lists2table(request, events, ["Province", "EventType", "Vouches"])
 
         content = eventstable
@@ -1708,9 +1716,13 @@ def adddate(request, country):
     func = AddDateWizard.as_view(country=country)
     return func(request)
 
-def markcountrychange(country, provtext, provcountry):
-    if provcountry != country:
-        provtext += " (%s)" % provcountry
+def markcountrychange(country, provtext, provcountries):
+    if not isinstance(provcountries,list):
+        provcountries = [provcountries]
+    for provcountry in provcountries:
+        if provcountry and provcountry != country:
+            provtext += " (%s)" % provcountry
+            break
     return provtext
 
 def viewevent(request, country, province):
@@ -1740,7 +1752,7 @@ def viewevent(request, country, province):
     if typ == "NewInfo":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(fromcountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'], tocountry=request.GET['tocountry'], date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
@@ -1909,7 +1921,7 @@ def viewevent(request, country, province):
         
     elif typ == "Split":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(fromcountry=country,date=date,type="Breakaway",fromname=prov).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country,date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'],tocountry=request.GET['tocountry'], date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         GET = request.GET.copy()
@@ -1985,7 +1997,7 @@ def viewevent(request, country, province):
 
     elif typ == "Merge":
         fields = ["fromname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
@@ -2052,7 +2064,7 @@ def viewevent(request, country, province):
 
     elif typ == "Transfer":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=country,date=date,type="PartTransfer",toname=prov).exclude(status="NonActive") | ProvChange.objects.filter(fromcountry=country,date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
@@ -2120,7 +2132,7 @@ def viewevent(request, country, province):
     elif typ == "Begin":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(tocountry=country, date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
+        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'], fromcountry=request.GET['fromcountry'], date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
@@ -2637,13 +2649,13 @@ def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
 
     if change.type in "NewInfo Breakaway":
-        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, date=change.date, type=change.type, fromname=change.fromname, bestversion=True).exclude(pk=change.pk)
-        conflictingfields = ["date","type","fromname","fromcountry","toname","user","added","status"]
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.fromname, bestversion=True).exclude(pk=change.pk)
+        conflictingfields = ["date","type","fromname","fromcountry","toname","tocountry","user","added","status"]
     elif change.type in "PartTransfer FullTransfer Begin":
         # UNSURE: should we not match on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting?
         # on other hand one should be able to say begin for specific provinces, so not necessarily true...
-        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.toname, bestversion=True).exclude(pk=change.pk)
-        conflictingfields = ["date","type","fromname","toname","tocountry","user","added","status"]
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.toname, bestversion=True).exclude(pk=change.pk)
+        conflictingfields = ["date","type","fromname","fromcountry","toname","tocountry","user","added","status"]
 
     notes = []
     if not change.bestversion:
