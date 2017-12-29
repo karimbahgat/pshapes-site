@@ -2210,7 +2210,108 @@ def viewevent(request, country, province):
 ##                              ))
 
         else:
-            raise Exception('UNEXPECTED ERROR, NO BEGIN CHANGE?')
+            # begin event just added, so no change objects yet
+            top = """
+                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to {countrytext}
+                            </a>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            left = """
+                            <div style="clear:both; text-align: left">
+                            
+                            </div>
+            """
+
+            mid = """
+                    <h2><em>Province is created:</em></h2>
+                    """
+
+            toname = request.GET['toname']
+            tocountry = request.GET['tocountry']
+            toalterns = request.GET.get('toaltern', '')
+            toiso = request.GET.get('toiso', '')
+            tofips = request.GET.get('tofips', '')
+            tohasc = request.GET.get('tohasc', '')
+        
+            newinfo = '''<li style="font-size:smaller; list-style:none"> {provtext}<a href="/contribute/add/{country}/{province}?{params}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Confirm</a>
+
+                        <br><br></li>'''.format(provtext=markcountrychange(country, toname, tocountry).encode("utf8"),
+                                                country=urlquote(country), province=urlquote(province), params=request.GET.urlencode())
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+toalterns.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+toiso.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+tofips.encode("utf8")+"</li>"
+            newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; HASC: '+tohasc.encode("utf8")+"</li>"
+            right = """
+                            <style>
+                                #blackbackground a {{ color:white }}
+                                #blackbackground a:visited {{ color:grey }}
+                            </style>
+                            
+                            <div id="blackbackground">
+                            <h2>{newinfo}</h2>
+                            </div>  
+            """.format(newinfo=newinfo)
+            custombanner = """
+
+                            {top}
+
+                            <style>
+                            td {{vertical-align:top}}
+                            </style>
+                            
+                            <table width="99%" style="clear:both">
+                            <tr>
+                            
+                            <td style="width:31%; padding:1%">
+                            {left}
+                            </td>
+
+                            <td style="width:31%; padding:1%">
+                            {mid}
+                            </td>
+                            
+                            <td style="width:31%; padding:1%">
+                            {right}
+                            </td>
+
+                            </tr>
+                            </table>
+                            """.format(top=top, left=left, mid=mid, right=right)
+
+
+
+
+
+
+
+
+
+            
+##            fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+##            formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
+##            formfieldvalues["user"] = self.request.user.username
+##            formfieldvalues["added"] = datetime.datetime.now()
+##            formfieldvalues["bestversion"] = True
+##            print formfieldvalues
+##
+##            eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
+##            print eventvalues
+##
+##            objvalues = dict(eventvalues)
+##            objvalues.update(formfieldvalues)
+##
+##            # copy toinfo to frominfo
+##            for fl in 'country name alterns iso fips hasc'.split():
+##                objvalues['from'+fl] = objvalues.get('to'+fl)
+##            
+##            print 'final objvalues',objvalues
+##            obj = ProvChange.objects.create(**objvalues)
+##            obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions/edits
+##            print obj
+##            
+##            obj.save()
+##
+##            prov = data["toname"]
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
@@ -2242,6 +2343,31 @@ def addchange(request, country, province):
         func = AddTransferChangeWizard.as_view(country=country, province=province)
     elif request.GET["type"].lower().strip('"') == "newinfo":
         func = AddNewInfoChangeWizard.as_view(country=country, province=province)
+    elif request.GET["type"].lower().strip('"') == "begin":
+        # special handling, begin events dont require any further info
+        # so just add immediately and redirect to same page
+        objvalues = dict([(k,v) for k,v in request.GET.items()])
+        objvalues["user"] = request.user.username
+        objvalues["added"] = datetime.datetime.now()
+        objvalues["bestversion"] = True
+        print objvalues
+
+        # copy toinfo to frominfo
+        for fl in 'country name alterns iso fips hasc'.split():
+            objvalues['from'+fl] = objvalues.get('to'+fl)
+        
+        print 'final objvalues',objvalues
+        obj = ProvChange.objects.create(**objvalues)
+        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions/edits
+        print obj
+        
+        obj.save()
+
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        eventlink = "/contribute/view/{country}/{prov}/?type=Begin&".format(country=urlquote(country), prov=urlquote(province)) + params
+
+        return redirect(eventlink)
+    
     return func(request)
 
 ##    if request.method == "POST":
@@ -2552,7 +2678,7 @@ def viewchange(request, pk):
                             tr.conftable:nth-child(odd){background-color: none}
 
                             th.conftable {
-                                    background-color: crimson;
+                                    background-color: black;
                                     color: white;
                             }
                             </style>
@@ -2696,7 +2822,7 @@ def viewchange(request, pk):
 ##    print topics
 
     #topics = [(title,comm) for title,comm in sorted(topics.items(), key=lambda t,c: c[0]['added'])]
-    args['topics'] = comments2html(request, allcomments, change.fromcountry, change.changeid)
+    args['topics'] = comments2html(request, allcomments, change.fromcountry, change.changeid, "rgb(27,138,204)")
 
     # try to emulate https://cloud.netlifyusercontent.com/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b549e4a7-f9d9-4f64-b597-21c7d8f2a166/facebook-comments.png
     # user icon: "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
@@ -3288,35 +3414,7 @@ class AddEventWizard(SessionWizardView):
         elif data["type"] == "NewInfo":
             prov = data["fromname"]
         elif data["type"] == "Begin":
-            # SPECIAL CASE, ADD CHANGE IMMEDIATELY, BC NO MORE INFO NEEDED
-            print "adding begin-change immediately", 
-            
-            fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-            formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-            formfieldvalues["user"] = self.request.user.username
-            formfieldvalues["added"] = datetime.datetime.now()
-            formfieldvalues["bestversion"] = True
-            print formfieldvalues
-
-            eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
-            print eventvalues
-
-            objvalues = dict(eventvalues)
-            objvalues.update(formfieldvalues)
-
-            # copy toinfo to frominfo
-            for fl in 'country name alterns iso fips hasc'.split():
-                objvalues['from'+fl] = objvalues.get('to'+fl)
-            
-            print 'final objvalues',objvalues
-            obj = ProvChange.objects.create(**objvalues)
-            obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions/edits
-            print obj
-            
-            obj.save()
-
             prov = data["toname"]
-            
         # if transfer, have to set the 3 geom vals and save to session
         # then, in addtransferchange, get the 3 geom vals from session, and set to the submit data
         # ...
