@@ -136,7 +136,7 @@ def apiview(request):
     fields = ['geoj','name','alterns','country','iso','fips','hasc','start','end']
         
     jsondict = dict(type='FeatureCollection', features=[])
-    for props in queryset.values(*fields):        
+    for props in queryset.values(*fields):
         props['start'] = props['start'].isoformat()
         props['end'] = props['end'].isoformat()
 
@@ -225,7 +225,7 @@ def explore(request):
         filterdict = dict()
 
     dates = [p.start.isoformat() for p in provs.order_by('start').distinct('start')]
-    dates.append( provs.order_by('end').last().end.isoformat() )
+    if dates: dates.append( provs.order_by('end').last().end.isoformat() )
     print dates
     custombanner = render(request, 'provshapes/mapview.html',
                           dict(getparams=json.dumps(filterdict), searchform=

@@ -1,12 +1,479 @@
 
 
-    <h3 style="text-align: center">Historical Province Boundaries</h3>
+    
 
     <div id="maptab">
+
+        <div class="leftside" style="display:inline-block; width:70%">
+
+            <div class="mapheader" style="padding:10px; width:100%">
+
+                            <script>
+                            var dates = {{ dates|safe }};
+                            mindate = new Date(dates[0]);
+                            maxdate = new Date(dates[dates.length-1]);
+                            var daterange = maxdate.getTime() - mindate.getTime();
+                            
+                            function update_slider(date) {
+                                    loaddata();
+                                    // move slider
+                                    curdate = new Date(date);
+                                    var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
+                                    slider = document.getElementById('dateslider');
+                                    slider.value = fraction;
+                            };
+                            </script>
+
+                            <div style="display:inline-block; vertical-align:middle;"><img height="60px" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png"/></div>
+
+                            <div style="display:inline-block; vertical-align:middle; padding:5px;">
+                                <input id="datetext" type="text" style="width:100px; text-align:center; font-size:large; font-weight:bold; z-index:1000; border: 3px solid black; border-radius: 7px;" oninput="update_slider(document.getElementById('datetext').value);"/>
+                            </div>
+                            
+                            <div class="dateslidercontainer" style="display:inline-block; vertical-align:middle; padding:5px; width:70%; white-space:nowrap;">
+                                    <div id="ticks" style="position:relative; top:22px; left:-5px;">
+                                        <script>
+                                        var ticks = document.getElementById('ticks');
+                                        for (d of dates) {
+                                            curdate = new Date(d);
+                                            var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
+                                            var tick = document.createElement('div');
+                                            tick.innerHTML = '<div style="width:5px; height:5px; border-radius:50%; background-color:orange;"></div>'
+                                            tick.style.position = "absolute";
+                                            tick.style.color = "orange"
+                                            tick.style.marginLeft = fraction * 100 + "%";
+                                            ticks.appendChild(tick);
+                                        };
+                                        </script>
+                                    </div>
+                                                                                 
+                                    <p style="font-weight:bold;">
+                                    
+                                    <input id="dateslider" type="range" style="width:100%; background-color:black;" value="1" min="0" max="1" step="0.0000001" oninput="updatedate(this.value)" onchange="loaddata();"/>
+
+                                        <style>
+
+                                                input[type='range'] {
+                                                  box-sizing: border-box;
+                                                  border: 0px solid transparent;
+                                                  padding: 0px;
+                                                  margin: 0px;
+                                                  width: 210px;
+                                                  height: 50px;
+                                                  cursor: pointer;
+                                                  font-size: 16px;
+                                                }
+                                                input[type='range'],
+                                                input[type='range']::-webkit-slider-runnable-track,
+                                                input[type='range']::-webkit-slider-thumb {
+                                                  -webkit-appearance: none;
+                                                }
+                                                input[type='range']::-webkit-slider-runnable-track {
+                                                  box-sizing: border-box;
+                                                  width: 200px;
+                                                  height: 5px;
+                                                  border-radius: 2px;
+                                                  background: #777;
+                                                }
+                                                input[type='range']::-moz-range-track {
+                                                  box-sizing: border-box;
+                                                  width: 200px;
+                                                  height: 5px;
+                                                  border-radius: 2px;
+                                                  padding: 0px;
+                                                  background: white;
+                                                }
+                                                input[type='range']::-moz-range-thumb {
+                                                  box-sizing: border-box;
+                                                  padding: 0px;
+                                                  height: 20px;
+                                                  width: 20px;
+                                                  border-radius: 50%;
+                                                  border: 5px solid orange;
+                                                  background: white;
+                                                }
+                                                input[type='range']::-ms-track {
+                                                  box-sizing: border-box;
+                                                  width: 210px;
+                                                  height: 5px;
+                                                  border-radius: 2px;
+                                                  padding: 0px;
+                                                  background: #777;
+                                                  color: #777;
+                                                }
+                                                input[type='range']::-webkit-slider-thumb {
+                                                  box-sizing: border-box;
+                                                  padding: 0px;
+                                                  height: 20px;
+                                                  width: 20px;
+                                                  border-radius: 50%;
+                                                  border: 5px solid orange;
+                                                  margin-top: -8px;
+                                                  background: white;
+                                                }
+                                                input[type='range']::-ms-thumb {
+                                                  box-sizing: border-box;
+                                                  padding: 0px;
+                                                  height: 20px;
+                                                  width: 20px;
+                                                  border-radius: 50%;
+                                                  border: 5px solid orange;
+                                                  background: white;
+                                                }
+                                                input[type="range"]::-ms-fill-lower {
+                                                  background: transparent;
+                                                }
+                                                input[type='range']:focus {
+                                                  outline: none;
+                                                }
+
+                                                .dateslidercontainer:after {
+                                                  position: absolute;
+                                                  color: #777;
+                                                  content: '0 0.3 0.6 0.9';
+                                                  padding: 40px;
+                                                  word-spacing: 20px;
+                                                  left: 0px;
+                                                  top: 0px;
+                                                  z-index: -1;
+                                                }
+                                                .dateslidercontainer {
+                                                  padding: 0px;
+                                                  position: relative;
+                                                }
+                                        </style>
+
+
+                                    <div id="slidelabels" style="position:relative; top:-30px;">
+                                        <script>
+                                        var labels = document.getElementById('slidelabels');
+                                        var yrrange = maxdate.getFullYear() - mindate.getFullYear();
+                                        //alert("yrrange:"+yrrange);
+                                        if (yrrange > 0) {
+                                            if (yrrange < 10) {
+                                                step = 1
+                                            } else if (yrrange < 30) {
+                                                step = 5
+                                            } else if (yrrange < 100) {
+                                                step = 10
+                                            } else {
+                                                step = 25
+                                            };
+                                            //alert("step size:"+step);
+                                            startyr = Math.ceil(mindate.getFullYear()/step) * step
+                                            //alert("startyr:"+startyr);
+                                            endyr = maxdate.getFullYear();
+                                            //alert("endyr:"+endyr);
+                                            var yr;
+                                            for (yr = startyr; yr < endyr; yr += step) {
+                                                //alert(yr);
+                                                curdate = new Date(yr, 1, 1);
+                                                var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
+                                                var lab = document.createElement('div');
+                                                lab.innerHTML = yr
+                                                lab.style.position = "absolute";
+                                                lab.style.color = "gray"
+                                                lab.style.marginLeft = fraction * 100 + "%";
+                                                labels.appendChild(lab);
+                                            }
+                                        };
+                                        </script>
+                                    </div>
+                                                                                 
+                                    </p>
+                            </div>
+                            
+                            <script>
+                            function updatedate(fraction) {
+                                    var daterange = maxdate.getTime() - mindate.getTime();
+                                    var newdate = new Date(mindate.getTime() + (daterange * fraction) );
+                                    // map title
+                                    datetext = document.getElementById("datetext");
+                                    datetext.value = newdate.toISOString().slice(0,10);
+                                    datetext.style.left = "-" + datetext.offsetWidth * 1.1 + "px"
+                                    datetext.style.top = datetext.offsetHeight / 4 + "px"
+                            };
+                            updatedate(1); // max at default
+                            </script>
+                                
+        </div>
+
+
+
+
+
+	<div id="mapcontainer" style="clear:both; width:100%; margin-left:1%; height:60vh; padding:0 0 30px 0;">
+            <div style="width:100%; height:100%; margins:auto; background-color:rgb(141,168,198);" id="map">
+
+                <script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+                
+                <script defer="defer">
+                var map = new OpenLayers.Map('map', {resolutions: [0.75,0.55,0.35,0.25,0.17,0.12,0.08,0.06,0.04,0.02,0.01,0.005,0.0025,0.0012,0.0006,0.0003],
+                                                     allOverlays: true,
+                                                     });
+
+                // background country layer
+                var style = new OpenLayers.Style({fillColor:"rgb(244,244,244)", strokeWidth:0.4, strokeColor:'rgb(177,177,177)'},
+                                                );
+                var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+                map.addLayers([countryLayer]);
+                rendercountries = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        countries = geojson_format.read(geoj_str, "FeatureCollection");
+                        
+                        feats = [];
+                        for (feat of countries) {
+                                feats.push(feat);
+                        };
+                        map.zoomToExtent([-170,70,180,-40]);
+                        //map.zoomToExtent([-150,70,150,-70]);
+                        //map.zoomToExtent([-80,30,80,-30]);
+                        countryLayer.addFeatures(feats);
+                };
+                $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
+                map.zoomToMaxExtent();
+                </script>
+
+                <script>
+
+                // empty province layer
+                var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4},
+                                                                                        {context: {
+                                                                                                        getColor: function(feature) {
+                                                                                                                return document.countryColors[feature.attributes.country];
+                                                                                                        },
+                                                                                                }
+                                                                                        });
+                var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+                map.addLayers([provLayer]);
+
+                // province centers
+                var provLabelStyle = new OpenLayers.Style({fillOpacity:0, fontSize:"${getFontSize}", label:"${getLabel}"},
+                                                                                        {context: {
+                                                                                                        getLabel: function(feature) {
+                                                                                                                if (map.resolution < 0.04) {
+                                                                                                                        return feature.attributes.name.toUpperCase();
+                                                                                                                } else if (map.resolution < 0.08) {
+                                                                                                                        return feature.attributes.name.substring(0,4).toUpperCase();
+                                                                                                                } else {
+                                                                                                                        return '';
+                                                                                                                }},
+                                                                                                        getFontSize: function(feature) {
+                                                                                                                if (map.resolution < 0.04) {
+                                                                                                                        return 11;
+                                                                                                                } else if (map.resolution < 0.08) {
+                                                                                                                        return 6;
+                                                                                                                } else {
+                                                                                                                        return '';
+                                                                                                                }}
+                                                                                                        }})
+                var provLabelLayer = new OpenLayers.Layer.Vector("ProvinceCenters", {styleMap:provLabelStyle});
+                map.addLayers([provLabelLayer]);
+
+                function getMaxPoly(polys) {
+                      // https://stackoverflow.com/questions/37306548/how-to-show-one-label-per-multi-polygon-in-open-layers-3
+                      var polyObj = [];
+                      //now need to find which one is the greater and so label only this
+                      for (var b = 0; b < polys.length; b++) {
+                        polyObj.push({ poly: polys[b], area: polys[b].getArea() });
+                      };
+                      polyObj.sort(function (a, b) { return a.area - b.area });
+
+                      return polyObj[polyObj.length - 1].poly;
+                }
+
+                label_provs = function() {
+                    // drop previous
+                    provLabelLayer.removeAllFeatures();
+
+                    if (map.zoom > 3) {
+                    
+                        // calc bbox for each
+                        var feats = [];
+                        for (feat of document.allProvs) {
+                            if (!feat.geometry) {
+                                continue;
+                            };
+                            
+                            if (feat.geometry.components.length == 1) {
+                                var labpoint = feat.geometry.getCentroid();
+                            } else {
+                                var labpoint = getMaxPoly(feat.geometry.components).getCentroid();
+                            };
+                            var feat = new OpenLayers.Feature.Vector(labpoint,
+                                                                     feat.attributes);
+                            feats.push(feat);
+                        };
+                        provLabelLayer.addFeatures(feats);
+
+                    };
+                };
+                
+                // how to render data
+                renderdata = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+                        var date = document.getElementById('datetext').value;
+                        draw_borders(date);
+                        label_countries();
+                        label_provs();
+                };
+
+                // country centers
+                var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
+                                                       fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
+                                                       fontSize:"${getFontSize}", label:"${getLabel}"}, 
+                                                        {context: {
+                                                                        getLabel: function(feature) {
+                                                                                return feature.attributes.country.toUpperCase();
+                                                                                },
+                                                                        getFontSize: function(feature) {
+                                                                                if (map.resolution < 0.06) {
+                                                                                    return 19;
+                                                                                } else if (map.resolution < 0.12) {
+                                                                                    return 10;
+                                                                                } else if (map.resolution < 0.25) {
+                                                                                    return 4;
+                                                                                } else {
+                                                                                    return 0.01;
+                                                                                }
+                                                                        },
+                                                                    },
+                                                        })
+                
+                var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:countryLabelStyle});
+                map.addLayers([cntrLayer]);
+                
+                label_countries = function() {
+                    // drop previous
+                    cntrLayer.removeAllFeatures();
+                    
+                    // calc bbox for each country
+                    var cntrBox = {};
+                    for (feat of document.allProvs) {
+                        bounds = feat.geometry.getBounds();
+                        if (!bounds) { continue; }
+                        if ( !(feat.attributes.country in cntrBox)) {
+                            cntrBox[feat.attributes.country] = bounds;
+                        } else {
+                            cntrBox[feat.attributes.country].extend(bounds);
+                        };
+                    };
+
+                    // add to layer
+                    var feats = [];
+                    for (cntr of Object.keys(cntrBox)) {
+                        var bounds = cntrBox[cntr];
+                        var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
+                                                             {country:cntr});
+                        feats.push(feat);
+                    };
+                    cntrLayer.addFeatures(feats);
+                };
+
+                // initiate map
+                onstartup = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+                        var date = document.getElementById('datetext').value;
+                        draw_borders(date);
+                        label_countries();
+                        label_provs();
+                        //map.zoomToExtent(provLayer.getDataExtent());
+                };
+                var date = document.getElementById('datetext').value;
+                var year = date.split("-")[0]
+                var month = date.split("-")[1]
+                var day = date.split("-")[2]
+                var datadict = Object.assign({}, {format:"json", simplify:0.2, year:year, month:month, day:day}, {{ getparams|safe }});
+                $.getJSON("/api/", datadict, onstartup);
+
+                // load data func
+                function loaddata() {
+                        // load data with resolution based on zoomlevel
+                        var date = document.getElementById('datetext').value;
+                        var year = date.split("-")[0]
+                        var month = date.split("-")[1]
+                        var day = date.split("-")[2]
+
+                        var bbox = map.getExtent().toArray();
+
+                        var apiurl = "/api/";
+                        var datadict = Object.assign({}, {format:"json", bbox:bbox.join(','), year:year, month:month, day:day}, {{ getparams|safe }});
+                        //alert(map.resolution);
+                        if (map.resolution >= 0.17) {
+                            datadict['simplify'] = 0.2;
+                            $.getJSON(apiurl, datadict, renderdata);
+                        } else if (map.resolution >= 0.08) {
+                            datadict['simplify'] = 0.1;
+                            $.getJSON(apiurl, datadict, renderdata);
+                        } else if (map.resolution >= 0.04) {
+                            datadict['simplify'] = 0.05;
+                            $.getJSON(apiurl, datadict, renderdata);
+                        } else if (map.resolution >= 0.02) {
+                            datadict['simplify'] = 0.025;
+                            $.getJSON(apiurl, datadict, renderdata);
+                        } else {
+                            $.getJSON(apiurl, datadict, renderdata);
+                        };
+                };
+                map.events.register("zoomend", map, loaddata);
+                map.events.register("moveend", map, loaddata);
+
+                // assign random colors to each country
+                document.countryColors = {};
+                
+                function getRandomColor(){
+                        var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
+                        return color;
+                };
+
+                // define drawing function
+                function draw_borders(date) {
+                
+                        // drop previous provs
+                        provLayer.removeAllFeatures();
+                        
+                        // select provs by date
+                        dateFeats = [];
+                        for (feat of document.allProvs) {
+                                if ( ! (feat.attributes.country in document.countryColors)) {
+                                        // assign random color for country
+                                        document.countryColors[feat.attributes.country] = getRandomColor();
+                                };
+                                dateFeats.push(feat);
+                        };
+                        
+                        // add to layer
+                        provLayer.addFeatures(dateFeats);
+                };
+                
+                </script>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="rightside" style="display:inline-block; width:25%; vertical-align:top; margin:20px">
             <form style="text-align:center; font-weight:bold;" action="/explore/" method="get">
 
-            {{ searchform.country.label }} {{ searchform.country }}
-            {{ searchform.name.label }} {{ searchform.name }}
+            <h2>Search the Database</h2>
+            
+            <table style="background-color:red">
+                <tr style="background-color:black">
+                <td>{{ searchform.country.label }}</td>
+                <td>{{ searchform.country }}</td>
+                </tr>
+
+                <tr style="background-color:black">
+                <td>{{ searchform.name.label }}</td>
+                <td>{{ searchform.name }}</td>
+                </tr>
+            </table>
 
             <script>
             submitsearch = function() {
@@ -15,458 +482,10 @@
             </script>
             
             <div style="padding:10px; display:inline-block;">
-            <input id="searchbutton" type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+                <input id="searchbutton" type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
             </div>
 
             </form>
-
-	<div class="map header" style="text-align:center; margin-top: 0; padding: 0 0 0 0;">
-            <input id="datetext" type="text" style="text-align:center; font-size:large; font-weight:bold; position:relative; z-index:1000; bottom:-40px; border: 3px solid black; border-radius: 7px;" oninput="update_slider(document.getElementById('datetext').value);"/>
-	</div>
-
-	<div id="mapcontainer" style="width:90%; margin-left:5%; height:60vh; padding:0 0 30px 0;">
-            <div style="width:100%; height:100%; margins:auto; background-color:rgb(141,168,198);" id="map">
-            </div>
-	</div>
-
-	<style>
-
-                input[type='range'] {
-                  box-sizing: border-box;
-                  border: 0px solid transparent;
-                  padding: 0px;
-                  margin: 0px;
-                  width: 210px;
-                  height: 50px;
-                  cursor: pointer;
-                  font-size: 16px;
-                }
-                input[type='range'],
-                input[type='range']::-webkit-slider-runnable-track,
-                input[type='range']::-webkit-slider-thumb {
-                  -webkit-appearance: none;
-                }
-                input[type='range']::-webkit-slider-runnable-track {
-                  box-sizing: border-box;
-                  width: 200px;
-                  height: 5px;
-                  border-radius: 2px;
-                  background: #777;
-                }
-                input[type='range']::-moz-range-track {
-                  box-sizing: border-box;
-                  width: 200px;
-                  height: 5px;
-                  border-radius: 2px;
-                  padding: 0px;
-                  background: white;
-                }
-                input[type='range']::-moz-range-thumb {
-                  box-sizing: border-box;
-                  padding: 0px;
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  border: 5px solid orange;
-                  background: white;
-                }
-                input[type='range']::-ms-track {
-                  box-sizing: border-box;
-                  width: 210px;
-                  height: 5px;
-                  border-radius: 2px;
-                  padding: 0px;
-                  background: #777;
-                  color: #777;
-                }
-                input[type='range']::-webkit-slider-thumb {
-                  box-sizing: border-box;
-                  padding: 0px;
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  border: 5px solid orange;
-                  margin-top: -8px;
-                  background: white;
-                }
-                input[type='range']::-ms-thumb {
-                  box-sizing: border-box;
-                  padding: 0px;
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  border: 5px solid orange;
-                  background: white;
-                }
-                input[type="range"]::-ms-fill-lower {
-                  background: transparent;
-                }
-                input[type='range']:focus {
-                  outline: none;
-                }
-
-                .dateslidercontainer:after {
-                  position: absolute;
-                  color: #777;
-                  content: '0 0.3 0.6 0.9';
-                  padding: 40px;
-                  word-spacing: 20px;
-                  left: 0px;
-                  top: 0px;
-                  z-index: -1;
-                }
-                .dateslidercontainer {
-                  padding: 0px;
-                  position: relative;
-                }
-	</style>
-
-	<script>
-	var dates = {{ dates|safe }};
-	mindate = new Date(dates[0]);
-	maxdate = new Date(dates[dates.length-1]);
-	var daterange = maxdate.getTime() - mindate.getTime();
-	
-	function update_slider(date) {
-                loaddata();
-		// move slider
-		curdate = new Date(date);
-		var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
-		slider = document.getElementById('dateslider');
-		slider.value = fraction;
-	};
-	</script>
-	
-	<div class="dateslidercontainer" style="margin-left:15%; width:70%; white-space:nowrap;">
-                <div id="ticks" style="position:relative;">
-                    <script>
-                    var ticks = document.getElementById('ticks');
-                    for (d of dates) {
-                        curdate = new Date(d);
-                        var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
-                        var tick = document.createElement('div');
-                        tick.innerHTML = "!"
-                        tick.style.position = "absolute";
-                        tick.style.color = "orange"
-                        tick.style.marginLeft = fraction * 100 + "%";
-                        ticks.appendChild(tick);
-                    };
-                    </script>
-                </div>
-                                                             
-		<p style="font-weight:bold;">
-		<input id="dateslider" type="range" style="width:100%; background-color:black;" value="1" min="0" max="1" step="0.0000001" oninput="updatedate(this.value)" onchange="loaddata();"/>
-
-                <a id="sliderdatetext" style="color:white; background-color:orange; text-align:center; font-size:large; font-weight:bold; z-index:1000; border: none; border-radius: 7px; padding:4px; position:absolute; top:0px; left;0px;">
-                    YYYY-MM-DD
-                </a>
-
-                <div id="slidelabels" style="position:relative; top:-30px;">
-                    <script>
-                    var labels = document.getElementById('slidelabels');
-                    var yrrange = maxdate.getFullYear() - mindate.getFullYear();
-                    //alert("yrrange:"+yrrange);
-                    if (yrrange > 0) {
-                        if (yrrange < 10) {
-                            step = 1
-                        } else if (yrrange < 30) {
-                            step = 5
-                        } else if (yrrange < 100) {
-                            step = 10
-                        } else {
-                            step = 25
-                        };
-                        //alert("step size:"+step);
-                        startyr = Math.ceil(mindate.getFullYear()/step) * step
-                        //alert("startyr:"+startyr);
-                        endyr = maxdate.getFullYear();
-                        //alert("endyr:"+endyr);
-                        var yr;
-                        for (yr = startyr; yr < endyr; yr += step) {
-                            //alert(yr);
-                            curdate = new Date(yr, 1, 1);
-                            var fraction = (curdate.getTime() - mindate.getTime()) / daterange;
-                            var lab = document.createElement('div');
-                            lab.innerHTML = yr
-                            lab.style.position = "absolute";
-                            lab.style.color = "gray"
-                            lab.style.marginLeft = fraction * 100 + "%";
-                            labels.appendChild(lab);
-                        }
-                    };
-                    </script>
-                </div>
-                                                             
-		</p>
-	</div>
-	
-	<script>
-	function updatedate(fraction) {
-		var daterange = maxdate.getTime() - mindate.getTime();
-		var newdate = new Date(mindate.getTime() + (daterange * fraction) );
-                // map title
-		datetext = document.getElementById("datetext");
-		datetext.value = newdate.toISOString().slice(0,10);
-                // slider text
-                datetext = document.getElementById("sliderdatetext");
-                datetext.innerHTML = newdate.toISOString().slice(0,10);
-                datetext.style.marginLeft = fraction * 100 + "%"
-                datetext.style.left = "10px" //"-" + datetext.offsetWidth/2 + "px"
-                datetext.style.top = datetext.offsetHeight/3 + "px"
-	};
-	updatedate(1); // max at default
-	</script>
-	
-	
-	
-	
-	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
-	
-	<script defer="defer">
-	var map = new OpenLayers.Map('map', {resolutions: [0.75,0.55,0.35,0.25,0.17,0.12,0.08,0.06,0.04,0.02,0.01,0.005,0.0025,0.0012,0.0006,0.0003],
-                                             allOverlays: true,
-                                             });
-
-	// background country layer
-	var style = new OpenLayers.Style({fillColor:"rgb(244,244,244)", strokeWidth:0.4, strokeColor:'rgb(177,177,177)'},
-					);
-	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([countryLayer]);
-        rendercountries = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		countries = geojson_format.read(geoj_str, "FeatureCollection");
-		
-		feats = [];
-		for (feat of countries) {
-                        feats.push(feat);
-		};
-		map.zoomToExtent([-170,70,180,-40]);
-		//map.zoomToExtent([-150,70,150,-70]);
-		//map.zoomToExtent([-80,30,80,-30]);
-		countryLayer.addFeatures(feats);
-	};
-        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
-
-	map.zoomToMaxExtent();
-	</script>
-
-	<script>
-
-	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4},
-										{context: {
-												getColor: function(feature) {
-													return document.countryColors[feature.attributes.country];
-												},
-											}
-										});
-	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([provLayer]);
-
-	// province centers
-	var provLabelStyle = new OpenLayers.Style({fillOpacity:0, fontSize:"${getFontSize}", label:"${getLabel}"},
-										{context: {
-												getLabel: function(feature) {
-													if (map.resolution < 0.04) {
-														return feature.attributes.name.toUpperCase();
-													} else if (map.resolution < 0.08) {
-														return feature.attributes.name.substring(0,4).toUpperCase();
-                                                                                                        } else {
-														return '';
-													}},
-                                                                                                getFontSize: function(feature) {
-													if (map.resolution < 0.04) {
-														return 11;
-													} else if (map.resolution < 0.08) {
-														return 6;
-                                                                                                        } else {
-														return '';
-													}}
-												}})
-	var provLabelLayer = new OpenLayers.Layer.Vector("ProvinceCenters", {styleMap:provLabelStyle});
-	map.addLayers([provLabelLayer]);
-
-        function getMaxPoly(polys) {
-              // https://stackoverflow.com/questions/37306548/how-to-show-one-label-per-multi-polygon-in-open-layers-3
-              var polyObj = [];
-              //now need to find which one is the greater and so label only this
-              for (var b = 0; b < polys.length; b++) {
-                polyObj.push({ poly: polys[b], area: polys[b].getArea() });
-              };
-              polyObj.sort(function (a, b) { return a.area - b.area });
-
-              return polyObj[polyObj.length - 1].poly;
-        }
-
-	label_provs = function() {
-            // drop previous
-            provLabelLayer.removeAllFeatures();
-
-            if (map.zoom > 3) {
-            
-                // calc bbox for each
-                var feats = [];
-                for (feat of document.allProvs) {
-                    if (!feat.geometry) {
-                        continue;
-                    };
-                    
-                    if (feat.geometry.components.length == 1) {
-                        var labpoint = feat.geometry.getCentroid();
-                    } else {
-                        var labpoint = getMaxPoly(feat.geometry.components).getCentroid();
-                    };
-                    var feat = new OpenLayers.Feature.Vector(labpoint,
-                                                             feat.attributes);
-                    feats.push(feat);
-                };
-                provLabelLayer.addFeatures(feats);
-
-            };
-        };
-	
-	// how to render data
-	renderdata = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-		var date = document.getElementById('datetext').value;
-		draw_borders(date);
-                label_countries();
-                label_provs();
-	};
-
-	// country centers
-	var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
-                                               fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
-                                               fontSize:"${getFontSize}", label:"${getLabel}"}, 
-                                                {context: {
-                                                                getLabel: function(feature) {
-                                                                        return feature.attributes.country.toUpperCase();
-                                                                        },
-                                                                getFontSize: function(feature) {
-                                                                        if (map.resolution < 0.06) {
-                                                                            return 19;
-                                                                        } else if (map.resolution < 0.12) {
-                                                                            return 10;
-                                                                        } else if (map.resolution < 0.25) {
-                                                                            return 4;
-                                                                        } else {
-                                                                            return 0.01;
-                                                                        }
-                                                                },
-                                                            },
-                                                })
-	
-	var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:countryLabelStyle});
-	map.addLayers([cntrLayer]);
-	
-	label_countries = function() {
-            // drop previous
-            cntrLayer.removeAllFeatures();
-            
-            // calc bbox for each country
-            var cntrBox = {};
-            for (feat of document.allProvs) {
-                bounds = feat.geometry.getBounds();
-                if (!bounds) { continue; }
-                if ( !(feat.attributes.country in cntrBox)) {
-                    cntrBox[feat.attributes.country] = bounds;
-                } else {
-                    cntrBox[feat.attributes.country].extend(bounds);
-                };
-            };
-
-            // add to layer
-            var feats = [];
-            for (cntr of Object.keys(cntrBox)) {
-                var bounds = cntrBox[cntr];
-                var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
-                                                     {country:cntr});
-                feats.push(feat);
-            };
-	    cntrLayer.addFeatures(feats);
-        };
-
-	// initiate map
-	onstartup = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-		var date = document.getElementById('datetext').value;
-                draw_borders(date);
-                label_countries();
-                label_provs();
-                //map.zoomToExtent(provLayer.getDataExtent());
-        };
-        var date = document.getElementById('datetext').value;
-        var year = date.split("-")[0]
-        var month = date.split("-")[1]
-        var day = date.split("-")[2]
-        var datadict = Object.assign({}, {format:"json", simplify:0.2, year:year, month:month, day:day}, {{ getparams|safe }});
-	$.getJSON("/api/", datadict, onstartup);
-
-	// load data func
-	function loaddata() {
-                // load data with resolution based on zoomlevel
-                var date = document.getElementById('datetext').value;
-                var year = date.split("-")[0]
-                var month = date.split("-")[1]
-                var day = date.split("-")[2]
-
-                var bbox = map.getExtent().toArray();
-
-                var apiurl = "/api/";
-                var datadict = Object.assign({}, {format:"json", bbox:bbox.join(','), year:year, month:month, day:day}, {{ getparams|safe }});
-                //alert(map.resolution);
-                if (map.resolution >= 0.17) {
-                    datadict['simplify'] = 0.2;
-                    $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.resolution >= 0.08) {
-                    datadict['simplify'] = 0.1;
-                    $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.resolution >= 0.04) {
-                    datadict['simplify'] = 0.05;
-                    $.getJSON(apiurl, datadict, renderdata);
-                } else if (map.resolution >= 0.02) {
-                    datadict['simplify'] = 0.025;
-                    $.getJSON(apiurl, datadict, renderdata);
-                } else {
-                    $.getJSON(apiurl, datadict, renderdata);
-                };
-        };
-	map.events.register("zoomend", map, loaddata);
-	map.events.register("moveend", map, loaddata);
-
-        // assign random colors to each country
-        document.countryColors = {};
-        
-        function getRandomColor(){
-                var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
-                return color;
-        };
-
-	// define drawing function
-	function draw_borders(date) {
-	
-		// drop previous provs
-		provLayer.removeAllFeatures();
-		
-		// select provs by date
-		dateFeats = [];
-		for (feat of document.allProvs) {
-                        if ( ! (feat.attributes.country in document.countryColors)) {
-                                // assign random color for country
-                                document.countryColors[feat.attributes.country] = getRandomColor();
-                        };
-                        dateFeats.push(feat);
-		};
-		
-		// add to layer
-		provLayer.addFeatures(dateFeats);
-	};
-	
-	</script>
+        </div>
 
     </div>

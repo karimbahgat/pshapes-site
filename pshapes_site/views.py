@@ -315,8 +315,8 @@ def home(request):
                 <p><b>{date}:</b> {fromname} {typ} {toname}</p>
                 <p><em>(Source: {source})</em></p> 
 
-                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; border: 1px solid white; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
-                View
+                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; border: 1px solid white; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
+                Check Now
                 </a>
                 
                 <div style="">{vouchicon}{commenticon}</div>
@@ -324,7 +324,7 @@ def home(request):
                 """.format(date=obj.date, country=country.encode("utf8"), fromname=fromname.encode("utf8"), typ=typ, toname=toname.encode("utf8"),
                            vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source.encode("utf8"))
 
-    grids.append(dict(title="Random Check:",
+    grids.append(dict(title="Quick Check:",
                       content=content,
                       #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="30%",
