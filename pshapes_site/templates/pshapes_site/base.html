@@ -9,7 +9,7 @@
     </head>
 
     <body class="body" style="font-family: helvetica;"> <!--Alternative fonts: rockwell,garamond...-->
-	<div class="page-header" style="text-align:center; overflow:hidden; display:block; background-color: #ff9400;">
+	<div class="page-header" style="text-align:center; overflow:visible; display:block; background-color: #ff9400;">
 		<div style="width:1000px; display:inline-block;">
 
 			<a href="/" style="float:left; text-align:left; display:block; padding:1.4% 1% 0% 0%">
@@ -68,9 +68,9 @@
 						{% endif %}
 
 						{% if request.path|slice:":9" == "/explore/" %}
-							<td><a id="current" href="/explore/">Explore</a></td>
+							<td><a id="current" href="/explore/">Map</a></td>
 						{% else %}
-							<td><a id="notcurr" href="/explore/">Explore</a></td>
+							<td><a id="notcurr" href="/explore/">Map</a></td>
 						{% endif %}
 
 						{% if request.path|slice:":10" == "/download/" %}

@@ -474,7 +474,7 @@ def about_motivation(request):
 
                         <p>
                         Better data is needed for earlier historic periods.
-                        In project afer project, geospatial data are frequently created based on information,
+                        In project afer project, geospatial data are frequently created based on information
                         that are originally reported at the administrative level, such as government statistics.
                         These then have to be geocoded to their historical administrive areas, but using only data
                         for the modern period. This means a lot of names are no longer valid, or borders have changed
