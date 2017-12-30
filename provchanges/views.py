@@ -1,5 +1,6 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, render_to_response
 from django.template import Template,Context,RequestContext
+from django.template.loader import get_template
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -14,7 +15,7 @@ from rest_framework.decorators import api_view
 
 from formtools.wizard.views import SessionWizardView
 
-from .models import ProvChange, Vouch, Comment
+from .models import ProvChange, Vouch, Comment, Source, Map
 
 from django.db.models import Count
 
@@ -104,6 +105,79 @@ def withdrawvouch(request, pk):
         vouch.status = "Withdraw"
         vouch.save()
     return redirect(request.META['HTTP_REFERER'])
+
+
+
+class SourceForm(forms.ModelForm):
+
+    class Meta:
+        model = Source
+        fields = 'status title citation note url is_resource'.split()
+
+    def as_custom(self):
+        return get_template("provchanges/sourceform.html").render({'sourceform':self})
+
+@login_required
+def addsource(request):
+    if request.method == "GET":
+        # new empty form
+        sourceform = SourceForm()
+        return render(request, "provchanges/addsource.html", {'sourceform':sourceform})
+    
+    elif request.method == "POST":
+        # save submitted info
+        fields = [f.name for f in Source._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(added=datetime.datetime.now(),
+                               modified=datetime.datetime.now())
+        print formfieldvalues
+        src = Source(**formfieldvalues)
+        src.save()
+        # TODO: find way to refer back to referrer, http_refererer doesnt work...
+        return redirect("/viewsource/%s" % src.pk)
+
+@login_required
+def viewsource(request, pk):
+    obj = get_object_or_404(Source, pk=pk)
+    sourceform = SourceForm(instance=obj)
+    for field in sourceform.fields.values():
+        field.disabled = True
+        field.widget.disabled = True
+        field.widget.attrs['readonly'] = 'readonly'
+    return render(request, "provchanges/viewsource.html", {'sourceform':sourceform, 'pk':obj.pk})
+
+@login_required
+def editsource(request, pk):
+    obj = get_object_or_404(Source, pk=pk)
+    if request.method == "GET":
+        sourceform = SourceForm(instance=obj)
+        return render(request, "provchanges/editsource.html", {'sourceform':sourceform, 'pk':obj.pk})
+
+    elif request.method == "POST":
+        # save submitted info
+        fields = [f.name for f in Source._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(modified=datetime.datetime.now())
+        print formfieldvalues
+        for k,v in formfieldvalues.items():
+            setattr(obj, k, v)
+        obj.save()
+        return redirect("/viewsource/%s" % obj.pk)
+
+@login_required
+def dropsource(request, pk):
+    obj = get_object_or_404(Source, pk=pk)
+    obj.status = "Withdrawn"
+    obj.modified = datetime.datetime.now()
+    obj.save()
+    return redirect("/viewsource/%s" % obj.pk)
+    
+
+
+
+
+
+        
 
 def slideshow():
     # from https://codepen.io/anon/pen/RGYPjP
@@ -1647,6 +1721,82 @@ def viewcountry(request, country):
                         </table>
                         """.format(top=top, left=left, right=right)
 
+        # GRIDS
+        grids = []
+
+        # sources
+        color = "gray"
+        content = "<h3>Sources:</h3>"
+
+        sources = Source.objects.filter(status='Active') # change to only get those related to countries' changes or those with is_resource
+        
+        for source in sources:
+            griditem = """
+                        <div class="griditem" style="float:left; width:200px; margin:10px">
+                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
+                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                                <h4 style="display:inline-block">{title}</h4>
+                            </div>
+                            
+                            <div class="gridheader">
+                                <p>{citation}</p>
+                                <a href="/viewsource/{pk}/" style="text-align:center; background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+                            </div>
+                        </div>
+                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
+            html = """
+                    <div style="margin-left:2%">
+                    {griditem}
+                    </div>
+                    """.format(griditem=griditem)
+            content += html
+
+        content += '''<br><br><br>
+                    <div width="100%" style="clear:both; text-align:center; padding:20px">
+                        <a href="/addsource/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </a>
+                    </div>'''.format(color=color)
+            
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="95%",
+                          ))
+
+        # maps
+        content = "<br><br><hr><h3>Maps:</h3>"
+        
+        for date in range(5):
+            griditem = """
+                        <div class="griditem" style="float:left; width:200px; margin:10px">
+                            <div class="gridheader" style="background-color:rgb(58,177,73); padding-top:10px">
+                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                                <h4 style="display:inline-block">Title</h4>
+                            </div>
+                            
+                            <div class="gridheader">
+                                <p>Citation...</p>
+                                <a>View button...</a>
+                            </div>
+                        </div>
+                        """
+            html = """
+                    <div style="margin-left:2%">
+                    {griditem}
+                    </div>
+                    """.format(date=date, country=urlquote(country), griditem=griditem)
+            content += html
+
+        content += '<br><div width="100%" style="clear:both; text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'
+            
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="95%",
+                          ))
+
+        # dates            
         dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country).exclude(status="NonActive")).order_by("date").values('date').distinct()]
         print dates
 
@@ -1658,16 +1808,35 @@ def viewcountry(request, country):
     ##    datestable = lists2table(request, daterows, ["Date"])
 
     ##    content = datestable
-        
-        grids = []
-        for date in dates:
-            content = getdateeventstable(date)
-            grids.append(dict(title='{date}:'.format(date=date),
-                              content=content+'<br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(date=date, country=urlquote(country)),
-                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                              width="99%",
-                              ))
 
+        content = '''<br><br>
+                    <hr>
+                    <h3>
+                        Dates:
+                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New date</a>
+                    </h3>'''
+        
+        for date in dates:
+            table = getdateeventstable(date)
+            html = """
+                    <div style="margin-left:2%">
+                    <h4>
+                        <img src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png" height="25px">
+                        {date}
+                    </h4>
+                    {table}
+                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                    </div>
+                    """.format(date=date, table=table, country=urlquote(country))
+            content += html
+            
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="95%",
+                          ))
+
+        # comments
         allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
         content = "<br><br><hr><h3>Questions & Comments:</h3>" + comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
         grids.append(dict(title="",
@@ -2638,7 +2807,7 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
 				<form action="/addcomment/" method="post">
 				{% csrf_token %}
 				{{ new_comment }}
-	                	<input type="submit" value="Comment" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+	                	<input type="submit" value="Comment" style="text-align:center; background-color:{{ commentheadercolor }}; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
 				</form>
 		</div>
 		"""
@@ -2753,19 +2922,19 @@ def viewchange(request, pk):
         notes.append(note)
 
     if change.type == "Breakaway":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","tocountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     elif change.type == "FullTransfer":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","fromcountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "PartTransfer":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","fromcountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     elif change.type == "NewInfo":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["fromcountry","tocountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(change.fromcountry), prov=urlquote(change.fromname)) + params
     elif change.type == "Begin":
-        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(change,k)) for k in ["tocountry","fromcountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Begin&".format(country=urlquote(change.tocountry), prov=urlquote(change.toname)) + params
     print 99999,change.type, change
     print 1111,eventlink
@@ -3148,6 +3317,28 @@ def account(request):
 
 # Event forms
 
+class CustomSelectMultipleWidget(forms.CheckboxSelectMultiple):
+    pass
+
+##class ManySourceOrCreate(forms.Form):
+##    def __init__(self, *args, **kwargs):
+##        super(ManySourceOrCreate, self).__init__(*args, **kwargs)
+##
+##    def render(self):
+##        create = AddSourceForm()
+##        select = forms.CheckboxSelectMultiple(choices=[(v,v) for v in range(10)])#Source.objects.all())
+##        templ = """
+##                <div style="">
+##                {{ select }}
+##                </div>
+##                
+##                <div style="">
+##                {{ create.render }}
+##                </div>
+##                """
+##        rendered = Template(templ).render(Context({'select':select, 'create':create}))
+##        return rendered
+
 class ListTextWidget(forms.TextInput):
     # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
     def __init__(self, data_list, name, *args, **kwargs):
@@ -3175,11 +3366,17 @@ class SourceEventForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ['source']
+        fields = ['source', 'sources', 'mapsources']
+##        widgets = dict(sources=forms.CheckboxSelectMultiple(renderer=SelectMultipleOrCreate),
+##                       mapsources=forms.CheckboxSelectMultiple(renderer=SelectMultipleOrCreate))
 
     def __init__(self, *args, **kwargs):
         super(SourceEventForm, self).__init__(*args, **kwargs)
         country = kwargs["initial"]["fromcountry"]
+
+        #self.fields["sources"].widget = CustomSelectMultipleWidget()
+        #self.fields["sources"].widget = CustomSelectMultipleWidget()
+        
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
         if sources:
             mostcommon = sources[0]
@@ -3706,7 +3903,7 @@ class GeneralChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ['date', 'source']
+        fields = ['date', 'source', 'sources', 'mapsources']
         widgets = {"date": CustomDateWidget()}
 
 class FromChangeForm(forms.ModelForm):
@@ -4030,7 +4227,7 @@ class GeoChangeForm(forms.ModelForm):
 
     class Meta:
         model = ProvChange
-        fields = ["transfer_reference", "transfer_source", "transfer_geom"]
+        fields = ["transfer_reference", "transfer_source", "transfer_map", "transfer_geom"]
         widgets = {"transfer_geom": CustomOLWidget(attrs={"id":"geodjango_transfer_geom"}),
                     "transfer_source": ListTextWidget([], name="sources", attrs={'size': 90, "id":"id_transfer_source"}),
                     "transfer_reference": ListTextWidget([], name="references", attrs={'size': 90, "id":"id_transfer_reference"}),
@@ -4107,6 +4304,8 @@ class GeoChangeForm(forms.ModelForm):
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
+                        <div style="padding:20px">NEW Map Object: {{ form.transfer_map }}</div>
+
                         <br>
 
                         <div>{{ form.transfer_geom }}</div>
@@ -4140,6 +4339,8 @@ class GeoChangeForm(forms.ModelForm):
                         <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
+
+                        <div style="padding:20px">NEW Map Object: {{ form.transfer_map }}</div>
 
                         <br>
 

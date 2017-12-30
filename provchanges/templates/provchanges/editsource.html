@@ -1,0 +1,38 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+
+
+<div style="padding: 0 4% 0 4%; width:80%;" >
+
+<h2>Editing source</h2>
+
+    <div style="padding-left:20px;">
+        <div style="float:left;">
+            <a href="{{ request.META.HTTP_REFERER }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Back
+            </a>
+        </div>
+    </div>
+
+<br><br>
+    
+<form action="/editsource/{{ pk }}/" method="post">
+    {% csrf_token %}
+
+    {{ sourceform.as_custom | safe }}
+
+    <input type="submit" style="float:right; text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+
+</form>
+
+</div>
+
+
+{% endblock %}

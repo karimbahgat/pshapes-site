@@ -1,0 +1,44 @@
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url {
+                width:98%
+                }
+        </style>
+		
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.title.label_tag }}</td>
+                <td>
+                    {{ sourceform.title }}
+                    <div style="float:right">
+                    {{ sourceform.is_resource.label_tag }}
+                    {{ sourceform.is_resource }}
+                    </div>
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.citation.label_tag }}</td>
+                <td>{{ sourceform.citation }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.note.label_tag }}</td>
+                <td>{{ sourceform.note }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.url.label_tag }}</td>
+                <td>{{ sourceform.url }}</td>
+            </td>
+
+            
+
+        </table>
+
+
+
