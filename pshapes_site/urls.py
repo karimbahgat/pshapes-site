@@ -57,12 +57,16 @@ urlpatterns = [
     url(r'^provchange/(?P<pk>[0-9]+)/resubmit/$', "provchanges.views.resubmitchange"),
     url(r'^provchange/(?P<pk>[0-9]+)/addvouch/$', "provchanges.views.addvouch"),
     url(r'^provchange/(?P<pk>[0-9]+)/withdrawvouch/$', "provchanges.views.withdrawvouch"),
+
     url(r'^addcomment/$', "provchanges.views.addcomment"),
     url(r'^dropcomment/(?P<pk>[0-9]+)/$', "provchanges.views.dropcomment"),
+    
     url(r'^addsource/$', "provchanges.views.addsource"),
     url(r'^viewsource/(?P<pk>[0-9]+)/$', "provchanges.views.viewsource"),
     url(r'^editsource/(?P<pk>[0-9]+)/$', "provchanges.views.editsource"),
     url(r'^dropsource/(?P<pk>[0-9]+)/$', "provchanges.views.dropsource"),
+
+    url(r'^addmap/$', "provchanges.views.addmap"),
 
 
 

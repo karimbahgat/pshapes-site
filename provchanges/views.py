@@ -26,6 +26,8 @@ import datetime
 
 countries = [(u'Afghanistan', u'Afghanistan'), (u'\xc5land Islands', u'\xc5land Islands'), (u'Albania', u'Albania'), (u'Algeria', u'Algeria'), (u'American Samoa', u'American Samoa'), (u'Andorra', u'Andorra'), (u'Angola', u'Angola'), (u'Anguilla', u'Anguilla'), (u'Antigua and Barbuda', u'Antigua and Barbuda'), (u'Argentina', u'Argentina'), (u'Armenia', u'Armenia'), (u'Aruba', u'Aruba'), (u'Australia', u'Australia'), (u'Austria', u'Austria'), (u'Azerbaijan', u'Azerbaijan'), (u'The Bahamas', u'The Bahamas'), (u'Bahrain', u'Bahrain'), (u'Bangladesh', u'Bangladesh'), (u'Barbados', u'Barbados'), (u'Belarus', u'Belarus'), (u'Belgium', u'Belgium'), (u'Belize', u'Belize'), (u'Benin', u'Benin'), (u'Bermuda', u'Bermuda'), (u'Bhutan', u'Bhutan'), (u'Bolivia', u'Bolivia'), (u'Bonaire', u'Bonaire'), (u'Bosnia and Herzegovina', u'Bosnia and Herzegovina'), (u'Botswana', u'Botswana'), (u'Bouvet Island', u'Bouvet Island'), (u'Brazil', u'Brazil'), (u'British Indian Ocean Territory', u'British Indian Ocean Territory'), (u'United States Minor Outlying Islands', u'United States Minor Outlying Islands'), (u'British Virgin Islands', u'British Virgin Islands'), (u'Brunei', u'Brunei'), (u'Bulgaria', u'Bulgaria'), (u'Burkina Faso', u'Burkina Faso'), (u'Burundi', u'Burundi'), (u'Cambodia', u'Cambodia'), (u'Cameroon', u'Cameroon'), (u'Canada', u'Canada'), (u'Cape Verde', u'Cape Verde'), (u'Cayman Islands', u'Cayman Islands'), (u'Central African Republic', u'Central African Republic'), (u'Chad', u'Chad'), (u'Chile', u'Chile'), (u'China', u'China'), (u'Christmas Island', u'Christmas Island'), (u'Cocos (Keeling) Islands', u'Cocos (Keeling) Islands'), (u'Colombia', u'Colombia'), (u'Comoros', u'Comoros'), (u'Republic of the Congo', u'Republic of the Congo'), (u'Democratic Republic of the Congo', u'Democratic Republic of the Congo'), (u'Cook Islands', u'Cook Islands'), (u'Costa Rica', u'Costa Rica'), (u'Croatia', u'Croatia'), (u'Cuba', u'Cuba'), (u'Cura\xe7ao', u'Cura\xe7ao'), (u'Cyprus', u'Cyprus'), (u'Czech Republic', u'Czech Republic'), (u'Denmark', u'Denmark'), (u'Djibouti', u'Djibouti'), (u'Dominica', u'Dominica'), (u'Dominican Republic', u'Dominican Republic'), (u'Ecuador', u'Ecuador'), (u'Egypt', u'Egypt'), (u'El Salvador', u'El Salvador'), (u'Equatorial Guinea', u'Equatorial Guinea'), (u'Eritrea', u'Eritrea'), (u'Estonia', u'Estonia'), (u'Ethiopia', u'Ethiopia'), (u'Falkland Islands', u'Falkland Islands'), (u'Faroe Islands', u'Faroe Islands'), (u'Fiji', u'Fiji'), (u'Finland', u'Finland'), (u'France', u'France'), (u'French Guiana', u'French Guiana'), (u'French Polynesia', u'French Polynesia'), (u'French Southern and Antarctic Lands', u'French Southern and Antarctic Lands'), (u'Gabon', u'Gabon'), (u'The Gambia', u'The Gambia'), (u'Georgia', u'Georgia'), (u'Germany', u'Germany'), (u'Ghana', u'Ghana'), (u'Gibraltar', u'Gibraltar'), (u'Greece', u'Greece'), (u'Greenland', u'Greenland'), (u'Grenada', u'Grenada'), (u'Guadeloupe', u'Guadeloupe'), (u'Guam', u'Guam'), (u'Guatemala', u'Guatemala'), (u'Guernsey', u'Guernsey'), (u'Guinea', u'Guinea'), (u'Guinea-Bissau', u'Guinea-Bissau'), (u'Guyana', u'Guyana'), (u'Haiti', u'Haiti'), (u'Heard Island and McDonald Islands', u'Heard Island and McDonald Islands'), (u'Honduras', u'Honduras'), (u'Hong Kong', u'Hong Kong'), (u'Hungary', u'Hungary'), (u'Iceland', u'Iceland'), (u'India', u'India'), (u'Indonesia', u'Indonesia'), (u'Ivory Coast', u'Ivory Coast'), (u'Iran', u'Iran'), (u'Iraq', u'Iraq'), (u'Republic of Ireland', u'Republic of Ireland'), (u'Isle of Man', u'Isle of Man'), (u'Israel', u'Israel'), (u'Italy', u'Italy'), (u'Jamaica', u'Jamaica'), (u'Japan', u'Japan'), (u'Jersey', u'Jersey'), (u'Jordan', u'Jordan'), (u'Kazakhstan', u'Kazakhstan'), (u'Kenya', u'Kenya'), (u'Kiribati', u'Kiribati'), (u'Kuwait', u'Kuwait'), (u'Kyrgyzstan', u'Kyrgyzstan'), (u'Laos', u'Laos'), (u'Latvia', u'Latvia'), (u'Lebanon', u'Lebanon'), (u'Lesotho', u'Lesotho'), (u'Liberia', u'Liberia'), (u'Libya', u'Libya'), (u'Liechtenstein', u'Liechtenstein'), (u'Lithuania', u'Lithuania'), (u'Luxembourg', u'Luxembourg'), (u'Macau', u'Macau'), (u'Republic of Macedonia', u'Republic of Macedonia'), (u'Madagascar', u'Madagascar'), (u'Malawi', u'Malawi'), (u'Malaysia', u'Malaysia'), (u'Maldives', u'Maldives'), (u'Mali', u'Mali'), (u'Malta', u'Malta'), (u'Marshall Islands', u'Marshall Islands'), (u'Martinique', u'Martinique'), (u'Mauritania', u'Mauritania'), (u'Mauritius', u'Mauritius'), (u'Mayotte', u'Mayotte'), (u'Mexico', u'Mexico'), (u'Federated States of Micronesia', u'Federated States of Micronesia'), (u'Moldova', u'Moldova'), (u'Monaco', u'Monaco'), (u'Mongolia', u'Mongolia'), (u'Montenegro', u'Montenegro'), (u'Montserrat', u'Montserrat'), (u'Morocco', u'Morocco'), (u'Mozambique', u'Mozambique'), (u'Myanmar', u'Myanmar'), (u'Namibia', u'Namibia'), (u'Nauru', u'Nauru'), (u'Nepal', u'Nepal'), (u'Netherlands', u'Netherlands'), (u'New Caledonia', u'New Caledonia'), (u'New Zealand', u'New Zealand'), (u'Nicaragua', u'Nicaragua'), (u'Niger', u'Niger'), (u'Nigeria', u'Nigeria'), (u'Niue', u'Niue'), (u'Norfolk Island', u'Norfolk Island'), (u'North Korea', u'North Korea'), (u'Northern Mariana Islands', u'Northern Mariana Islands'), (u'Norway', u'Norway'), (u'Oman', u'Oman'), (u'Pakistan', u'Pakistan'), (u'Palau', u'Palau'), (u'Palestine', u'Palestine'), (u'Panama', u'Panama'), (u'Papua New Guinea', u'Papua New Guinea'), (u'Paraguay', u'Paraguay'), (u'Peru', u'Peru'), (u'Philippines', u'Philippines'), (u'Pitcairn Islands', u'Pitcairn Islands'), (u'Poland', u'Poland'), (u'Portugal', u'Portugal'), (u'Puerto Rico', u'Puerto Rico'), (u'Qatar', u'Qatar'), (u'Republic of Kosovo', u'Republic of Kosovo'), (u'R\xe9union', u'R\xe9union'), (u'Romania', u'Romania'), (u'Russia', u'Russia'), (u'Rwanda', u'Rwanda'), (u'Saint Barth\xe9lemy', u'Saint Barth\xe9lemy'), (u'Saint Helena', u'Saint Helena'), (u'Saint Kitts and Nevis', u'Saint Kitts and Nevis'), (u'Saint Lucia', u'Saint Lucia'), (u'Saint Martin', u'Saint Martin'), (u'Saint Pierre and Miquelon', u'Saint Pierre and Miquelon'), (u'Saint Vincent and the Grenadines', u'Saint Vincent and the Grenadines'), (u'Samoa', u'Samoa'), (u'San Marino', u'San Marino'), (u'S\xe3o Tom\xe9 and Pr\xedncipe', u'S\xe3o Tom\xe9 and Pr\xedncipe'), (u'Saudi Arabia', u'Saudi Arabia'), (u'Senegal', u'Senegal'), (u'Serbia', u'Serbia'), (u'Seychelles', u'Seychelles'), (u'Sierra Leone', u'Sierra Leone'), (u'Singapore', u'Singapore'), (u'Sint Maarten', u'Sint Maarten'), (u'Slovakia', u'Slovakia'), (u'Slovenia', u'Slovenia'), (u'Solomon Islands', u'Solomon Islands'), (u'Somalia', u'Somalia'), (u'South Africa', u'South Africa'), (u'South Georgia', u'South Georgia'), (u'South Korea', u'South Korea'), (u'South Sudan', u'South Sudan'), (u'Spain', u'Spain'), (u'Sri Lanka', u'Sri Lanka'), (u'Sudan', u'Sudan'), (u'Suriname', u'Suriname'), (u'Svalbard and Jan Mayen', u'Svalbard and Jan Mayen'), (u'Swaziland', u'Swaziland'), (u'Sweden', u'Sweden'), (u'Switzerland', u'Switzerland'), (u'Syria', u'Syria'), (u'Taiwan', u'Taiwan'), (u'Tajikistan', u'Tajikistan'), (u'Tanzania', u'Tanzania'), (u'Thailand', u'Thailand'), (u'East Timor', u'East Timor'), (u'Togo', u'Togo'), (u'Tokelau', u'Tokelau'), (u'Tonga', u'Tonga'), (u'Trinidad and Tobago', u'Trinidad and Tobago'), (u'Tunisia', u'Tunisia'), (u'Turkey', u'Turkey'), (u'Turkmenistan', u'Turkmenistan'), (u'Turks and Caicos Islands', u'Turks and Caicos Islands'), (u'Tuvalu', u'Tuvalu'), (u'Uganda', u'Uganda'), (u'Ukraine', u'Ukraine'), (u'United Arab Emirates', u'United Arab Emirates'), (u'United Kingdom', u'United Kingdom'), (u'United States', u'United States'), (u'Uruguay', u'Uruguay'), (u'Uzbekistan', u'Uzbekistan'), (u'Vanuatu', u'Vanuatu'), (u'Venezuela', u'Venezuela'), (u'Vietnam', u'Vietnam'), (u'Wallis and Futuna', u'Wallis and Futuna'), (u'Western Sahara', u'Western Sahara'), (u'Yemen', u'Yemen'), (u'Zambia', u'Zambia'), (u'Zimbabwe', u'Zimbabwe')]
 
+# Comments
+
 class CommentForm(forms.ModelForm):
 
     class Meta:
@@ -81,6 +83,9 @@ def dropcomment(request, pk):
         print 'comment dropped'
     return redirect(request.META['HTTP_REFERER'])
 
+
+# Vouches
+
 @login_required
 def addvouch(request, pk):
     # pk belongs to provchange
@@ -107,6 +112,7 @@ def withdrawvouch(request, pk):
     return redirect(request.META['HTTP_REFERER'])
 
 
+# Sources
 
 class SourceForm(forms.ModelForm):
 
@@ -171,13 +177,48 @@ def dropsource(request, pk):
     obj.modified = datetime.datetime.now()
     obj.save()
     return redirect("/viewsource/%s" % obj.pk)
+
+# Maps
     
+
+class MapForm(forms.ModelForm):
+
+    class Meta:
+        model = Map
+        fields = 'status title year note source url wms'.split()
+
+    def as_custom(self):
+        return get_template("provchanges/mapform.html").render({'mapform':self})
+
+@login_required
+def addmap(request):
+    if request.method == "GET":
+        # new empty form
+        mapform = MapForm()
+        return render(request, "provchanges/addmap.html", {'mapform':mapform})
+    
+    elif request.method == "POST":
+        # save submitted info        
+        fields = [f.name for f in Map._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(added=datetime.datetime.now(),
+                               modified=datetime.datetime.now())
+
+        sourceid = formfieldvalues['source']
+        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
+        
+        print formfieldvalues
+        obj = Map(**formfieldvalues)
+        obj.save()
+        # TODO: find way to refer back to referrer, http_refererer doesnt work...
+        return redirect("/viewmap/%s" % obj.pk)
 
 
 
 
 
         
+##################
 
 def slideshow():
     # from https://codepen.io/anon/pen/RGYPjP
@@ -1726,7 +1767,13 @@ def viewcountry(request, country):
 
         # sources
         color = "gray"
-        content = "<h3>Sources:</h3>"
+        content = '''<br><br>
+                     <hr>
+                     <h3>
+                         Sources:
+                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
+                    </h3>
+                    '''.format(color=color)
 
         sources = Source.objects.filter(status='Active') # change to only get those related to countries' changes or those with is_resource
         
@@ -1738,7 +1785,7 @@ def viewcountry(request, country):
                                 <h4 style="display:inline-block">{title}</h4>
                             </div>
                             
-                            <div class="gridheader">
+                            <div class="gridcontent">
                                 <p>{citation}</p>
                                 <a href="/viewsource/{pk}/" style="text-align:center; background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
                             </div>
@@ -1750,13 +1797,6 @@ def viewcountry(request, country):
                     </div>
                     """.format(griditem=griditem)
             content += html
-
-        content += '''<br><br><br>
-                    <div width="100%" style="clear:both; text-align:center; padding:20px">
-                        <a href="/addsource/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        </a>
-                    </div>'''.format(color=color)
             
         grids.append(dict(title="",
                           content=content,
@@ -1765,30 +1805,40 @@ def viewcountry(request, country):
                           ))
 
         # maps
-        content = "<br><br><hr><h3>Maps:</h3>"
+        color = 'rgb(58,177,73)'
+        content = '''<br><br>
+                     <hr>
+                     <h3>
+                         Maps:
+                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addmap/">New Map</a>
+                    </h3>
+                    '''.format(color=color)
+
+        maps = Map.objects.filter(status='Active') # change to only get those related to countries' changes
         
-        for date in range(5):
+        for mapp in maps:
+            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
+            #https://mapwarper.net/maps/wms/19956
             griditem = """
                         <div class="griditem" style="float:left; width:200px; margin:10px">
-                            <div class="gridheader" style="background-color:rgb(58,177,73); padding-top:10px">
+                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
                                 <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h4 style="display:inline-block">Title</h4>
+                                <h4 style="display:inline-block">{title}</h4>
                             </div>
                             
-                            <div class="gridheader">
-                                <p>Citation...</p>
-                                <a>View button...</a>
+                            <div class="gridcontent">
+                                <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
+                                <p>{note}</p>
+                                <a href="/viewmap/{pk}/" style="text-align:center; background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
                             </div>
                         </div>
-                        """
+                        """.format(color=color, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
             html = """
                     <div style="margin-left:2%">
                     {griditem}
                     </div>
-                    """.format(date=date, country=urlquote(country), griditem=griditem)
+                    """.format(country=urlquote(country), griditem=griditem)
             content += html
-
-        content += '<br><div width="100%" style="clear:both; text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'
             
         grids.append(dict(title="",
                           content=content,

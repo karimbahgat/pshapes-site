@@ -1,0 +1,49 @@
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url {
+                width:98%
+                }
+        </style>
+		
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.title.label_tag }}</td>
+                <td>
+                    {{ mapform.title }}
+                    <div style="float:right">
+                        {{ mapform.year.label_tag }}
+                        {{ mapform.year }}
+                    </div>
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
+                <td>{{ mapform.source }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.note.label_tag }}</td>
+                <td>{{ mapform.note }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.url.label_tag }}</td>
+                <td>{{ mapform.url }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.wms.label_tag }}</td>
+                <td>{{ mapform.wms }}</td>
+            </td>
+
+            
+
+        </table>
+
+
+
