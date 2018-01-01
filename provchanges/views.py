@@ -1868,37 +1868,58 @@ def viewcountry(request, country):
         grids = []
 
         # sources
-        color = "gray"
-        content = '''<hr>
-                     <h3>
-                         Sources:
-                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
-                    </h3>
-                    '''.format(color=color)
+        color = "rgb(60,60,60)"
 
         sources = Source.objects.filter(status='Active') # change to only get those related to countries' changes or those with is_resource
-        
+
+##        content = '''<hr>
+##                     <h3>
+##                         Sources:
+##                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
+##                    </h3>
+##                    '''.format(color=color)
+##        
+##        for source in sources:
+##            griditem = """
+##                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
+##                        <div class="griditem" style="float:left; width:200px; margin:10px">
+##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
+##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                                <h4 style="display:inline-block">{title}</h4>
+##                            </div>
+##                            
+##                            <div class="gridcontent">
+##                                <p>{citation}</p>
+##                            </div>
+##                        </div>
+##                    </a>
+##                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
+##            html = """
+##                    <div style="margin-left:2%">
+##                    {griditem}
+##                    </div>
+##                    """.format(griditem=griditem)
+##            content += html
+
+        fields = ['title', 'citation']
+        lists = []
         for source in sources:
-            griditem = """
-                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
-                        <div class="griditem" style="float:left; width:200px; margin:10px">
-                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
-                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h4 style="display:inline-block">{title}</h4>
-                            </div>
-                            
-                            <div class="gridcontent">
-                                <p>{citation}</p>
-                            </div>
-                        </div>
-                    </a>
-                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
-            html = """
+            link = '/viewsource/{pk}/'.format(pk=source.pk)
+            row = [source.title, source.citation]
+            lists.append((link,row))
+
+        table = lists2table(request, lists, fields, 'sourcetable', color)
+
+        content = '''<hr>
+                     <h3>
+                         <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                         Sources:
+                    </h3>
                     <div style="margin-left:2%">
-                    {griditem}
+                        {table}
+                        <br><div width="100%" style="text-align:center"><a href="/addsource/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
-                    """.format(griditem=griditem)
-            content += html
+                    '''.format(table=table, color=color, country=urlquote(country))
             
         grids.append(dict(title="",
                           content=content,
@@ -1908,40 +1929,54 @@ def viewcountry(request, country):
 
         # maps
         color = 'rgb(58,177,73)'
-        content = '''<br><br>
-                     <hr>
-                     <h3>
-                         Maps:
-                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addmap/">New Map</a>
-                    </h3>
-                    '''.format(color=color)
 
         maps = Map.objects.filter(status='Active') # change to only get those related to countries' changes
         
+##        for mapp in maps:
+##            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
+##            #https://mapwarper.net/maps/wms/19956
+##            griditem = """
+##                    <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
+##                        <div class="griditem" style="float:left; width:200px; margin:10px">
+##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
+##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                                <h4 style="display:inline-block">{year}</h4>
+##                            </div>
+##                            
+##                            <div class="gridcontent">
+##                                <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
+##                                <p>{title}</p>
+##                            </div>
+##                        </div>
+##                    </a>
+##                        """.format(color=color, year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
+##            html = """
+##                    <div style="margin-left:2%">
+##                    {griditem}
+##                    </div>
+##                    """.format(country=urlquote(country), griditem=griditem)
+##            content += html
+
+        fields = ['', 'year', 'title', 'url']
+        lists = []
         for mapp in maps:
-            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
-            #https://mapwarper.net/maps/wms/19956
-            griditem = """
-                    <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
-                        <div class="griditem" style="float:left; width:200px; margin:10px">
-                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
-                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h4 style="display:inline-block">{year}</h4>
-                            </div>
-                            
-                            <div class="gridcontent">
-                                <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
-                                <p>{title}</p>
-                            </div>
-                        </div>
-                    </a>
-                        """.format(color=color, year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
-            html = """
+            imglink = '<a href="/viewmap/{pk}/"><img width="50px" height="50px" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=50&height=50&layers=0&styles=default&format=image/png"></a>'.format(pk=mapp.pk)
+            row = [imglink, mapp.year, mapp.title, mapp.url]
+            lists.append((None,row))
+
+        table = lists2table(request, lists, fields, 'maptable', color)
+
+        content = '''<br><br>
+                    <hr>
+                     <h3>
+                         <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+                         Maps:
+                    </h3>
                     <div style="margin-left:2%">
-                    {griditem}
+                        {table}
+                        <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
-                    """.format(country=urlquote(country), griditem=griditem)
-            content += html
+                    '''.format(table=table, color=color, country=urlquote(country))
             
         grids.append(dict(title="",
                           content=content,
@@ -1965,6 +2000,7 @@ def viewcountry(request, country):
         content = '''<br><br>
                     <hr>
                     <h3>
+                        <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
                         Dates:
                         <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
                     </h3>'''
@@ -1974,7 +2010,6 @@ def viewcountry(request, country):
             html = """
                     <div style="margin-left:2%">
                     <h4>
-                        <img src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png" height="25px">
                         {date}
                     </h4>
                     {table}
@@ -1991,7 +2026,8 @@ def viewcountry(request, country):
 
         # comments
         allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
-        content = "<br><br><hr><h3>Questions & Comments:</h3>" + comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
+        content = '<br><br><hr><h3><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -2827,37 +2863,37 @@ def model2table(request, title, objects, fields):
     return rendered
 
 
-def lists2table(request, lists, fields):
+def lists2table(request, lists, fields, classname="listtable", color='orange'):
     html = """
-		<table class="listtable"> 
+		<table class="{{ classname }}"> 
 		
 			<style>
-			table.listtable {
+			table.{{ classname }} {
 				border-collapse: collapse;
 				width: 100%;
 			}
 
-			th.listtable, td.listtable {
+			th.{{ classname }}, td.{{ classname }} {
 				text-align: left;
 				padding: 8px;
 			}
 
-			tr.listtable:nth-child(even){background-color: #f2f2f2}
+			tr.{{ classname }}:nth-child(even){background-color: #f2f2f2}
 
-			tr.listtable:nth-child(odd){background-color: white}
+			tr.{{ classname }}:nth-child(odd){background-color: white}
 
-			th.listtable {
-				background-color: orange;
+			th.{{ classname }} {
+				background-color: {{ color }};
 				color: white;
 			}
 			</style>
 		
-			<tr class="listtable">
-				<th class="listtable"> 
+			<tr class="{{ classname }}">
+				<th class="{{ classname }}"> 
 				</th>
 
 				{% for field in fields %}
-                                    <th class="listtable">
+                                    <th class="{{ classname }}">
                                         <b>{{ field }}</b>
                                     </th>
                                 {% endfor %}
@@ -2866,22 +2902,22 @@ def lists2table(request, lists, fields):
 			</a>
 			
 			{% for url,row in lists %}
-				<tr class="listtable">
-					<td class="listtable">
+				<tr class="{{ classname }}">
+					<td class="{{ classname }}">
 					{% if url %}
                                             <a href="{{ url }}">View</a>
                                         {% endif %}
 					</td>
 					
                                         {% for value in row %}
-                                            <td class="listtable">{{ value | safe}}</td>
+                                            <td class="{{ classname }}">{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
 			{% endfor %}
 		</table>
                 """
-    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists, "classname":classname, "color":color}))
     return rendered
 
 def withdrawchange(request, pk):
@@ -2930,7 +2966,6 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
 			{% if topics %}
                             {% for title,comments,replyform in topics %}
                                 <div style="font-size:small; padding-left:10px; padding-right:10px;" >
-                                    <img style="padding:10px; clear:both; float:left" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
                                     <div style="float:left; padding:0px; width:90%">
                                         <h3 style="background-color:{{ commentheadercolor }}; color:white; padding:5px; border-radius:5px;">{{ title }}</h3>
                                         <p style="float:right;">
@@ -2949,7 +2984,6 @@ def comments2html(request, allcomments, country, changeid=None, commentheadercol
 
                                     {% for comment in comments|slice:"1:" %}
                                     <div style="padding-left:65px; padding-right:10px;" >
-                                        <img style="clear:both; float:left; padding:10px" width="40px;" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"/>
                                         <div style="float:left; padding:0px; width:90%">
                                             <p style="float:right">
                                                 {{ comments.0.added }}
