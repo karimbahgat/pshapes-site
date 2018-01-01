@@ -119,9 +119,29 @@ class SourceForm(forms.ModelForm):
     class Meta:
         model = Source
         fields = 'status title citation note url is_resource'.split()
+        widgets = {"citation":forms.Textarea(attrs=dict(style="font-family:inherit")),
+                   "note":forms.Textarea(attrs=dict(style="font-family:inherit")) }
 
     def as_custom(self):
         return get_template("provchanges/sourceform.html").render({'sourceform':self})
+
+    def as_griditem(self):
+        source = self.instance
+        griditem = """
+                <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
+                    <div class="griditem" style="float:left; width:200px; margin:10px">
+                        <div class="gridheader" style="background-color:orange; padding-top:10px">
+                            <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                            <h4 style="display:inline-block">{title}</h4>
+                        </div>
+                        
+                        <div class="gridcontent">
+                            <p>{citation}</p>
+                        </div>
+                    </div>
+                </a>
+                    """.format(title=source.title, citation=source.citation, pk=source.pk)
+        return griditem
 
 @login_required
 def addsource(request):
@@ -178,23 +198,64 @@ def dropsource(request, pk):
     obj.save()
     return redirect("/viewsource/%s" % obj.pk)
 
-# Maps
-    
 
+# Maps
+
+# TODO: Must somehow clean so map source isnt POSTed as object but rather pk? Or wrong?
+# ...
+    
 class MapForm(forms.ModelForm):
 
     class Meta:
         model = Map
         fields = 'status title year note source url wms'.split()
+        widgets = {"note":forms.Textarea(attrs=dict(style="font-family:inherit")) }
+
+    def __init__(self, *args, **kwargs):
+        super(MapForm, self).__init__(*args, **kwargs)
+
+        # new
+        if 'initial' in kwargs and kwargs["initial"].get('country'):
+            # means country was set in GET param, so get only sources relevant for that country
+            country = kwargs["initial"]["country"]
+            sources = Source.objects.filter(status="Active") #filter(provchange__fromcountry=country).order_by('title')
+        else:
+            # get all sources globally
+            sources = Source.objects.filter(status="Active") 
+        choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
+        if self.fields["source"].disabled:
+            # only show the selected griditem...
+            dfds
+        else:
+            self.fields["source"].widget = GridSelectOneWidget(choices=choices)
 
     def as_custom(self):
         return get_template("provchanges/mapform.html").render({'mapform':self})
+
+    def as_griditem(self):
+        mapp = self.instance
+        griditem = """
+                <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
+                    <div class="griditem" style="float:left; width:200px; margin:10px">
+                        <div class="gridheader" style="background-color:orange; padding-top:10px">
+                            <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                            <h4 style="display:inline-block">{year}</h4>
+                        </div>
+                        
+                        <div class="gridcontent">
+                            <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
+                            <p>{title}</p>
+                        </div>
+                    </div>
+                </a>
+                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
+        return griditem
 
 @login_required
 def addmap(request):
     if request.method == "GET":
         # new empty form
-        mapform = MapForm()
+        mapform = MapForm(initial={'country':request.GET.get('country')})
         return render(request, "provchanges/addmap.html", {'mapform':mapform})
     
     elif request.method == "POST":
@@ -213,6 +274,47 @@ def addmap(request):
         # TODO: find way to refer back to referrer, http_refererer doesnt work...
         return redirect("/viewmap/%s" % obj.pk)
 
+@login_required
+def viewmap(request, pk):
+    obj = get_object_or_404(Map, pk=pk)
+    mapform = MapForm(instance=obj)
+    for field in mapform.fields.values():
+        field.disabled = True
+        field.widget.disabled = True
+        field.widget.attrs['readonly'] = 'readonly'
+    return render(request, "provchanges/viewmap.html", {'mapform':mapform, 'pk':obj.pk})
+
+@login_required
+def editmap(request, pk):
+    obj = get_object_or_404(Map, pk=pk)
+    if request.method == "GET":
+        mapform = MapForm(instance=obj, initial={'country':request.GET.get('country')})
+        return render(request, "provchanges/editmap.html", {'mapform':mapform, 'pk':obj.pk})
+
+    elif request.method == "POST":
+        # save submitted info
+        fields = [f.name for f in Map._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(modified=datetime.datetime.now())
+        
+        sourceid = formfieldvalues.pop('source')
+        print formfieldvalues
+        for k,v in formfieldvalues.items():
+            setattr(obj, k, v)
+
+        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
+        print sourceid, formfieldvalues['source']
+            
+        obj.save()
+        return redirect("/viewmap/%s" % obj.pk)
+
+@login_required
+def dropmap(request, pk):
+    obj = get_object_or_404(Map, pk=pk)
+    obj.status = "Withdrawn"
+    obj.modified = datetime.datetime.now()
+    obj.save()
+    return redirect("/viewmap/%s" % obj.pk)
 
 
 
@@ -1767,8 +1869,7 @@ def viewcountry(request, country):
 
         # sources
         color = "gray"
-        content = '''<br><br>
-                     <hr>
+        content = '''<hr>
                      <h3>
                          Sources:
                          <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
@@ -1779,6 +1880,7 @@ def viewcountry(request, country):
         
         for source in sources:
             griditem = """
+                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
                         <div class="griditem" style="float:left; width:200px; margin:10px">
                             <div class="gridheader" style="background-color:{color}; padding-top:10px">
                                 <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
@@ -1787,9 +1889,9 @@ def viewcountry(request, country):
                             
                             <div class="gridcontent">
                                 <p>{citation}</p>
-                                <a href="/viewsource/{pk}/" style="text-align:center; background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
                             </div>
                         </div>
+                    </a>
                         """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
             html = """
                     <div style="margin-left:2%">
@@ -1820,19 +1922,20 @@ def viewcountry(request, country):
             #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
             #https://mapwarper.net/maps/wms/19956
             griditem = """
+                    <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
                         <div class="griditem" style="float:left; width:200px; margin:10px">
                             <div class="gridheader" style="background-color:{color}; padding-top:10px">
                                 <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h4 style="display:inline-block">{title}</h4>
+                                <h4 style="display:inline-block">{year}</h4>
                             </div>
                             
                             <div class="gridcontent">
                                 <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
-                                <p>{note}</p>
-                                <a href="/viewmap/{pk}/" style="text-align:center; background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>
+                                <p>{title}</p>
                             </div>
                         </div>
-                        """.format(color=color, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
+                    </a>
+                        """.format(color=color, year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
             html = """
                     <div style="margin-left:2%">
                     {griditem}
@@ -1863,7 +1966,7 @@ def viewcountry(request, country):
                     <hr>
                     <h3>
                         Dates:
-                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New date</a>
+                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
                     </h3>'''
         
         for date in dates:
@@ -1971,7 +2074,12 @@ def viewevent(request, country, province):
     if typ == "NewInfo":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'], tocountry=request.GET['tocountry'], date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
+        if 'tocountry' in request.GET:
+            # existing event
+            changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'], tocountry=request.GET['tocountry'], date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
+        else:
+            # new event, so tocountry doesnt exist yet
+            changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'], date=date, type="NewInfo", fromname=prov, bestversion=True).exclude(status="NonActive")
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
@@ -2140,7 +2248,12 @@ def viewevent(request, country, province):
         
     elif typ == "Split":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'],tocountry=request.GET['tocountry'], date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
+        if 'tocountry' in request.GET:
+            # existing event
+            changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'],tocountry=request.GET['tocountry'], date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
+        else:
+            # new event, so cant know the tocountry yet
+            changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'],date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         GET = request.GET.copy()
@@ -2216,7 +2329,12 @@ def viewevent(request, country, province):
 
     elif typ == "Merge":
         fields = ["fromname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
+        if 'fromcountry' in request.GET:
+            # existing event
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
+        else:
+            # new event, so fromcountry doesnt exist yet
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
@@ -2283,7 +2401,12 @@ def viewevent(request, country, province):
 
     elif typ == "Transfer":
         fields = ["toname","type","status"]
-        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
+        if 'fromcountry' in request.GET:
+            # existing event
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],fromcountry=request.GET['fromcountry'],date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
+        else:
+            # new event, so fromcountry doesnt exist yet
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
         changes = changes.order_by("-added") # the dash reverses the order
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
@@ -2351,7 +2474,12 @@ def viewevent(request, country, province):
     elif typ == "Begin":
         fields = ["toname","type","status"]
         #changes = ProvChange.objects.filter(country=country,date=date,type="NewInfo",fromname=prov)
-        changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'], fromcountry=request.GET['fromcountry'], date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
+        if 'fromcountry' in request.GET:
+            # existing event
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'], fromcountry=request.GET['fromcountry'], date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
+        else:
+            # new event, so fromcountry doesnt exist yet
+            changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'], date=date, type="Begin", toname=prov, bestversion=True).exclude(status="NonActive")
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
@@ -3367,27 +3495,43 @@ def account(request):
 
 # Event forms
 
-class CustomSelectMultipleWidget(forms.CheckboxSelectMultiple):
-    pass
+class GridSelectMultipleWidget(forms.CheckboxSelectMultiple):
 
-##class ManySourceOrCreate(forms.Form):
-##    def __init__(self, *args, **kwargs):
-##        super(ManySourceOrCreate, self).__init__(*args, **kwargs)
-##
-##    def render(self):
-##        create = AddSourceForm()
-##        select = forms.CheckboxSelectMultiple(choices=[(v,v) for v in range(10)])#Source.objects.all())
-##        templ = """
-##                <div style="">
-##                {{ select }}
-##                </div>
-##                
-##                <div style="">
-##                {{ create.render }}
-##                </div>
-##                """
-##        rendered = Template(templ).render(Context({'select':select, 'create':create}))
-##        return rendered
+    def render(self, name, value, attrs=None):
+        choices = [(value,decor) for value,decor in self.choices]
+        html = """
+            <div style="width:98%;" class="gridselectmultiple">
+            {% for value,decor in choices %}
+                <div style="float:left; width:25%">
+                    <input type="checkbox" value="{{ value }}" name="{{ name }}" style="float:left">
+                    <div style="float:left">{{ decor|safe }}</div>
+                </div>
+            {% endfor %}
+            </div>
+
+            <div style="clear:both;"></div>
+            """
+        rendered = Template(html).render(Context({"choices":choices, 'name':name}))
+        return rendered
+
+class GridSelectOneWidget(forms.RadioSelect):
+
+    def render(self, name, value, attrs=None):
+        choices = [(value,decor) for value,decor in self.choices]
+        html = """
+            <div style="width:98%;" class="gridselectmultiple">
+            {% for value,decor in choices %}
+                <div style="float:left; width:25%">
+                    <input type="radio" value="{{ value }}" name="{{ name }}" style="float:left">
+                    <div style="float:left">{{ decor|safe }}</div>
+                </div>
+            {% endfor %}
+            </div>
+
+            <div style="clear:both;"></div>
+            """
+        rendered = Template(html).render(Context({"choices":choices, 'name':name}))
+        return rendered
 
 class ListTextWidget(forms.TextInput):
     # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
@@ -3424,9 +3568,13 @@ class SourceEventForm(forms.ModelForm):
         super(SourceEventForm, self).__init__(*args, **kwargs)
         country = kwargs["initial"]["fromcountry"]
 
-        #self.fields["sources"].widget = CustomSelectMultipleWidget()
-        #self.fields["sources"].widget = CustomSelectMultipleWidget()
-        
+        # new
+        sources = Source.objects.all() #filter(provchange__fromcountry=country).order_by('title')
+        self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
+        maps = Map.objects.all() #filter(provchange__fromcountry=country).order_by('year')
+        self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
+
+        # old, to be phased out
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
         if sources:
             mostcommon = sources[0]

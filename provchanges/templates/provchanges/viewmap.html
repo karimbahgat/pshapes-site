@@ -1,0 +1,54 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+
+
+
+<div style="padding: 0 4% 0 4%; width:80%;" >
+
+<h2>Viewing Map</h2>
+
+    <div style="padding-left:20px;">
+        <div style="float:left;">
+            <a href="{{ request.META.HTTP_REFERER }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Back
+            </a>
+        </div>
+
+        <div style="float:left;">
+            <a href="/editmap/{{ pk }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Edit
+            </a>
+        </div>
+
+        {{ mapform.status.value }}
+        {% if mapform.status.value == "Active" %}
+            <div style="float:right;">
+                <a href="/dropmap/{{ pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                Drop?
+                </a>
+            </div>
+        {% else %}
+            <div style="float:right;">
+                <a href="/notimplementedyet/{{ pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                Resubmit?
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <br><br>
+    
+    {{ mapform.as_custom | safe }}
+
+</div>
+
+
+{% endblock %}

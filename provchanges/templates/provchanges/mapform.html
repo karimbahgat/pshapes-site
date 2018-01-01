@@ -3,7 +3,7 @@
             #id_title {
                 width:60%
                 }
-            #id_citation, #id_note, #id_url {
+            #id_citation, #id_note, #id_url, #id_wms {
                 width:98%
                 }
         </style>
@@ -22,16 +22,6 @@
             </td>
 
             <tr>
-                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
-                <td>{{ mapform.source }}</td>
-            </td>
-
-            <tr>
-                <td style="text-align:right; vertical-align:top">{{ mapform.note.label_tag }}</td>
-                <td>{{ mapform.note }}</td>
-            </td>
-
-            <tr>
                 <td style="text-align:right; vertical-align:top">{{ mapform.url.label_tag }}</td>
                 <td>{{ mapform.url }}</td>
             </td>
@@ -41,7 +31,15 @@
                 <td>{{ mapform.wms }}</td>
             </td>
 
-            
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
+                <td>{{ mapform.source }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.note.label_tag }}</td>
+                <td>{{ mapform.note }}</td>
+            </td>            
 
         </table>
 

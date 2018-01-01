@@ -1,0 +1,29 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+
+
+
+<div style="padding: 0 4% 0 4%; width:80%;" >
+
+<h2>Editing Map</h2>
+    
+<form action="/editmap/{{ pk }}/" method="post">
+    {% csrf_token %}
+
+    {{ mapform.as_custom | safe }}
+
+    <input type="submit" style="float:right; text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+
+</form>
+
+</div>
+
+
+{% endblock %}
