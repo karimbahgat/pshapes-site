@@ -20,6 +20,7 @@ from .models import ProvChange, Vouch, Comment, Source, Map
 from django.db.models import Count
 
 import datetime
+import urllib2
 
 
 # Create your views here.
@@ -127,10 +128,11 @@ class SourceForm(forms.ModelForm):
 
     def as_griditem(self):
         source = self.instance
+        color = 'rgb(122,122,122)'
         griditem = """
                 <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
                     <div class="griditem" style="float:left; width:200px; margin:10px">
-                        <div class="gridheader" style="background-color:orange; padding-top:10px">
+                        <div class="gridheader" style="background-color:{color}; padding-top:10px">
                             <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
                             <h4 style="display:inline-block">{title}</h4>
                         </div>
@@ -140,7 +142,7 @@ class SourceForm(forms.ModelForm):
                         </div>
                     </div>
                 </a>
-                    """.format(title=source.title, citation=source.citation, pk=source.pk)
+                    """.format(title=source.title, citation=source.citation, pk=source.pk, color=color)
         return griditem
 
 @login_required
@@ -229,27 +231,73 @@ class MapForm(forms.ModelForm):
         else:
             self.fields["source"].widget = GridSelectOneWidget(choices=choices)
 
+        wms = self.instance.wms
+        if wms:
+            try:
+                self.wms_helper = WMSImage(wms)
+            except:
+                self.wms_helper = None # something went wrong, skip gracefully
+
     def as_custom(self):
-        return get_template("provchanges/mapform.html").render({'mapform':self})
+        wms = self.instance.wms
+        if wms and self.wms_helper:
+            params = self.wms_helper.get_link_params(width=400)
+            wmslink = wms + "?" + params
+            wmsimage = '<img src="{wmslink}" width="40%">'.format(wmslink=wmslink)
+        else:
+            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+            wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
+        return get_template("provchanges/mapform.html").render({'mapform':self, 'wmsimage':wmsimage})
 
     def as_griditem(self):
         mapp = self.instance
+        wms = self.instance.wms
+        if wms and self.wms_helper:
+            params = self.wms_helper.get_link_params(height=40)
+            wmslink = wms + "?" + params
+            wmsimage = '<img src="{wmslink}" height="40px">'.format(wmslink=wmslink)
+        else:
+            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+            wmsimage = '<img src="{wmslink}" style="opacity:0.1; height:40px">'.format(wmslink=wmslink)
+        color = 'rgb(58,177,73)'
         griditem = """
                 <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
                     <div class="griditem" style="float:left; width:200px; margin:10px">
-                        <div class="gridheader" style="background-color:orange; padding-top:10px">
-                            <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                        <div class="gridheader" style="background-color:{color}; padding:10px;">
+                            {wmsimage}
                             <h4 style="display:inline-block">{year}</h4>
                         </div>
                         
                         <div class="gridcontent">
-                            <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
                             <p>{title}</p>
                         </div>
                     </div>
                 </a>
-                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
+                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wmsimage=wmsimage, pk=mapp.pk, color=color)
         return griditem
+
+class WMSImage:
+    def __init__(self, url):
+        self.url = url
+        wmsmeta = urllib2.urlopen(url+"?service=wms&request=getcapabilities").read()
+        bbox = wmsmeta.split('<BoundingBox SRS="EPSG:4326"')[-1].strip().split()[:4] # hacky, can be multiple, just choosing last
+        self.bbox = [float(xory.split('=')[-1].strip('"')) for xory in bbox]
+
+    def get_link_params(self, width=None, height=None):
+        bbox = self.bbox
+        if width and height:
+            pass
+        elif height:
+            ratio = (bbox[2]-bbox[0]) / (bbox[3]-bbox[1])
+            width = height * ratio
+        elif width:
+            ratio = (bbox[3]-bbox[1]) / (bbox[2]-bbox[0])
+            height = width * ratio
+        else:
+            raise Exception('Either width or height must be set')
+        # Note: better to get unrectified, via "&STATUS=unwarped", but in that case not sure how to find raw image bbox (ie width & height)
+        params = "service=wms&version=1.1.1&request=getmap&format=image/png&srs=EPSG%3A4326&bbox={bbox}&width={width}&height={height}".format(bbox=",".join(map(str,self.bbox)), width=width, height=height)
+        return params
 
 @login_required
 def addmap(request):
@@ -1597,10 +1645,36 @@ def viewcountry(request, country):
         left = """	
 			<h3 style="clear:both">{countrytext}</h3>
 			
-                        <div id="blackbackground" style="">
-                            <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
+                        <div id="blackbackground" style="text-align:center; margin-left:30%">
+                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px">
+                                <a href="#sources">
+                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                                </a>
+                                <h3 style="display:inline">Sources</h3>
+                            </div>
+
+                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px">
+                                <a href="#maps">
+                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+                                </a>
+                                <h3 style="display:inline">Maps</h3>
+                            </div>
+
+                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px">
+                                <a href="#dates">
+                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                                </a>
+                                <h3 style="display:inline">Dates</h3>
+                            </div>
+
+                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px">
+                                <a href="#comments">
+                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
+                                </a>
+                                <h3 style="display:inline">Comments</h3>
+                            </div>
+                            
                         </div>
-                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New date</a>
                         <br><br><br>
         """.format(countrytext=country.encode("utf8"), country=urlquote(country))
         right = """
@@ -1911,7 +1985,7 @@ def viewcountry(request, country):
         table = lists2table(request, lists, fields, 'sourcetable', color)
 
         content = '''<hr>
-                     <h3>
+                     <h3 id="sources">
                          <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
                          Sources:
                     </h3>
@@ -1960,7 +2034,14 @@ def viewcountry(request, country):
         fields = ['', 'year', 'title', 'url']
         lists = []
         for mapp in maps:
-            imglink = '<a href="/viewmap/{pk}/"><img width="50px" height="50px" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=50&height=50&layers=0&styles=default&format=image/png"></a>'.format(pk=mapp.pk)
+            wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
+            if wms:
+                params = WMSImage(wms).get_link_params(height=50)
+                wmslink = wms + "?" + params
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+            else:
+                wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             row = [imglink, mapp.year, mapp.title, mapp.url]
             lists.append((None,row))
 
@@ -1968,7 +2049,7 @@ def viewcountry(request, country):
 
         content = '''<br><br>
                     <hr>
-                     <h3>
+                     <h3 id="maps">
                          <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
                          Maps:
                     </h3>
@@ -1999,11 +2080,11 @@ def viewcountry(request, country):
 
         content = '''<br><br>
                     <hr>
-                    <h3>
+                    <h3 id="dates">
                         <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
                         Dates:
                         <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
-                    </h3>'''
+                    </h3>'''.format(country=urlquote(country))
         
         for date in dates:
             table = getdateeventstable(date)
@@ -2026,7 +2107,7 @@ def viewcountry(request, country):
 
         # comments
         allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
-        content = '<br><br><hr><h3><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
+        content = '<br><br><hr><h3 id="comments"><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
         content += '<div style="margin-left:2%%"> %s </div>' % comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
         grids.append(dict(title="",
                           content=content,
@@ -3545,7 +3626,7 @@ class GridSelectMultipleWidget(forms.CheckboxSelectMultiple):
 
             <div style="clear:both;"></div>
             """
-        rendered = Template(html).render(Context({"choices":choices, 'name':name}))
+        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
         return rendered
 
 class GridSelectOneWidget(forms.RadioSelect):
@@ -3553,7 +3634,7 @@ class GridSelectOneWidget(forms.RadioSelect):
     def render(self, name, value, attrs=None):
         choices = [(value,decor) for value,decor in self.choices]
         html = """
-            <div style="width:98%;" class="gridselectmultiple">
+            <div style="width:98%;" class="gridselectone">
             {% for value,decor in choices %}
                 <div style="float:left; width:25%">
                     <input type="radio" value="{{ value }}" name="{{ name }}" style="float:left">
@@ -3564,7 +3645,7 @@ class GridSelectOneWidget(forms.RadioSelect):
 
             <div style="clear:both;"></div>
             """
-        rendered = Template(html).render(Context({"choices":choices, 'name':name}))
+        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
         return rendered
 
 class ListTextWidget(forms.TextInput):

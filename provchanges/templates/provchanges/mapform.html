@@ -28,7 +28,10 @@
 
             <tr>
                 <td style="text-align:right; vertical-align:top">{{ mapform.wms.label_tag }}</td>
-                <td>{{ mapform.wms }}</td>
+                <td>
+                    {{ mapform.wms }}
+                    <div style="padding:5%; text-align:center">{{ wmsimage | safe }}</div>
+                </td>
             </td>
 
             <tr>

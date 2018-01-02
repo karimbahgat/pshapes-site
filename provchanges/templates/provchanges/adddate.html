@@ -75,7 +75,12 @@
 			{{ form }}
 		{% endfor %}
 	{% else %}
-		{{ wizard.form.as_p }}
+                <div style="text-align:center; margin-left:30%;">
+                {% for field in wizard.form %}
+                    <div style="float:left; margin-left:10px">{{ field.label_tag }}</div>
+                    <div style="float:left; ">{{ field }}</div>
+                {% endfor %}
+                </div>
 	{% endif %}
 	</div>
 
