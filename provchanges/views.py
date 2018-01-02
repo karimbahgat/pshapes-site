@@ -224,12 +224,14 @@ class MapForm(forms.ModelForm):
         else:
             # get all sources globally
             sources = Source.objects.filter(status="Active") 
-        choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
+        #choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
+        choices = [(s.pk, s.title) for s in sources]
         if self.fields["source"].disabled:
             # only show the selected griditem...
             dfds
         else:
-            self.fields["source"].widget = GridSelectOneWidget(choices=choices)
+            #self.fields["source"].widget = GridSelectOneWidget(choices=choices)
+            self.fields["source"].widget = forms.Select(choices=[('','')]+choices) 
 
         wms = self.instance.wms
         if wms:
@@ -346,12 +348,10 @@ def editmap(request, pk):
         formfieldvalues.update(modified=datetime.datetime.now())
         
         sourceid = formfieldvalues.pop('source')
+        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
         print formfieldvalues
         for k,v in formfieldvalues.items():
             setattr(obj, k, v)
-
-        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
-        print sourceid, formfieldvalues['source']
             
         obj.save()
         return redirect("/viewmap/%s" % obj.pk)
@@ -1543,28 +1543,43 @@ def viewcountry(request, country):
                 linkcountry = country
                 
             if typ == "NewInfo":
-                fields = ["fromcountry","tocountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
-                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                fields = ["fromcountry","tocountry","source","sources","mapsources","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
+                params = dict([(field,getattr(firstitem,field)) for field in fields])
+                params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+                params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+                params = urlencode(params)
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="NewInfo"'
                 prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Split":
-                fields = ["fromcountry","tocountry","source","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
-                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                fields = ["fromcountry","tocountry","source","sources","mapsources","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
+                params = dict([(field,getattr(firstitem,field)) for field in fields])
+                params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+                params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+                params = urlencode(params)
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Split"'
                 prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Merge":
-                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
-                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                params = dict([(field,getattr(firstitem,field)) for field in fields])
+                params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+                params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+                params = urlencode(params)
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Merge"'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Transfer":
-                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
-                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                params = dict([(field,getattr(firstitem,field)) for field in fields])
+                params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+                params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+                params = urlencode(params)
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Transfer"'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Begin":
-                fields = ["fromcountry","tocountry","source","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
-                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
+                fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
+                params = dict([(field,getattr(firstitem,field)) for field in fields])
+                params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+                params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+                params = urlencode(params)
                 link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Begin"'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
 
@@ -1645,33 +1660,33 @@ def viewcountry(request, country):
         left = """	
 			<h3 style="clear:both">{countrytext}</h3>
 			
-                        <div id="blackbackground" style="text-align:center; margin-left:30%">
-                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px">
-                                <a href="#sources">
+                        <div style="text-align:center; margin-left:30%">
+                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#sources" style="text-decoration:none; color:inherit">
                                 <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                </a>
                                 <h3 style="display:inline">Sources</h3>
+                                </a>
                             </div>
 
-                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px">
-                                <a href="#maps">
+                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#maps" style="text-decoration:none; color:inherit">
                                 <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
-                                </a>
                                 <h3 style="display:inline">Maps</h3>
+                                </a>
                             </div>
 
-                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px">
-                                <a href="#dates">
+                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#timeline" style="text-decoration:none; color:inherit">
                                 <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                                <h3 style="display:inline">Timeline</h3>
                                 </a>
-                                <h3 style="display:inline">Dates</h3>
                             </div>
 
-                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px">
-                                <a href="#comments">
+                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#comments" style="text-decoration:none; color:inherit">
                                 <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
-                                </a>
                                 <h3 style="display:inline">Comments</h3>
+                                </a>
                             </div>
                             
                         </div>
@@ -2080,9 +2095,9 @@ def viewcountry(request, country):
 
         content = '''<br><br>
                     <hr>
-                    <h3 id="dates">
+                    <h3 id="timeline">
                         <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-                        Dates:
+                        Timeline:
                         <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
                     </h3>'''.format(country=urlquote(country))
         
@@ -3681,13 +3696,21 @@ class SourceEventForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SourceEventForm, self).__init__(*args, **kwargs)
-        country = kwargs["initial"]["fromcountry"]
+        if 'initial' in kwargs:
+            country = kwargs["initial"]["fromcountry"]
+        elif 'instance' in kwargs:
+            country = kwargs["instance"].fromcountry
+        else:
+            raise Exception('Either initial or instance must be set')
 
         # new
         sources = Source.objects.all() #filter(provchange__fromcountry=country).order_by('title')
-        self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
+        #self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
+        self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, s.title) for s in sources])
+        
         maps = Map.objects.all() #filter(provchange__fromcountry=country).order_by('year')
-        self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
+        #self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
+        self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps])
 
         # old, to be phased out
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
@@ -3696,6 +3719,13 @@ class SourceEventForm(forms.ModelForm):
             sources = sorted(set(sources))
             self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(type="text",size=120,autocomplete="on"))
             self.fields['source'].initial = mostcommon
+
+    def clean(self):
+        # store the sources and mapsources objects as pks
+        cleaned_data = super(SourceEventForm, self).clean()
+        cleaned_data['sources'] = ','.join([str(s.pk) for s in cleaned_data['sources']])
+        cleaned_data['mapsources'] = ','.join([str(m.pk) for m in cleaned_data['mapsources']])
+        return cleaned_data
         
 from django.forms.widgets import RadioFieldRenderer
 
@@ -4169,7 +4199,7 @@ class SplitTypeChangeForm(forms.ModelForm):
         fields = ['type']
         widgets = {"type": forms.RadioSelect(renderer=SplitTypeChangeRenderer) }
 
-class GeneralChangeForm(forms.ModelForm):
+class GeneralChangeForm(SourceEventForm):
 
     # USED TO SHOW INDIVIDUAL CHANGES
     # THE DESCRIPTIONS DONT ACTUALLY SHOW, SO SHOULD BE REMOVED
@@ -4574,6 +4604,10 @@ class GeoChangeForm(forms.ModelForm):
             self.fields['transfer_source'].widget._list = sources
             self.fields['transfer_reference'].widget._list = references
 
+        maps = Map.objects.filter(status="Active")
+        choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps]
+        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices)
+
         # make wms auto add/update on sourceurl input
         #self.fields['transfer_geom'].widget = EditableLayerField().widget
         print 888,kwargs
@@ -4617,7 +4651,7 @@ class GeoChangeForm(forms.ModelForm):
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                        <div style="padding:20px">NEW Map Object: {{ form.transfer_map }}</div>
+                        <div style="padding:20px">NEW! Map Object: {{ form.transfer_map }}</div>
 
                         <br>
 
@@ -4653,7 +4687,7 @@ class GeoChangeForm(forms.ModelForm):
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                        <div style="padding:20px">NEW Map Object: {{ form.transfer_map }}</div>
+                        <div style="padding:20px">NEW! Map Object: {{ form.transfer_map }}</div>
 
                         <br>
 
@@ -4685,6 +4719,7 @@ class GeoChangeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(GeoChangeForm, self).clean()
+        cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
         if cleaned_data and self.otherfeats:
             othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
             diff = cleaned_data["transfer_geom"].difference(othergeoms)
@@ -5068,12 +5103,21 @@ class AddChangeWizard(SessionWizardView):
 
         objvalues = dict(eventvalues)
         objvalues.update(formfieldvalues)
+        sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',')]
+        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',')]
         print objvalues
+        
         obj = ProvChange.objects.create(**objvalues)
         obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
         print obj
         
         obj.save()
+        for s in sources:
+            obj.sources.add(s)
+        for m in mapsources:
+            obj.mapsources.add(m)
+        obj.save()
+        
         html = self.done_redirect(obj)
 
         return html
