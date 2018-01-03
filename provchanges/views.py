@@ -4290,6 +4290,37 @@ class GeneralChangeForm(SourceEventForm):
         fields = ['date', 'source', 'sources', 'mapsources']
         widgets = {"date": CustomDateWidget()}
 
+    def as_p(self):
+        html = """
+                    <div style="margin-left:2%">
+
+                        <p>
+                        {{ form.date.label_tag }}
+                        {{ form.date }}
+                        </p>
+
+                        <h4>OLD (to be phased out)!</h4>
+                        <div style="">
+                        {{ form.source.label_tag }}
+                        {{ form.source }}
+                        </div>
+
+                        <h4>NEW!</h4>
+                        <div style="">
+                        {{ form.sources.label_tag }}
+                        {{ form.sources }}
+                        </div>
+
+                        <div style="">
+                        {{ form.mapsources.label_tag }}
+                        {{ form.mapsources }}
+                        </div>
+                    </div>
+                    """
+        
+        rendered = Template(html).render(Context({"form":self, 'country':urlquote(self.country)}))
+        return rendered
+
 class FromChangeForm(forms.ModelForm):
 
     step_title = "From Province"
@@ -4748,7 +4779,8 @@ class GeoChangeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(GeoChangeForm, self).clean()
-        cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
+        if cleaned_data and cleaned_data['transfer_map']:
+            cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
         if cleaned_data and self.otherfeats:
             othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
             diff = cleaned_data["transfer_geom"].difference(othergeoms)
@@ -5132,8 +5164,8 @@ class AddChangeWizard(SessionWizardView):
 
         objvalues = dict(eventvalues)
         objvalues.update(formfieldvalues)
-        sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',')]
-        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',')]
+        sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
+        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
         print objvalues
         
         obj = ProvChange.objects.create(**objvalues)
