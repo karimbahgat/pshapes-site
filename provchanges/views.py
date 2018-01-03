@@ -3708,6 +3708,7 @@ class SourceEventForm(forms.ModelForm):
             country = kwargs["instance"].fromcountry
         else:
             raise Exception('Either initial or instance must be set')
+        self.country = country
 
         # new
         sources = Source.objects.filter(country=country).order_by('title')
@@ -3732,6 +3733,30 @@ class SourceEventForm(forms.ModelForm):
         cleaned_data['sources'] = ','.join([str(s.pk) for s in cleaned_data['sources']])
         cleaned_data['mapsources'] = ','.join([str(m.pk) for m in cleaned_data['mapsources']])
         return cleaned_data
+
+    def as_p(self):
+        html = """
+                    <div style="margin-left:2%">
+
+                        <p>Select all sources that were used to code this change.
+                        This includes information that was inferred by visually comparing maps.
+                        </p>
+                        
+                        <p>                        
+                        If you have not already done so, go ahead and <a href="/addsource/?country={{ country }}">register the source(s) for this country now.</a> 
+                        </p>
+
+                        <h4>OLD (to be phased out)!</h4>
+                        <div style="">{{ form.source.label_tag }}: {{ form.source }}</div>
+
+                        <h4>NEW!</h4>
+                        <div style="">{{ form.sources.label_tag }}: {{ form.sources }}</div>
+                        <div style="">{{ form.mapsources.label_tag }}: {{ form.mapsources }}</div>
+                    </div>
+                    """
+        
+        rendered = Template(html).render(Context({"form":self, 'country':urlquote(self.country)}))
+        return rendered
         
 from django.forms.widgets import RadioFieldRenderer
 
