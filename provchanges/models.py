@@ -56,7 +56,7 @@ class Source(models.Model):
     citation = models.TextField()
     note = models.TextField(blank=True)
     url = models.URLField(max_length=2000, null=True)
-    is_resource = models.BooleanField(default=False)
+    country = models.CharField(max_length=40, blank=True, verbose_name=u"Country")
 
 
 class Map(models.Model):
@@ -79,6 +79,7 @@ class Map(models.Model):
     source = models.ForeignKey(Source)
     url = models.URLField(max_length=2000, null=True)
     wms = models.URLField(max_length=2000, null=True)
+    country = models.CharField(max_length=40, blank=True, verbose_name=u"Country")
 
 
 class ProvChange(models.Model):

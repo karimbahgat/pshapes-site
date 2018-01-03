@@ -119,37 +119,40 @@ class SourceForm(forms.ModelForm):
 
     class Meta:
         model = Source
-        fields = 'status title citation note url is_resource'.split()
-        widgets = {"citation":forms.Textarea(attrs=dict(style="font-family:inherit")),
-                   "note":forms.Textarea(attrs=dict(style="font-family:inherit")) }
+        fields = 'status title citation note url country'.split()
+        widgets = {"title":forms.TextInput(attrs=dict(style="width:98%")),
+                   "citation":forms.Textarea(attrs=dict(style="font-family:inherit")),
+                   "note":forms.Textarea(attrs=dict(style="font-family:inherit")),
+                   "country":forms.HiddenInput(),
+                   }
 
     def as_custom(self):
         return get_template("provchanges/sourceform.html").render({'sourceform':self})
 
-    def as_griditem(self):
-        source = self.instance
-        color = 'rgb(122,122,122)'
-        griditem = """
-                <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
-                    <div class="griditem" style="float:left; width:200px; margin:10px">
-                        <div class="gridheader" style="background-color:{color}; padding-top:10px">
-                            <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                            <h4 style="display:inline-block">{title}</h4>
-                        </div>
-                        
-                        <div class="gridcontent">
-                            <p>{citation}</p>
-                        </div>
-                    </div>
-                </a>
-                    """.format(title=source.title, citation=source.citation, pk=source.pk, color=color)
-        return griditem
+##    def as_griditem(self):
+##        source = self.instance
+##        color = 'rgb(122,122,122)'
+##        griditem = """
+##                <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
+##                    <div class="griditem" style="float:left; width:200px; margin:10px">
+##                        <div class="gridheader" style="background-color:{color}; padding-top:10px">
+##                            <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                            <h4 style="display:inline-block">{title}</h4>
+##                        </div>
+##                        
+##                        <div class="gridcontent">
+##                            <p>{citation}</p>
+##                        </div>
+##                    </div>
+##                </a>
+##                    """.format(title=source.title, citation=source.citation, pk=source.pk, color=color)
+##        return griditem
 
 @login_required
 def addsource(request):
     if request.method == "GET":
         # new empty form
-        sourceform = SourceForm()
+        sourceform = SourceForm(initial=request.GET.dict())
         return render(request, "provchanges/addsource.html", {'sourceform':sourceform})
     
     elif request.method == "POST":
@@ -202,36 +205,37 @@ def dropsource(request, pk):
 
 
 # Maps
-
-# TODO: Must somehow clean so map source isnt POSTed as object but rather pk? Or wrong?
-# ...
     
 class MapForm(forms.ModelForm):
 
     class Meta:
         model = Map
-        fields = 'status title year note source url wms'.split()
-        widgets = {"note":forms.Textarea(attrs=dict(style="font-family:inherit")) }
+        fields = 'status title year country note source url wms'.split()
+        widgets = {"note":forms.Textarea(attrs=dict(style="font-family:inherit")),
+                   "country":forms.HiddenInput(),
+                   }
 
     def __init__(self, *args, **kwargs):
         super(MapForm, self).__init__(*args, **kwargs)
 
         # new
+        sources = Source.objects.filter(status="Active")
         if 'initial' in kwargs and kwargs["initial"].get('country'):
             # means country was set in GET param, so get only sources relevant for that country
             country = kwargs["initial"]["country"]
-            sources = Source.objects.filter(status="Active") #filter(provchange__fromcountry=country).order_by('title')
+            sources = sources.filter(country=country)
+        if 'instance' in kwargs and kwargs["instance"].country:
+            # means country was set in existing instance (edit mode), so get only sources relevant for that country
+            country = kwargs["instance"].country
+            sources = sources.filter(country=country)
         else:
-            # get all sources globally
-            sources = Source.objects.filter(status="Active") 
+            # get only the global sources
+            sources = sources.filter(country="")
+        sources = sources.order_by('title')
         #choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
         choices = [(s.pk, s.title) for s in sources]
-        if self.fields["source"].disabled:
-            # only show the selected griditem...
-            dfds
-        else:
-            #self.fields["source"].widget = GridSelectOneWidget(choices=choices)
-            self.fields["source"].widget = forms.Select(choices=[('','')]+choices) 
+        #self.fields["source"].widget = GridSelectOneWidget(choices=choices)
+        self.fields["source"].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style="width:99%")) 
 
         wms = self.instance.wms
         if wms:
@@ -251,32 +255,32 @@ class MapForm(forms.ModelForm):
             wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
         return get_template("provchanges/mapform.html").render({'mapform':self, 'wmsimage':wmsimage})
 
-    def as_griditem(self):
-        mapp = self.instance
-        wms = self.instance.wms
-        if wms and self.wms_helper:
-            params = self.wms_helper.get_link_params(height=40)
-            wmslink = wms + "?" + params
-            wmsimage = '<img src="{wmslink}" height="40px">'.format(wmslink=wmslink)
-        else:
-            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
-            wmsimage = '<img src="{wmslink}" style="opacity:0.1; height:40px">'.format(wmslink=wmslink)
-        color = 'rgb(58,177,73)'
-        griditem = """
-                <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
-                    <div class="griditem" style="float:left; width:200px; margin:10px">
-                        <div class="gridheader" style="background-color:{color}; padding:10px;">
-                            {wmsimage}
-                            <h4 style="display:inline-block">{year}</h4>
-                        </div>
-                        
-                        <div class="gridcontent">
-                            <p>{title}</p>
-                        </div>
-                    </div>
-                </a>
-                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wmsimage=wmsimage, pk=mapp.pk, color=color)
-        return griditem
+##    def as_griditem(self):
+##        mapp = self.instance
+##        wms = self.instance.wms
+##        if wms and self.wms_helper:
+##            params = self.wms_helper.get_link_params(height=40)
+##            wmslink = wms + "?" + params
+##            wmsimage = '<img src="{wmslink}" height="40px">'.format(wmslink=wmslink)
+##        else:
+##            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+##            wmsimage = '<img src="{wmslink}" style="opacity:0.1; height:40px">'.format(wmslink=wmslink)
+##        color = 'rgb(58,177,73)'
+##        griditem = """
+##                <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
+##                    <div class="griditem" style="float:left; width:200px; margin:10px">
+##                        <div class="gridheader" style="background-color:{color}; padding:10px;">
+##                            {wmsimage}
+##                            <h4 style="display:inline-block">{year}</h4>
+##                        </div>
+##                        
+##                        <div class="gridcontent">
+##                            <p>{title}</p>
+##                        </div>
+##                    </div>
+##                </a>
+##                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wmsimage=wmsimage, pk=mapp.pk, color=color)
+##        return griditem
 
 class WMSImage:
     def __init__(self, url):
@@ -305,11 +309,11 @@ class WMSImage:
 def addmap(request):
     if request.method == "GET":
         # new empty form
-        mapform = MapForm(initial={'country':request.GET.get('country')})
+        mapform = MapForm(initial=request.GET.dict())
         return render(request, "provchanges/addmap.html", {'mapform':mapform})
     
     elif request.method == "POST":
-        # save submitted info        
+        # save submitted info
         fields = [f.name for f in Map._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
         formfieldvalues.update(added=datetime.datetime.now(),
@@ -338,7 +342,7 @@ def viewmap(request, pk):
 def editmap(request, pk):
     obj = get_object_or_404(Map, pk=pk)
     if request.method == "GET":
-        mapform = MapForm(instance=obj, initial={'country':request.GET.get('country')})
+        mapform = MapForm(instance=obj, initial=request.GET.dict())
         return render(request, "provchanges/editmap.html", {'mapform':mapform, 'pk':obj.pk})
 
     elif request.method == "POST":
@@ -1702,8 +1706,8 @@ def viewcountry(request, country):
 
 
                         <b>
-                        <a id="instrnext" style="float:right; padding:5px" onclick="nextstep()">Next</a>
-                        <a id="instrprev" style="float:right; padding:5px" onclick="prevstep()">Prev</a>
+                        <a id="instrnext" style="float:right; padding:5px" href="javascript: nextstep()">Next</a>
+                        <a id="instrprev" style="float:right; padding:5px" href="javascript: prevstep()">Prev</a>
                         </b>
 
                         <h3>Instructions:</h3>
@@ -1728,12 +1732,12 @@ def viewcountry(request, country):
                             document.getElementById("instr"+num).style.display = "block";
                             
                             if (num == 1) {
-                                document.getElementById("instrprev").style.display = "none";
+                                document.getElementById("instrprev").href = "javascript: void(0)";
                             } else if (num == steps.length) {
-                                document.getElementById("instrnext").style.display = "none";
+                                document.getElementById("instrnext").href = "javascript: void(0)";
                             } else {
-                                document.getElementById("instrprev").style.display = "block";
-                                document.getElementById("instrnext").style.display = "block";
+                                document.getElementById("instrprev").href = "javascript: prevstep()";
+                                document.getElementById("instrnext").href = "javascript: nextstep()";
                             };
                         };
 
@@ -1959,7 +1963,8 @@ def viewcountry(request, country):
         # sources
         color = "rgb(60,60,60)"
 
-        sources = Source.objects.filter(status='Active') # change to only get those related to countries' changes or those with is_resource
+        sources = Source.objects.filter(status='Active')
+        sources = sources.filter(country=country)
 
 ##        content = '''<hr>
 ##                     <h3>
@@ -2006,7 +2011,7 @@ def viewcountry(request, country):
                     </h3>
                     <div style="margin-left:2%">
                         {table}
-                        <br><div width="100%" style="text-align:center"><a href="/addsource/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                        <br><div width="100%" style="text-align:center"><a href="/addsource/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
                     '''.format(table=table, color=color, country=urlquote(country))
             
@@ -2019,7 +2024,8 @@ def viewcountry(request, country):
         # maps
         color = 'rgb(58,177,73)'
 
-        maps = Map.objects.filter(status='Active') # change to only get those related to countries' changes
+        maps = Map.objects.filter(status='Active')
+        maps = maps.filter(country=country)
         
 ##        for mapp in maps:
 ##            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
@@ -2070,7 +2076,7 @@ def viewcountry(request, country):
                     </h3>
                     <div style="margin-left:2%">
                         {table}
-                        <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                        <br><div width="100%" style="text-align:center"><a href="/addmap/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
                     '''.format(table=table, color=color, country=urlquote(country))
             
@@ -3704,11 +3710,11 @@ class SourceEventForm(forms.ModelForm):
             raise Exception('Either initial or instance must be set')
 
         # new
-        sources = Source.objects.all() #filter(provchange__fromcountry=country).order_by('title')
+        sources = Source.objects.filter(country=country).order_by('title')
         #self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
         self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, s.title) for s in sources])
         
-        maps = Map.objects.all() #filter(provchange__fromcountry=country).order_by('year')
+        maps = Map.objects.filter(country=country).order_by('year','title')
         #self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
         self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps])
 
@@ -4604,9 +4610,9 @@ class GeoChangeForm(forms.ModelForm):
             self.fields['transfer_source'].widget._list = sources
             self.fields['transfer_reference'].widget._list = references
 
-        maps = Map.objects.filter(status="Active")
+        maps = Map.objects.filter(status="Active", country=country).order_by('year', 'title')
         choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps]
-        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices)
+        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:70%'))
 
         # make wms auto add/update on sourceurl input
         #self.fields['transfer_geom'].widget = EditableLayerField().widget
@@ -4630,28 +4636,15 @@ class GeoChangeForm(forms.ModelForm):
                         Before you begin:
                         <br><br>
                         To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
-                        Make sure the map doesn't have a license that restricts sharing or derivative work. 
-                        Here are some useful sources for historical maps:
+                        If you have not already done so, go ahead and <a href="/addmap/?country={{ country }}">register the map for this country now.</a> 
 
-                        <ul>
-                            <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                            <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                            <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                            <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                            <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                            <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                            <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                            <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                        </ul>
-
-                        Georeference the map at <a target="_blank" href="http://mapwarper.net/">MapWarper</a>
-                        and get its "WMS" link (under the "Export" tab) so you can overlay it on the map.
-
+                        <h4>OLD (to be phased out)!</h4>
                         <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
 
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                        <div style="padding:20px">NEW! Map Object: {{ form.transfer_map }}</div>
+                        <h4>NEW!</h4>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
 
                         <br>
 
@@ -4678,16 +4671,17 @@ class GeoChangeForm(forms.ModelForm):
                 </script>
                 """.format(geoj=geoj_str)
         
-        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct, 'country':urlquote(self.country)}))
         return rendered
 
     def as_simple(self):
         html = """
+                        <p>OLD (to be phased out)!</p>
                         <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
-
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
-                        <div style="padding:20px">NEW! Map Object: {{ form.transfer_map }}</div>
+                        <p>NEW!</p>
+                        <div style="padding:20px">Map Object: {{ form.transfer_map }}</div>
 
                         <br>
 
