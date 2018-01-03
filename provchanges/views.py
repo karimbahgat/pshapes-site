@@ -224,7 +224,7 @@ class MapForm(forms.ModelForm):
             # means country was set in GET param, so get only sources relevant for that country
             country = kwargs["initial"]["country"]
             sources = sources.filter(country=country)
-        if 'instance' in kwargs and kwargs["instance"].country:
+        elif 'instance' in kwargs and kwargs["instance"].country:
             # means country was set in existing instance (edit mode), so get only sources relevant for that country
             country = kwargs["instance"].country
             sources = sources.filter(country=country)
@@ -233,7 +233,7 @@ class MapForm(forms.ModelForm):
             sources = sources.filter(country="")
         sources = sources.order_by('title')
         #choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
-        choices = [(s.pk, s.title) for s in sources]
+        choices = [(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources]
         #self.fields["source"].widget = GridSelectOneWidget(choices=choices)
         self.fields["source"].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style="width:99%")) 
 
@@ -1964,7 +1964,7 @@ def viewcountry(request, country):
         color = "rgb(60,60,60)"
 
         sources = Source.objects.filter(status='Active')
-        sources = sources.filter(country=country)
+        sources = sources.filter(country=country).order_by('title')
 
 ##        content = '''<hr>
 ##                     <h3>
@@ -2013,7 +2013,7 @@ def viewcountry(request, country):
                         {table}
                         <br><div width="100%" style="text-align:center"><a href="/addsource/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
-                    '''.format(table=table, color=color, country=urlquote(country))
+                    '''.format(table=table.encode('utf8'), color=color, country=urlquote(country))
             
         grids.append(dict(title="",
                           content=content,
@@ -2078,7 +2078,7 @@ def viewcountry(request, country):
                         {table}
                         <br><div width="100%" style="text-align:center"><a href="/addmap/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
-                    '''.format(table=table, color=color, country=urlquote(country))
+                    '''.format(table=table.encode('utf8'), color=color, country=urlquote(country))
             
         grids.append(dict(title="",
                           content=content,
@@ -3711,13 +3711,13 @@ class SourceEventForm(forms.ModelForm):
         self.country = country
 
         # new
-        sources = Source.objects.filter(country=country).order_by('title')
+        sources = Source.objects.filter(status='Active', country=country).order_by('title')
         #self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
-        self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, s.title) for s in sources])
+        self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
         
-        maps = Map.objects.filter(country=country).order_by('year','title')
+        maps = Map.objects.filter(status='Active', country=country).order_by('year','title')
         #self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
-        self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps])
+        self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
 
         # old, to be phased out
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
@@ -3747,11 +3747,21 @@ class SourceEventForm(forms.ModelForm):
                         </p>
 
                         <h4>OLD (to be phased out)!</h4>
-                        <div style="">{{ form.source.label_tag }}: {{ form.source }}</div>
+                        <div style="">
+                        {{ form.source.label_tag }}
+                        {{ form.source }}
+                        </div>
 
                         <h4>NEW!</h4>
-                        <div style="">{{ form.sources.label_tag }}: {{ form.sources }}</div>
-                        <div style="">{{ form.mapsources.label_tag }}: {{ form.mapsources }}</div>
+                        <div style="">
+                        {{ form.sources.label_tag }}
+                        {{ form.sources }}
+                        </div>
+
+                        <div style="">
+                        {{ form.mapsources.label_tag }}
+                        {{ form.mapsources }}
+                        </div>
                     </div>
                     """
         
@@ -4636,7 +4646,7 @@ class GeoChangeForm(forms.ModelForm):
             self.fields['transfer_reference'].widget._list = references
 
         maps = Map.objects.filter(status="Active", country=country).order_by('year', 'title')
-        choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title)) for m in maps]
+        choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
         self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:70%'))
 
         # make wms auto add/update on sourceurl input
@@ -4706,7 +4716,7 @@ class GeoChangeForm(forms.ModelForm):
                         <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
 
                         <p>NEW!</p>
-                        <div style="padding:20px">Map Object: {{ form.transfer_map }}</div>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
 
                         <br>
 
