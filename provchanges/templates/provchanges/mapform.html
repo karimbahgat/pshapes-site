@@ -11,19 +11,30 @@
 	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px">
 
             <tr>
+                <td style="text-align:right; vertical-align:top">Hint:</td>
+                <td style="font-weight:normal">To make this map available to multiple countries, list all countries
+                in the country field, separated by the "pipe" (|) symbol.</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.country.label_tag }}</td>
+                <td>{{ mapform.country }}</td>
+            </tr>
+
+            <tr>
                 <td style="text-align:right; vertical-align:top">{{ mapform.title.label_tag }}</td>
                 <td>
                     {{ mapform.title }}
-                    <div style="float:right">
+                    <div style="float:right; margin-right:2%">
                         {{ mapform.year.label_tag }}
                         {{ mapform.year }}
                     </div>
-                    
-                    <div style="display:none">
-                        {{ mapform.country.label_tag }}
-                        {{ mapform.country }}
-                    </div>
                 </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
+                <td>{{ mapform.source }}</td>
             </td>
 
             <tr>
@@ -37,11 +48,6 @@
                     {{ mapform.wms }}
                     <div style="padding:5%; text-align:center">{{ wmsimage | safe }}</div>
                 </td>
-            </td>
-
-            <tr>
-                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
-                <td>{{ mapform.source }}</td>
             </td>
 
             <tr>

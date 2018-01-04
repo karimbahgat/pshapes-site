@@ -11,15 +11,19 @@
 	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px">
 
             <tr>
+                <td style="text-align:right; vertical-align:top">Hint:</td>
+                <td style="font-weight:normal">To make this source available to multiple countries, list all countries
+                in the country field, separated by the "pipe" (|) symbol.</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.country.label_tag }}</td>
+                <td>{{ sourceform.country }}</td>
+            </tr>
+
+            <tr>
                 <td style="text-align:right; vertical-align:top">{{ sourceform.title.label_tag }}</td>
-                <td>
-                    {{ sourceform.title }}
-                    
-                    <div style="display:none">
-                        {{ sourceform.country.label_tag }}
-                        {{ sourceform.country }}
-                    </div>
-                </td>
+                <td>{{ sourceform.title }}</td>
             </td>
 
             <tr>

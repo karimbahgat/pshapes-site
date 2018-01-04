@@ -115,15 +115,31 @@ def withdrawvouch(request, pk):
 
 # Sources
 
+def get_country_sources(country):
+    sources = Source.objects.filter(status='Active').order_by('title')
+    if not country:
+        for s in sources:
+            if not s.country:
+                # only non-country-specific
+                yield s
+    else:
+        country = country.strip().lower()
+        for s in sources:
+            scountries = [cn.strip().lower() for cn in s.country.split('|') if cn.strip()]
+            if country in scountries:
+                # if in countrylist
+                yield s
+
 class SourceForm(forms.ModelForm):
 
     class Meta:
         model = Source
         fields = 'status title citation note url country'.split()
-        widgets = {"title":forms.TextInput(attrs=dict(style="width:98%")),
+        widgets = {"country":forms.TextInput(attrs=dict(style="width:98%")),
+                   "title":forms.TextInput(attrs=dict(style="width:98%")),
                    "citation":forms.Textarea(attrs=dict(style="font-family:inherit")),
                    "note":forms.Textarea(attrs=dict(style="font-family:inherit")),
-                   "country":forms.HiddenInput(),
+                   #"country":forms.HiddenInput(),
                    }
 
     def as_custom(self):
@@ -205,33 +221,48 @@ def dropsource(request, pk):
 
 
 # Maps
+
+def get_country_maps(country):
+    maps = Map.objects.filter(status='Active').order_by('year','title')
+    if not country:
+        for m in maps:
+            if not m.country:
+                # only non-country-specific
+                yield s
+    else:
+        country = country.strip().lower()
+        for m in maps:
+            mcountries = [cn.strip().lower() for cn in m.country.split('|') if cn.strip()]
+            if country in mcountries:
+                # if in countrylist
+                yield m
     
 class MapForm(forms.ModelForm):
 
     class Meta:
         model = Map
         fields = 'status title year country note source url wms'.split()
-        widgets = {"note":forms.Textarea(attrs=dict(style="font-family:inherit")),
-                   "country":forms.HiddenInput(),
+        widgets = {"country":forms.TextInput(attrs=dict(style="width:98%")),
+                   "note":forms.Textarea(attrs=dict(style="font-family:inherit")),
+                   #"country":forms.HiddenInput(),
                    }
 
     def __init__(self, *args, **kwargs):
         super(MapForm, self).__init__(*args, **kwargs)
 
         # new
-        sources = Source.objects.filter(status="Active")
         if 'initial' in kwargs and kwargs["initial"].get('country'):
             # means country was set in GET param, so get only sources relevant for that country
             country = kwargs["initial"]["country"]
-            sources = sources.filter(country=country)
+            sources = get_country_sources(country)
         elif 'instance' in kwargs and kwargs["instance"].country:
             # means country was set in existing instance (edit mode), so get only sources relevant for that country
             country = kwargs["instance"].country
-            sources = sources.filter(country=country)
+            sources = get_country_sources(country)
         else:
+            # NOTE: This prob should never be the case...
             # get only the global sources
-            sources = sources.filter(country="")
-        sources = sources.order_by('title')
+            sources = get_country_sources("")
         #choices = [(s.pk, SourceForm(instance=s).as_griditem()) for s in sources]
         choices = [(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources]
         #self.fields["source"].widget = GridSelectOneWidget(choices=choices)
@@ -1963,8 +1994,7 @@ def viewcountry(request, country):
         # sources
         color = "rgb(60,60,60)"
 
-        sources = Source.objects.filter(status='Active')
-        sources = sources.filter(country=country).order_by('title')
+        sources = get_country_sources(country)
 
 ##        content = '''<hr>
 ##                     <h3>
@@ -2024,8 +2054,7 @@ def viewcountry(request, country):
         # maps
         color = 'rgb(58,177,73)'
 
-        maps = Map.objects.filter(status='Active')
-        maps = maps.filter(country=country)
+        maps = get_country_maps(country)
         
 ##        for mapp in maps:
 ##            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
@@ -2117,7 +2146,7 @@ def viewcountry(request, country):
                     {table}
                     <br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
-                    """.format(date=date, table=table, country=urlquote(country))
+                    """.format(date=date, table=table.encode('utf8'), country=urlquote(country))
             content += html
             
         grids.append(dict(title="",
@@ -2852,6 +2881,10 @@ def addchange(request, country, province):
         # copy toinfo to frominfo
         for fl in 'country name alterns iso fips hasc'.split():
             objvalues['from'+fl] = objvalues.get('to'+fl)
+
+        sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
+        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
+        print objvalues
         
         print 'final objvalues',objvalues
         obj = ProvChange.objects.create(**objvalues)
@@ -2859,8 +2892,13 @@ def addchange(request, country, province):
         print obj
         
         obj.save()
+        for s in sources:
+            obj.sources.add(s)
+        for m in mapsources:
+            obj.mapsources.add(m)
+        obj.save()
 
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Begin&".format(country=urlquote(country), prov=urlquote(province)) + params
 
         return redirect(eventlink)
@@ -3711,11 +3749,11 @@ class SourceEventForm(forms.ModelForm):
         self.country = country
 
         # new
-        sources = Source.objects.filter(status='Active', country=country).order_by('title')
+        sources = get_country_sources(country)
         #self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
         self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
         
-        maps = Map.objects.filter(status='Active', country=country).order_by('year','title')
+        maps = get_country_maps(country)
         #self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
         self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
 
@@ -4676,7 +4714,7 @@ class GeoChangeForm(forms.ModelForm):
             self.fields['transfer_source'].widget._list = sources
             self.fields['transfer_reference'].widget._list = references
 
-        maps = Map.objects.filter(status="Active", country=country).order_by('year', 'title')
+        maps = get_country_maps(country)
         choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
         self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:70%'))
 
@@ -5158,9 +5196,9 @@ class AddChangeWizard(SessionWizardView):
             # all tos become froms when newinfo for merge event
             # ACTUALLY: shouldnt happen anymore
             raise Exception()
-            trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
-            eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
-            eventvalues.update(trans)
+            #trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
+            #eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
+            #eventvalues.update(trans)
 
         objvalues = dict(eventvalues)
         objvalues.update(formfieldvalues)
@@ -5227,7 +5265,7 @@ class AddNewInfoChangeWizard(AddChangeWizard):
         return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
@@ -5267,7 +5305,7 @@ class AddSplitChangeWizard(AddChangeWizard):
         return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
@@ -5314,7 +5352,7 @@ class AddMergeChangeWizard(AddChangeWizard):
         return data
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
@@ -5360,7 +5398,7 @@ class AddTransferChangeWizard(AddChangeWizard):
         return data  
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
         eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
