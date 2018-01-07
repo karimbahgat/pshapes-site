@@ -1513,7 +1513,7 @@ def allcountries(request):
 
 def viewcountry(request, country):
 
-    def getdateeventstable(date):        
+    def getdateeventstable(date):
         changes = (ProvChange.objects.filter(fromcountry=country, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, date=date).exclude(status="NonActive")).order_by("-added") # the dash reverses the order
         import itertools
         
@@ -1700,6 +1700,14 @@ def viewcountry(request, country):
 			<h3 style="clear:both">{countrytext}</h3>
 			
                         <div style="text-align:center; margin-left:30%">
+
+                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#timeline" style="text-decoration:none; color:inherit">
+                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                                <h3 style="display:inline">Timeline</h3>
+                                </a>
+                            </div>
+
                             <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#sources" style="text-decoration:none; color:inherit">
                                 <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
@@ -1711,13 +1719,6 @@ def viewcountry(request, country):
                                 <a href="#maps" style="text-decoration:none; color:inherit">
                                 <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
                                 <h3 style="display:inline">Maps</h3>
-                                </a>
-                            </div>
-
-                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#timeline" style="text-decoration:none; color:inherit">
-                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-                                <h3 style="display:inline">Timeline</h3>
                                 </a>
                             </div>
 
@@ -1995,6 +1996,46 @@ def viewcountry(request, country):
         # GRIDS
         grids = []
 
+        # dates            
+        dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country).exclude(status="NonActive")).order_by("date").values('date').distinct()]
+        print dates
+
+    ##    def getlinkrow(date):
+    ##        link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
+    ##        return link, (date,)
+
+    ##    daterows = [getlinkrow(date) for date in dates]
+    ##    datestable = lists2table(request, daterows, ["Date"])
+
+    ##    content = datestable
+
+        content = '''<br><br>
+                    <hr>
+                    <h3 id="timeline">
+                        <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                        Timeline:
+                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
+                    </h3>'''.format(country=urlquote(country))
+        
+        for date in dates:
+            table = getdateeventstable(date)
+            html = """
+                    <div style="margin-left:2%">
+                    <h4>
+                        {date}
+                    </h4>
+                    {table}
+                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                    </div>
+                    """.format(date=date, table=table.encode('utf8'), country=urlquote(country))
+            content += html
+            
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="95%",
+                          ))
+
         # sources
         color = "rgb(60,60,60)"
 
@@ -2111,46 +2152,6 @@ def viewcountry(request, country):
                         <br><div width="100%" style="text-align:center"><a href="/addmap/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                     </div>
                     '''.format(table=table.encode('utf8'), color=color, country=urlquote(country))
-            
-        grids.append(dict(title="",
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="95%",
-                          ))
-
-        # dates            
-        dates = [d["date"].isoformat() for d in (ProvChange.objects.filter(fromcountry=country).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country).exclude(status="NonActive")).order_by("date").values('date').distinct()]
-        print dates
-
-    ##    def getlinkrow(date):
-    ##        link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
-    ##        return link, (date,)
-
-    ##    daterows = [getlinkrow(date) for date in dates]
-    ##    datestable = lists2table(request, daterows, ["Date"])
-
-    ##    content = datestable
-
-        content = '''<br><br>
-                    <hr>
-                    <h3 id="timeline">
-                        <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-                        Timeline:
-                        <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
-                    </h3>'''.format(country=urlquote(country))
-        
-        for date in dates:
-            table = getdateeventstable(date)
-            html = """
-                    <div style="margin-left:2%">
-                    <h4>
-                        {date}
-                    </h4>
-                    {table}
-                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/{country}?date={date}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                    </div>
-                    """.format(date=date, table=table.encode('utf8'), country=urlquote(country))
-            content += html
             
         grids.append(dict(title="",
                           content=content,
@@ -2901,7 +2902,11 @@ def addchange(request, country, province):
             obj.mapsources.add(m)
         obj.save()
 
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
         eventlink = "/contribute/view/{country}/{prov}/?type=Begin&".format(country=urlquote(country), prov=urlquote(province)) + params
 
         return redirect(eventlink)
@@ -3383,6 +3388,11 @@ def editchange(request, pk):
     if request.method == "POST":
         fieldnames = [f.name for f in ProvChange._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+
+        # post requests are different, so multivalue entries must be gotten as list
+        formfieldvalues["sources"] = request.POST.getlist('sources')
+        formfieldvalues["mapsources"] = request.POST.getlist('mapsources')
+        
         formfieldvalues["user"] = request.user.username
         formfieldvalues["added"] = datetime.datetime.now()
         formfieldvalues["status"] = "Pending"
@@ -3394,14 +3404,23 @@ def editchange(request, pk):
                 c.status = "NonActive"
                 c.save()
             formfieldvalues["bestversion"] = True
+
+        sources = [get_object_or_404(Source, pk=int(pk)) for pk in formfieldvalues.pop('sources') if pk]
+        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in formfieldvalues.pop('mapsources') if pk]
+
+        formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
         
         print formfieldvalues
+        print sources, mapsources
 
-        change.__dict__.update(**formfieldvalues)
-        geoform = GeoChangeForm(instance=change, data=formfieldvalues, country=change.tocountry, province=change.toname, date=change.date)
-        geoform.is_valid()
-        change.transfer_geom = geoform.clean()["transfer_geom"]
-        change.pk = None # nulling the pk will add a modified copy of the instance
+        for k,v in formfieldvalues.items():
+            setattr(change, k, v)
+                    
+        change.save()
+        for s in sources:
+            change.sources.add(s)
+        for m in mapsources:
+            change.mapsources.add(m)
         change.save()
 
         html = redirect("/provchange/%s/view/" % change.pk)
@@ -4827,7 +4846,7 @@ class GeoChangeForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(GeoChangeForm, self).clean()
-        if cleaned_data and cleaned_data['transfer_map']:
+        if cleaned_data and cleaned_data.get('transfer_map'):
             cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
         if cleaned_data and self.otherfeats:
             othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
@@ -5275,7 +5294,11 @@ class AddNewInfoChangeWizard(AddChangeWizard):
         return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
         eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
@@ -5315,7 +5338,11 @@ class AddSplitChangeWizard(AddChangeWizard):
         return data  
 
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]]))
+        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
         eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
         html = redirect(eventlink)
         return html
@@ -5362,7 +5389,11 @@ class AddMergeChangeWizard(AddChangeWizard):
         return data
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
         eventlink = "/contribute/view/{country}/{prov}/?type=Merge&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
@@ -5408,7 +5439,11 @@ class AddTransferChangeWizard(AddChangeWizard):
         return data  
     
     def done_redirect(self, obj):
-        params = urlencode(dict([(k,getattr(obj,k)) for k in ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]]))
+        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
         eventlink = "/contribute/view/{country}/{prov}/?type=Transfer&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
         html = redirect(eventlink)
         return html
