@@ -103,7 +103,8 @@ class ProvChange(models.Model):
     type = models.CharField(choices=[("NewInfo","NewInfo"),
                                        ("PartTransfer","PartTransfer"),
                                        ("FullTransfer","FullTransfer"),
-                                       ("Breakaway","Breakaway"), 
+                                       ("Breakaway","Breakaway"),
+                                       ("Begin","Begin"),
                                         ],
                             verbose_name=u"Type of Change",
                             max_length=40,)

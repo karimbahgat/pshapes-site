@@ -123,10 +123,10 @@ def get_country_sources(country):
                 # only non-country-specific
                 yield s
     else:
-        country = country.strip().lower()
+        countries = [cn.strip().lower() for cn in country.split('|') if cn.strip()]
         for s in sources:
             scountries = [cn.strip().lower() for cn in s.country.split('|') if cn.strip()]
-            if country in scountries:
+            if any((cn in scountries for cn in countries)):
                 # if in countrylist
                 yield s
 
@@ -230,10 +230,10 @@ def get_country_maps(country):
                 # only non-country-specific
                 yield s
     else:
-        country = country.strip().lower()
+        countries = [cn.strip().lower() for cn in country.split('|') if cn.strip()]
         for m in maps:
             mcountries = [cn.strip().lower() for cn in m.country.split('|') if cn.strip()]
-            if country in mcountries:
+            if any((cn in mcountries for cn in countries)):
                 # if in countrylist
                 yield m
     
@@ -3672,43 +3672,43 @@ def account(request):
 
 # Event forms
 
-class GridSelectMultipleWidget(forms.CheckboxSelectMultiple):
-
-    def render(self, name, value, attrs=None):
-        choices = [(value,decor) for value,decor in self.choices]
-        html = """
-            <div style="width:98%;" class="gridselectmultiple">
-            {% for value,decor in choices %}
-                <div style="float:left; width:25%">
-                    <input type="checkbox" value="{{ value }}" name="{{ name }}" style="float:left">
-                    <div style="float:left">{{ decor|safe }}</div>
-                </div>
-            {% endfor %}
-            </div>
-
-            <div style="clear:both;"></div>
-            """
-        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
-        return rendered
-
-class GridSelectOneWidget(forms.RadioSelect):
-
-    def render(self, name, value, attrs=None):
-        choices = [(value,decor) for value,decor in self.choices]
-        html = """
-            <div style="width:98%;" class="gridselectone">
-            {% for value,decor in choices %}
-                <div style="float:left; width:25%">
-                    <input type="radio" value="{{ value }}" name="{{ name }}" style="float:left">
-                    <div style="float:left">{{ decor|safe }}</div>
-                </div>
-            {% endfor %}
-            </div>
-
-            <div style="clear:both;"></div>
-            """
-        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
-        return rendered
+##class GridSelectMultipleWidget(forms.CheckboxSelectMultiple):
+##
+##    def render(self, name, value, attrs=None):
+##        choices = [(value,decor) for value,decor in self.choices]
+##        html = """
+##            <div style="width:98%;" class="gridselectmultiple">
+##            {% for value,decor in choices %}
+##                <div style="float:left; width:25%">
+##                    <input type="checkbox" value="{{ value }}" name="{{ name }}" style="float:left">
+##                    <div style="float:left">{{ decor|safe }}</div>
+##                </div>
+##            {% endfor %}
+##            </div>
+##
+##            <div style="clear:both;"></div>
+##            """
+##        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
+##        return rendered
+##
+##class GridSelectOneWidget(forms.RadioSelect):
+##
+##    def render(self, name, value, attrs=None):
+##        choices = [(value,decor) for value,decor in self.choices]
+##        html = """
+##            <div style="width:98%;" class="gridselectone">
+##            {% for value,decor in choices %}
+##                <div style="float:left; width:25%">
+##                    <input type="radio" value="{{ value }}" name="{{ name }}" style="float:left">
+##                    <div style="float:left">{{ decor|safe }}</div>
+##                </div>
+##            {% endfor %}
+##            </div>
+##
+##            <div style="clear:both;"></div>
+##            """
+##        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
+##        return rendered
 
 class ListTextWidget(forms.TextInput):
     # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
@@ -4148,6 +4148,14 @@ TYPEINFO = {"NewInfo": {"label": "NewInfo",
                                         you would register multiple 'breakaway' changes, one for each.
                                         """,
                               "img": '<img style="width:100px" src="/static/websplit.png"/>',
+                              },
+             "Begin": {"label": "Begin",
+                              "short": "Marks the earliest known record for this province.",
+                              "descr": """
+                                        Typically used for entire country to say more information is needed
+                                        beyond this point. 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
                               },
                }
 

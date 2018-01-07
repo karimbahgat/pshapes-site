@@ -27,6 +27,18 @@
             </a>
         </div>
 
+        {% if mapform.url.value %}
+            <a target="_blank" href="{{ mapform.url.value }}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-weight:bold; margin:5px;">
+            External Link
+            </a>
+        {% endif %}
+
+        {% if mapform.source.value %}
+            <a href="/viewsource/{{ mapform.source.value }}" style="text-align:center; background-color:rgb(60,60,60); color:white; border-radius:5px; padding:5px; font-weight:bold; margin:5px;">
+            Source
+            </a>
+        {% endif %}
+
         {% if mapform.status.value == "Active" %}
             <div style="float:right;">
                 <a href="/dropmap/{{ pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">

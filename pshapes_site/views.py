@@ -827,7 +827,7 @@ def download(request):
 		provLayer.addFeatures(dateFeats);
 	};
 
-        $.getJSON('/api', {simplify:0.2}, renderprovs);
+        $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1}, renderprovs);
         
         </script>
 	"""
