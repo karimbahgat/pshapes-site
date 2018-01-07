@@ -271,20 +271,22 @@ class MapForm(forms.ModelForm):
         wms = self.instance.wms
         if wms:
             try:
-                self.wms_helper = WMSImage(wms)
+                self.wms_helper = WMS_Helper(wms)
             except:
                 self.wms_helper = None # something went wrong, skip gracefully
 
     def as_custom(self):
         wms = self.instance.wms
         if wms and self.wms_helper:
-            params = self.wms_helper.get_link_params(width=400)
-            wmslink = wms + "?" + params
-            wmsimage = '<img src="{wmslink}" width="40%">'.format(wmslink=wmslink)
+            extent = self.wms_helper.bbox
+##            params = self.wms_helper.get_link_params(width=400)
+##            wmslink = wms + "?" + params
+##            wmsimage = '<img src="{wmslink}" width="40%">'.format(wmslink=wmslink)
         else:
-            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
-            wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
-        return get_template("provchanges/mapform.html").render({'mapform':self, 'wmsimage':wmsimage})
+            extent = None
+##            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+##            wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
+        return get_template("provchanges/mapform.html").render({'mapform':self, 'extent':extent})
 
 ##    def as_griditem(self):
 ##        mapp = self.instance
@@ -313,14 +315,14 @@ class MapForm(forms.ModelForm):
 ##                    """.format(year=mapp.year, title=mapp.title, note=mapp.note, wmsimage=wmsimage, pk=mapp.pk, color=color)
 ##        return griditem
 
-class WMSImage:
+class WMS_Helper:
     def __init__(self, url):
         self.url = url
         wmsmeta = urllib2.urlopen(url+"?service=wms&request=getcapabilities").read()
         bbox = wmsmeta.split('<BoundingBox SRS="EPSG:4326"')[-1].strip().split()[:4] # hacky, can be multiple, just choosing last
         self.bbox = [float(xory.split('=')[-1].strip('"')) for xory in bbox]
 
-    def get_link_params(self, width=None, height=None):
+    def image_url(self, width=None, height=None):
         bbox = self.bbox
         if width and height:
             pass
@@ -334,7 +336,7 @@ class WMSImage:
             raise Exception('Either width or height must be set')
         # Note: better to get unrectified, via "&STATUS=unwarped", but in that case not sure how to find raw image bbox (ie width & height)
         params = "service=wms&version=1.1.1&request=getmap&format=image/png&srs=EPSG%3A4326&bbox={bbox}&width={width}&height={height}".format(bbox=",".join(map(str,self.bbox)), width=width, height=height)
-        return params
+        return self.url + "?" + params
 
 @login_required
 def addmap(request):
@@ -351,7 +353,8 @@ def addmap(request):
                                modified=datetime.datetime.now())
 
         sourceid = formfieldvalues['source']
-        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
+        sourceobj = get_object_or_404(Source, pk=sourceid) if sourceid else None
+        formfieldvalues['source'] = sourceobj
         
         print formfieldvalues
         obj = Map(**formfieldvalues)
@@ -383,7 +386,8 @@ def editmap(request, pk):
         formfieldvalues.update(modified=datetime.datetime.now())
         
         sourceid = formfieldvalues.pop('source')
-        formfieldvalues['source'] = get_object_or_404(Source, pk=sourceid)
+        sourceobj = get_object_or_404(Source, pk=sourceid) if sourceid else None
+        formfieldvalues['source'] = sourceobj
         print formfieldvalues
         for k,v in formfieldvalues.items():
             setattr(obj, k, v)
@@ -2086,8 +2090,7 @@ def viewcountry(request, country):
         for mapp in maps:
             wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
             if wms:
-                params = WMSImage(wms).get_link_params(height=50)
-                wmslink = wms + "?" + params
+                wmslink = WMS_Helper(wms).image_url(height=50)
                 imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             else:
                 wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
@@ -4640,26 +4643,25 @@ setupmap();
 geoinstruct = """
                 <ol>
                     <li>
-                    Guided by the map, draw a clipping polygon that encircles the province that gave away territory.
-                    Since we do not know which exact third-party dataset will be used to recreate the final
-                    historical dataset, we need to make sure our clipping polygon is always big enough to include all
-                    parts by drawing with a significant error-margin around the province boundaries.
+                    Guided by the map, draw a clipping polygon that <em>encircles</em> the province that gave away territory.
+                    <br>
+                    That is, do not follow the borders exactly, but rather draw with a significant error-margin around the province boundaries.
+                    <br>
+                    This makes it easier to draw and will avoid common topological and integration problems in border dataset,
+                    since there are bound to be minor inaccuracies in the historical maps and their georeferencing. 
+                    <br><br>
+                    </li>
+                    <li>
+                    Only if the giving province shares a border with the
+                    receiving province or any other giving provinces, should you follow those parts of the border exactly.
+                    (To avoid gaps between the clipping polygon and any previously drawn giving provinces, shown in gray, 
+                    just make sure they overlap.)
                     <br><br>
                     </li>
                     <li>
                     If the giving province only gave away parts of its territory
                     it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
                     or a series of islands).
-                    <br><br>
-                    </li>
-                    <li>
-                    Where the giving province shares a border with the
-                    receiving province or any other giving provinces you should follow that border exactly.
-                    <br><br>
-                    </li>
-                    <li>
-                    The clipping polygon will be snapped to any previously drawn giving provinces (shown in gray), so just make
-                    sure it covers every part of that border so that there is no gap in between.
                     <br><br>
                     </li>
                     <li>

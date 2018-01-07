@@ -44,10 +44,41 @@
 
             <tr>
                 <td style="text-align:right; vertical-align:top">{{ mapform.wms.label_tag }}</td>
-                <td>
-                    {{ mapform.wms }}
-                    <div style="padding:5%; text-align:center">{{ wmsimage | safe }}</div>
-                </td>
+                
+                {% if mapform.wms.value %}
+                    <td>
+                        {{ mapform.wms }}
+                        <div style="padding:5%; text-align:center; width:100%; height:70vh" id="map">
+
+                            <script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+                            <script>
+                            function setupmap() {
+                                var map = new OpenLayers.Map('map');
+                                
+                                // wms
+                                var wmsurl = "{{ mapform.wms.value }}";
+                                var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
+                                var layer = new OpenLayers.Layer.WMS("Historical Map", wmsurl);
+                                map.addLayer(layer);
+
+                                // zoom
+                                //map.zoomToMaxExtent();
+                                map.zoomToExtent({{ extent }});
+                            };
+                            setupmap();
+                            </script>
+
+                        </div>
+                    </td>
+                {% else %}
+                    <td>
+                        {{ mapform.wms }}
+                        <div style="padding:5%; text-align:center">
+                            <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" style="opacity:0.1; width:40%">
+                        </div>
+                    </td>
+                {% endif %}
             </td>
 
             <tr>
