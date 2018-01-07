@@ -3178,12 +3178,12 @@ def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
 
     if change.type in "NewInfo Breakaway":
-        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.fromname, bestversion=True).exclude(pk=change.pk)
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.fromname, toname=change.toname, bestversion=True).exclude(pk=change.pk)
         conflictingfields = ["date","type","fromname","fromcountry","toname","tocountry","user","added","status"]
     elif change.type in "PartTransfer FullTransfer Begin":
         # UNSURE: should we not match on same date here, bc begin should only happen once, so any duplicates on different dates are conflicting?
         # on other hand one should be able to say begin for specific provinces, so not necessarily true...
-        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.toname, bestversion=True).exclude(pk=change.pk)
+        conflicting = ProvChange.objects.filter(status__in="Active Pending".split(), fromcountry=change.fromcountry, tocountry=change.tocountry, date=change.date, type=change.type, fromname=change.fromname, toname=change.toname, bestversion=True).exclude(pk=change.pk)
         conflictingfields = ["date","type","fromname","fromcountry","toname","tocountry","user","added","status"]
 
     notes = []
@@ -3265,7 +3265,7 @@ def viewchange(request, pk):
                                 
                     </table>
                     """
-        changelist = [(change.pk, [getattr(change,field) for field in conflictingfields]) for change in conflicting]
+        changelist = [(c.pk, [getattr(c,field) for field in conflictingfields]) for c in conflicting]
         conflictingtable = Template(html).render(Context({"request":request, "fields":conflictingfields, "changelist":changelist}))
 
         
