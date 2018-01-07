@@ -95,9 +95,32 @@
 				
 				<fieldset>
 					<legend>General Information</legend>
-					{% for field in generalchange %}
-						<p>{{ field.label }}: {{ field.value }}</p>
-					{% endfor %}
+					<p>{{ generalchange.date.label }}: {{ generalchange.date.value }}</p>
+					<b>OLD!</b>
+					<p>{{ generalchange.source.label }}: {{ generalchange.source.value }}</p>
+					<b>NEW!</b>
+					<p>{{ generalchange.sources.label }}:
+                                            <ul>
+                                            {% for c in generalchange.sources %}
+                                                {% if c.choice_value in c.value %}
+                                                    <li style="list-style:none; padding-left:40px; background-size:19px; background-repeat:no-repeat; background-image:url('http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png')">
+                                                    <a target="_blank" href="/viewsource/{{ c.choice_value }}/">{{ c.choice_label }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </ul>
+					</p>
+					<p>{{ generalchange.mapsources.label }}:
+                                            <ul>
+                                            {% for c in generalchange.mapsources %}
+                                                {% if c.choice_value in c.value %}
+                                                    <li style="list-style:none; padding-left:40px; background-size:19px; background-repeat:no-repeat; background-image:url('http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png')">
+                                                    <a target="_blank" href="/viewmap/{{ c.choice_value }}/">{{ c.choice_label }}</a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </ul>
+					</p>
 				</fieldset>
 
 				<fieldset>

@@ -3415,6 +3415,11 @@ def editchange(request, pk):
 
         for k,v in formfieldvalues.items():
             setattr(change, k, v)
+
+        geoform = GeoChangeForm(instance=change, data=formfieldvalues, country=change.tocountry, province=change.toname, date=change.date)
+        geoform.is_valid()
+        change.transfer_geom = geoform.clean()["transfer_geom"]
+        change.pk = None # nulling the pk will add a modified copy of the instance
                     
         change.save()
         for s in sources:
@@ -4376,12 +4381,20 @@ class GeneralChangeForm(SourceEventForm):
                         <h4>NEW!</h4>
                         <div style="">
                         {{ form.sources.label_tag }}
-                        {{ form.sources }}
+                        <ul style="list-style-type:none">
+                        {% for c in form.sources %}
+                            <li>{{ c.tag }} {{ c.choice_label }}</li>
+                        {% endfor %}
+                        </ul>
                         </div>
 
                         <div style="">
                         {{ form.mapsources.label_tag }}
-                        {{ form.mapsources }}
+                        <ul style="list-style-type:none">
+                        {% for c in form.mapsources %}
+                            <li>{{ c.tag }} {{ c.choice_label }}</li>
+                        {% endfor %}
+                        </ul>
                         </div>
                     </div>
                     """
