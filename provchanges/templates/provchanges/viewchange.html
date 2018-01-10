@@ -87,18 +87,21 @@
 				{% csrf_token %}
 
 				<fieldset>
-					<legend>Submitted By</legend>
+					<legend>
+                                            <img height="30px" src="{{ metachange.icon }}">
+                                            Submitted By
+					</legend>
 					{% for field in metachange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
 				</fieldset>
 				
 				<fieldset>
-					<legend>General Information</legend>
+					<legend>
+                                            <img height="30px" src="{{ generalchange.icon }}">
+                                            General Information
+					</legend>
 					<p>{{ generalchange.date.label }}: {{ generalchange.date.value }}</p>
-					<b>OLD!</b>
-					<p>{{ generalchange.source.label }}: {{ generalchange.source.value }}</p>
-					<b>NEW!</b>
 					<p>{{ generalchange.sources.label }}:
                                             <ul>
                                             {% for c in generalchange.sources %}
@@ -124,20 +127,29 @@
 				</fieldset>
 
 				<fieldset>
-					<legend>Type of Change</legend>
+					<legend>
+                                            <img height="30px" src="{{ typechange.icon }}">
+                                            Type of Change
+					</legend>
 					<p>Type: {{ typechange.type.value }}</p>
 				</fieldset>
 
 				<div>
 				<fieldset style="float:left; width:45%">
-					<legend>From Province</legend>
+					<legend>
+                                            <img height="25px" src="{{ fromchange.icon }}">
+                                            From Province
+					</legend>
 					{% for field in fromchange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
 				</fieldset>
 
 				<fieldset style="width:45%">
-					<legend>To Province</legend>
+					<legend>
+                                            <img height="25px" src="{{ tochange.icon }}">
+                                            To Province
+					</legend>
 					{% for field in tochange %}
 						<p>{{ field.label }}: {{ field.value }}</p>
 					{% endfor %}
@@ -147,7 +159,10 @@
 				{% if "Transfer" in typechange.type.value %}
 					
 					<fieldset style="clear:both">
-						<legend>Geo Change</legend>
+                                                <legend>
+                                                    <img height="30px" src="{{ geochange.icon }}">
+                                                    Geo Change
+                                                </legend>
 						{{ geochange.as_simple }}
 					</fieldset>
 					

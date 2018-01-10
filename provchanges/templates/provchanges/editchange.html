@@ -17,29 +17,44 @@
 				{% csrf_token %}
 
 				<fieldset>
-					<legend>General Information</legend>
+					<legend>
+                                            <img height="30px" src="{{ generalchange.icon }}">
+                                            General Information
+					</legend>
 					{{ generalchange.as_p }}
 				</fieldset>
 
 				<fieldset>
-					<legend>Type of Change</legend>
+					<legend>
+                                            <img height="30px" src="{{ typechange.icon }}">
+                                            Type of Change
+					</legend>
 					{{ typechange.as_p }}
 				</fieldset>
 				
 				<div>
 				<fieldset style="float:left; width:45%">
-					<legend>From Province</legend>
+					<legend>
+                                            <img height="25px" src="{{ fromchange.icon }}">
+                                            From Province
+					</legend>
 					{{ fromchange.as_p }}
 				</fieldset>
 
 				<fieldset style="width:45%">
-					<legend>To Province</legend>
+					<legend>
+                                            <img height="25px" src="{{ tochange.icon }}">
+                                            To Province
+					</legend>
 					{{ tochange.as_p }}
 				</fieldset>
 				</div>
 				
 				<fieldset>
-					<legend>Geo Change</legend>
+                                        <legend>
+                                            <img height="30px" src="{{ geochange.icon }}">
+                                            Geo Change
+                                        </legend>
 					{{ geochange.as_simple }}
 				</fieldset>
 				

@@ -315,7 +315,7 @@ def home(request):
                 <p><b>{date}:</b> {fromname} {typ} {toname}</p>
                 <p><em>(Source: {source})</em></p> 
 
-                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; border: 1px solid white; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
+                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
                 Check Now
                 </a>
                 
