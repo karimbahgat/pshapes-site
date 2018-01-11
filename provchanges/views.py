@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view
 from formtools.wizard.views import SessionWizardView
 
 from .models import ProvChange, Vouch, Comment, Source, Map
+from provshapes.models import ProvShape
 
 from django.db.models import Count
 
@@ -1123,6 +1124,275 @@ def logout(request):
 ##                  )
 
 
+
+##                                <p>
+##                                Are you someone who loves working with geographic and historical data? 
+##                                Do you need historical boundaries for a particular project?
+##                                Maybe you have a rare historical document or map and want to extend
+##                                the historical coverage?
+##                                Or perhaps you are a historian or expert on a country or region
+##                                and want to quality check what others have already contributed? 
+##                                </p>
+
+GUIDE = """
+                        <style>
+                            #blackbackground a { color:white }
+                            #blackbackground a:visited { color:grey }
+                        </style>
+                        
+                        <div id="blackbackground" style="text-align: left;">
+
+
+                        <b>
+                        <a id="instrnext" style="float:right; padding:5px" href="javascript: nextstep()">Next</a>
+                        <a id="instrprev" style="float:right; padding:5px" href="javascript: prevstep()">Prev</a>
+                        </b>
+
+                        <h3><br></h3>
+
+                        <style>
+                        .instrnotsel {
+                            font-size: medium;
+                        }
+                        .instrsel {
+                            font-size: xx-large;
+                        }
+                        </style>
+
+                        <script>
+                        function showinstruction(num) {
+                            var steps = document.getElementById("instrsteps").children
+                            for (var i = 0; i < steps.length; i++) {
+                                var step = steps[i];
+                                step.style.display = "none";
+                            };
+                            document.getElementById("instrstepheader").innerHTML = num;
+                            document.getElementById("instr"+num).style.display = "block";
+                            
+                            if (num == 1) {
+                                document.getElementById("instrprev").href = "javascript: void(0)";
+                            } else if (num == steps.length) {
+                                document.getElementById("instrnext").href = "javascript: void(0)";
+                            } else {
+                                document.getElementById("instrprev").href = "javascript: prevstep()";
+                                document.getElementById("instrnext").href = "javascript: nextstep()";
+                            };
+                        };
+
+                        function nextstep() {
+                            var curstep = document.getElementById("instrstepheader").innerHTML;
+                            var newstep = parseInt(curstep) + 1;
+                            showinstruction(newstep);
+                        };
+
+                        function prevstep() {
+                            var curstep = document.getElementById("instrstepheader").innerHTML;
+                            var newstep = parseInt(curstep) - 1;
+                            showinstruction(newstep);
+                        };
+                        </script>
+
+                        <h1 id="instrstepheader" style="display:none;">1</h1>
+
+                        <div id="instrsteps">
+                        
+                            <div id="instr1">
+                                <h2>Welcome</h2>
+                                <p>
+                                Do you need historical boundaries for a particular project?<br>
+                                Perhaps you are a historian or expert on a country or region
+                                and want to quality check what others have already contributed?<br>
+                                Or maybe you just love working with geographic and historical data,
+                                and want to help out? 
+                                </p>
+                                <p>
+                                Contributing to Pshapes is both easy and fast: just register and
+                                contribute as little or as much as possible. You can add changes, quality check,
+                                vouch or edit the work of others, raise issues, or discuss difficult cases. 
+                                Click "Next" to read more about how to get started. 
+                            </div>
+
+                            <div id="instr2">
+                                <h2>Sources of Information</h2>
+                                <p>
+                                There are several resources available detailing the administrative history of the country.
+                                Start in the present time and work yourself backwards.
+                                Each time you encounter a new date, register the date to the timeline.
+                                </p>
+                                <p>
+                                If the exact date is not known, then just set the date to the earliest
+                                possible date (e.g. 1st of the month, or 1st of january of the year).
+                                </p>
+                                <p>
+                                In cases where there is no documented history, the only way is to compare
+                                historical maps. In these cases the event of the date should be set to
+                                the newest map. 
+                                </p>
+                                <h4>Recommended Sources:</h4>
+                                <p style="font-size:medium; font-style:italic">
+                                <ul>
+                                    <li>
+                                    <a target="_blank" href="http://www.statoids.com">Statoids website</a>
+                                    </li>
+                                    
+                                    <li>
+                                    <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
+                                    </li>
+
+                                    <li>
+                                    <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
+                                    </li>
+
+                                    <li>
+                                    <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
+                                    </li>
+                                </ul>
+                                </p>
+                            </div>
+
+                            <div id="instr3">
+                                <h2>Administrative Levels</h2>
+                                <p>
+                                For each date, look for changes to the the first-level administrative areas,
+                                the highest level in a country.
+                                </p>
+                                <p>
+                                Some countries have a special administrative level between the national and
+                                1st level, often referred to as "regions". These tend to be so big that sometimes there are only two or three of them.
+                                In Pshapes we prefer to ignore these regions and instead focus on the level below. When in doubt follow
+                                a rule that they should be small enough to provide good variation within the country and big enough that it
+                                is feasible to get complete information on all of its changes.
+                                </p>
+                                <p>
+                                If unsure about the correct level, leave a comment.
+                                </p>
+                            </div>
+
+                            <div id="instr4">
+                                <h2>Adding Events</h2>
+                                <p>
+                                On any given date, a province may experience one or more of the four basic event types:
+                                new information, mergers, transfers, and splits. An event may involve multiple individual
+                                changes, such as a province splitting into multiple new provinces. 
+                                </p>
+                                <p>
+                                To identify the province involved in an event, note that
+                                provinces are linked together via their name or any of their
+                                identifier codes, so try to keep these consistent with existing entries.
+                                </p>
+                                <p>
+                                For events where all provinces in a country experienced the same change, e.g.
+                                a country merged entirely into another country,
+                                you may set the name to * (star) to avoid having to register each province
+                                individually. 
+                                </p>
+                            </div>
+
+                            <div id="instr5">
+                                <h2>Georeferencing Maps</h2>
+                                <p>
+                                For the vast majority of province changes we do not
+                                need to consult historical maps or use valuable time on geocoding.
+                                </p>
+                                <p>
+                                For some types of changes however there is simply no way around it. In these situations, namely mergers and
+                                partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. To do this you will
+                                need to find a historical map and georeference it at the <a target="_blank" href="http://mapwarper.net/">MapWarper website</a>.
+                                </p>
+
+                                <p>
+                                <h4>Recommended Map Sources:</h4>
+                                <ul>
+                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
+                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
+                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+                                </ul>
+                                </p>
+                            </div>
+
+                            <div id="instr6">
+                                <h2>What to do Include or Exclude</h2>
+                                <p>
+                                In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
+                                listed as partial territorial transfers and drawn roughly by hand.
+                                </p>
+                                <p>
+                                However, if the change seems very small,
+                                or if there are too many of these types of minor changes, it is okay to ignore most of them and only focus on
+                                the big changes.
+                                </p>
+                            </div>
+
+                            <div id="instr7">
+                                <h2>Changes Between Countries</h2>
+                                <p>
+                                Sometimes you will come across cases where territory might be
+                                transferred to or change ownership from one country to another.
+                                Especially as you go further back in time you may encounter historical countries that don't exist anymore. 
+                                </p>
+                                <p>
+                                The way to code changes between countries is to
+                                register the event as usual, except changing the from-country field.
+                                </p>
+                                <p>
+                                For instance, for each of the ex-Soviet
+                                countries all of their provinces must be registered as changing info from the Soviet Union. The new country name
+                                as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
+                                </p>
+                            </div>
+
+                            <div id="instr8">
+                                <h2>How To Define a Country</h2>
+                                <p>
+                                It might not always be clear what constitutes a country. At all times follow what seems to have been the most
+                                internationally recognized country-units and names. 
+                                </p>
+                                <p>
+                                For territories under foreign colonial rule, these should be
+                                coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
+                                changes in their official name, avoid changing the country name.
+                                </p>
+                            </div>
+
+                            <div id="instr9">
+                                <h2>Finishing Up</h2>
+                                <p>
+                                If you are finished coding a country or believe it's not possible to code further
+                                back in time, then indicate this by adding the special "Begin" event.
+                                </p>
+                                <p>
+                                Set this for all provinces (name = *) with the date
+                                as the date beyond which we lack information about the administrative units.
+                                </p>
+                                <p>
+                                Begin events are important for reverse geocoding and visualizing provinces,
+                                especially for provinces that don't change much. 
+                                <p>
+                                Setting a Begin event does not not have to be final or definitive. It will always be possible to code a little further back in time, or others may sit on information
+                                that you don't have. When the situation changes, you may simply edit your own Begin event, or others
+                                may add their own Begin events. 
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <script>
+                        showinstruction(1)
+                        </script>
+                        
+                        </div>
+                """
+
+
 def allcountries(request):
     bannertitle = "Contributions at a Glance:"
 
@@ -1139,15 +1409,25 @@ def allcountries(request):
     bars = [dict(value=v, label=v) for v in range(0,100+1,10)] # just for testing
     # TODO: group by year and month, sort by 10 most recent
     curdate = datetime.datetime.now()
-    aggs = ProvChange.objects.\
-                            extra(select={'month': "EXTRACT(month FROM date)"}).\
-                            values('month').\
-                            annotate(count_items=Count('date'))
-    #bars = [dict(value=a['count_items'], label=a['month']) for a in aggs]
+##    aggs = ProvChange.objects.\
+##                            extra(select={'month': "EXTRACT(month FROM date)"}).\
+##                            values('month').\
+##                            annotate(count_items=Count('date'))
+##    bars = [dict(value=a['count_items'], label=a['month']) for a in aggs]
+
+##    bars = []
+##    graphchanges = ProvChange.objects.all()
+##    for w in range(10):
+##        d2 = curdate - datetime.timedelta(7*w)
+##        d1 = curdate - datetime.timedelta(7*(w+1))
+##        c = graphchanges.filter(added__gt=d1, added__lte=d2).count()
+##        bars.append(dict(value=c, label=""))
+##    bars[2]['label'] = d1.strftime("%Y-%m-%d")
+##    bars[-1]['label'] = curdate.strftime("%Y-%m-%d")
     contribcharttemplate = """
                         <style>
                         .chart rect {
-                          fill: steelblue;
+                          fill: rgb(0,162,232);
                         }
 
                         .chart text {
@@ -1218,23 +1498,7 @@ def allcountries(request):
     #Anyone who has an interest in coding some changes for one or more countries,
     #should have the ability to do so themselves, regardless of skills or background. 
 
-    bannerright = """
-                    <div style="text-align:left">
-
-                        <br><br>
-                        <h4>Help Collect the Data</h4>
-                        Creating a global dataset of province changes is a tremendous task for any one stakeholder to undertake. 
-                        The Pshapes project is based on the idea that we can collect and maintain province change data more efficiently
-                        and transparently as a community. The idea is that anyone who has an interest in coding some changes for one or more countries,
-                        should have the ability to do so themselves.
-                        Most of the information is already available from our list of online sources, 
-                        making it easy to jump straight into it with little or no background-knowledge. 
-                        In most cases all that is required is filling out some forms. 
-
-                        <br><br>
-
-                    </div>
-    """
+    bannerright = GUIDE
     
     grids = []
 
@@ -1714,302 +1978,6 @@ def viewcountry(request, country):
 			Back to World
 			</a>
 			"""
-        left = """	
-			<h3 style="clear:both">{countrytext}</h3>
-			
-                        <div style="text-align:center; margin-left:30%">
-
-                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#timeline" style="text-decoration:none; color:inherit">
-                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-                                <h3 style="display:inline">Timeline</h3>
-                                </a>
-                            </div>
-
-                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#sources" style="text-decoration:none; color:inherit">
-                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h3 style="display:inline">Sources</h3>
-                                </a>
-                            </div>
-
-                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#maps" style="text-decoration:none; color:inherit">
-                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
-                                <h3 style="display:inline">Maps</h3>
-                                </a>
-                            </div>
-
-                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#comments" style="text-decoration:none; color:inherit">
-                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
-                                <h3 style="display:inline">Comments</h3>
-                                </a>
-                            </div>
-                            
-                        </div>
-                        <br><br><br>
-        """.format(countrytext=country.encode("utf8"), country=urlquote(country))
-        right = """
-                        <style>
-                            #blackbackground a { color:white }
-                            #blackbackground a:visited { color:grey }
-                        </style>
-                        
-                        <div id="blackbackground" style="text-align: left;">
-
-
-                        <b>
-                        <a id="instrnext" style="float:right; padding:5px" href="javascript: nextstep()">Next</a>
-                        <a id="instrprev" style="float:right; padding:5px" href="javascript: prevstep()">Prev</a>
-                        </b>
-
-                        <h3>Instructions:</h3>
-
-                        <style>
-                        .instrnotsel {
-                            font-size: medium;
-                        }
-                        .instrsel {
-                            font-size: xx-large;
-                        }
-                        </style>
-
-                        <script>
-                        function showinstruction(num) {
-                            var steps = document.getElementById("instrsteps").children
-                            for (var i = 0; i < steps.length; i++) {
-                                var step = steps[i];
-                                step.style.display = "none";
-                            };
-                            document.getElementById("instrstepheader").innerHTML = num;
-                            document.getElementById("instr"+num).style.display = "block";
-                            
-                            if (num == 1) {
-                                document.getElementById("instrprev").href = "javascript: void(0)";
-                            } else if (num == steps.length) {
-                                document.getElementById("instrnext").href = "javascript: void(0)";
-                            } else {
-                                document.getElementById("instrprev").href = "javascript: prevstep()";
-                                document.getElementById("instrnext").href = "javascript: nextstep()";
-                            };
-                        };
-
-                        function nextstep() {
-                            var curstep = document.getElementById("instrstepheader").innerHTML;
-                            var newstep = parseInt(curstep) + 1;
-                            showinstruction(newstep);
-                        };
-
-                        function prevstep() {
-                            var curstep = document.getElementById("instrstepheader").innerHTML;
-                            var newstep = parseInt(curstep) - 1;
-                            showinstruction(newstep);
-                        };
-                        </script>
-
-                        <h1 id="instrstepheader" style="display:none;">1</h1>
-
-                        <div id="instrsteps">
-                        
-                            <div id="instr1">
-                                <h2>1 - Read up</h2>
-                                <p>
-                                Read up on the administrative history of the country, starting in the present time and working yourself backwards.
-                                </p>
-                                <h4>Recommended Sources:</h4>
-                                <p style="font-size:medium; font-style:italic">
-                                <ul>
-                                    <li>
-                                    <a target="_blank" href="http://www.statoids.com">Statoids website</a>
-                                    </li>
-                                    
-                                    <li>
-                                    <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                                    </li>
-
-                                    <li>
-                                    <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
-                                    </li>
-
-                                    <li>
-                                    <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
-                                    </li>
-                                </ul>
-                                </p>
-                            </div>
-
-                            <div id="instr2">
-                                <h2>2 - Dates</h2>
-                                <p>
-                                Each time you encounter a new date, register the date to the timeline.
-                                </p>
-                                <p>
-                                If the exact date is not known, then just set the date to the earliest
-                                possible date (e.g. 1st of the month, or 1st of january of the year).
-                                </p>
-                            </div>
-
-                            <div id="instr3">
-                                <h2>3 - Levels</h2>
-                                <p>
-                                For each date, look for changes to the the first-level administrative areas,
-                                the highest level in a country.
-                                </p>
-                                <p>
-                                Some countries have a special administrative level between the national and
-                                1st level, often referred to as "regions". These tend to be so big that sometimes there are only two of them.
-                                In Pshapes we prefer to ignore these regions and instead focus on the level below. When in doubt follow
-                                a rule that they should be small enough to provide good variation within the country and big enough that it
-                                is feasible to get complete information on all of its changes.
-                                </p>
-                                <p>
-                                If unsure about the correct level, leave a comment.
-                                </p>
-                            </div>
-
-                            <div id="instr4">
-                                <h2>4 - Adding Events</h2>
-                                <p>
-                                On any given date, a province may experience one or more of the four basic event types:
-                                new information, mergers, transfers, and splits. An event may involve multiple individual
-                                changes, such as a province splitting into multiple new provinces. 
-                                </p>
-                                <p>
-                                To identify the province involved in an event, note that
-                                provinces are linked together either via their name, or any of their
-                                identifier codes, so try to keep these consistent with existing entries.
-                                </p>
-                                <p>
-                                For events where all provinces in a country experienced the same change, e.g.
-                                a country merged entirely into another country,
-                                you may set the name to * (star) to avoid having to register each province
-                                individually. 
-                                </p>
-                            </div>
-
-                            <div id="instr5">
-                                <h2>5 - Mapping</h2>
-                                <p>
-                                One of the great things about the Pshapes project is that for the vast majority of province changes we do not
-                                need to consult historical maps or use valuable time on geocoding.
-                                </p>
-                                <p>
-                                For some types of changes however there is simply no way around it. In these situations, namely mergers and
-                                partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. To do this you will
-                                need to locate an image file of a historical map and to georeference it at the <a target="_blank" href="http://mapwarper.net/">MapWarper website</a>.
-                                </p>
-
-                                <p>
-                                <h4>Recommended Map Sources:</h4>
-                                <ul>
-                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
-                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
-                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
-                                </ul>
-                                </p>
-                            </div>
-
-                            <div id="instr6">
-                                <h2>6 - Minor Changes</h2>
-                                <p>
-                                In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
-                                listed as partial territorial transfers and drawn roughly by hand.
-                                </p>
-                                <p>
-                                However, if the change seems very small,
-                                or if there are too many of these types of minor changes, it is okay to ignore most of them and only focus on
-                                the big changes.
-                                </p>
-                            </div>
-
-                            <div id="instr7">
-                                <h2>7 - Between Countries</h2>
-                                <p>
-                                Sometimes you will come across cases where territory might be
-                                transferred to or change ownership from one country to another.
-                                Especially as you go further back in time you may encounter historic countries that don't exist anymore. 
-                                </p>
-                                <p>
-                                The way to code changes between countries is to
-                                register the event as usual, except changing the from-country field.
-                                </p>
-                                <p>
-                                For instance, for each of the ex-Soviet
-                                countries all of their provinces must be registered as changing info from the Soviet Union. The new country name
-                                as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
-                                </p>
-                            </div>
-
-                            <div id="instr8">
-                                <h2>8 - Defining Countries</h2>
-                                <p>
-                                It might not always be clear what constitutes a country. At all times follow what seems to have been the most
-                                internationally recognized country-units and names.
-                                </p>
-                                <p>
-                                For territories under foreign colonial rule, these should be
-                                coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
-                                changes in their official name, avoid changing the country name.
-                                </p>
-                            </div>
-
-                            <div id="instr9">
-                                <h2>9 - Finished?</h2>
-                                <p>
-                                If you are finished coding a country or believe it's not possible to code further
-                                back in time, then indicate this by adding the special "Begin" event.
-                                </p>
-                                <p>
-                                Set this for all provinces (name = *) with the date
-                                as the date beyond which we lack information about the administrative units.
-                                </p>
-                                <p>
-                                Begin events are important for reverse geocoding and visualizing provinces,
-                                especially for provinces that don't change much. 
-                                <p>
-                                Setting a Begin event does not not have to be final or definitive. It will always be possible to code a little further back in time, or others may sit on information
-                                that you don't have. When the situation changes, you may simply edit your own Begin event, or others
-                                may add their own Begin events. 
-                                </p>
-                            </div>
-
-                        </div>
-
-                        <script>
-                        showinstruction(1)
-                        </script>
-                        
-                        </div>
-                """
-
-        custombanner = """
-
-                        {top}
-                        
-                        <table width="99%" style="clear:both; padding:0px; margin:0px">
-                        <tr>
-                        
-                        <td style="width:48%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:top">
-                        {left}
-                        </td>
-                        
-                        <td style="width:48%; padding:1%; padding:0px; margin:0px; vertical-align:text-top;">
-                        {right}
-                        </td>
-
-                        </tr>
-                        </table>
-                        """.format(top=top, left=left, right=right)
 
         # GRIDS
         grids = []
@@ -2056,7 +2024,7 @@ def viewcountry(request, country):
         # sources
         color = "rgb(60,60,60)"
 
-        sources = get_country_sources(country)
+        sources = list(get_country_sources(country))
 
 ##        content = '''<hr>
 ##                     <h3>
@@ -2117,7 +2085,7 @@ def viewcountry(request, country):
         # maps
         color = 'rgb(58,177,73)'
 
-        maps = get_country_maps(country)
+        maps = list(get_country_maps(country))
         
 ##        for mapp in maps:
 ##            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
@@ -2186,6 +2154,225 @@ def viewcountry(request, country):
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                           width="99%",
                           ))
+
+##                        <div style="text-align:center; margin-left:30%">
+##
+##                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#timeline" style="text-decoration:none; color:inherit">
+##                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+##                                <h3 style="display:inline">Timeline</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#sources" style="text-decoration:none; color:inherit">
+##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                                <h3 style="display:inline">Sources</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#maps" style="text-decoration:none; color:inherit">
+##                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+##                                <h3 style="display:inline">Maps</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#comments" style="text-decoration:none; color:inherit">
+##                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
+##                                <h3 style="display:inline">Comments</h3>
+##                                </a>
+##                            </div>
+##                            
+##                        </div>
+
+        mapdata = ProvShape.objects.filter(country=country)
+        if mapdata:
+            latest_date = mapdata.latest('end')
+            countrymap = """
+                <script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+                    <div style="width:90%%; height:40vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+                    </div>
+                
+                <script defer="defer">
+                var map = new OpenLayers.Map('map', {allOverlays: true,
+                                                    //resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                                    controls: [],
+                                                    });
+                </script>
+
+                <script>
+                // empty country layer
+                var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
+                                                );
+                var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+                map.addLayers([countryLayer]);
+                
+                // empty province layer
+                var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
+                                                );
+                var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+                map.addLayers([provLayer]);
+
+                rendercountries = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        countries = geojson_format.read(geoj_str, "FeatureCollection");
+                        
+                        feats = [];
+                        for (feat of countries) {
+                                feats.push(feat);
+                        };
+                        countryLayer.addFeatures(feats);
+                };
+
+                $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
+                renderprovs = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+                        
+                        dateFeats = [];
+                        for (feat of allProvs) {
+                                dateFeats.push(feat);
+                        };
+                        provLayer.addFeatures(dateFeats);
+                        map.zoomToExtent(provLayer.getDataExtent());
+                        map.updateSize();
+                };
+
+                var latest = '%s'.split('-');
+                $.getJSON('/api', {simplify:0.05, year:latest[0], month:latest[1], day:latest[2], country:'%s'}, renderprovs);
+                
+                </script>
+                """ % (latest_date.end, country.encode("utf8"))
+            
+            left = """	
+                            <h3 style="clear:both">{countrytext}</h3>
+                            
+                            <div style="text-align:center; margin-left:5%">
+
+                            {countrymap}
+
+                            </div>
+
+                            <br>
+                            <a href="/explore/?country={countrytext}" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">
+                            Explore in Map View
+                            </a>
+                            
+                            <br><br><br>
+            """.format(countrytext=country.encode("utf8"), countrymap=countrymap)
+            
+        else:
+            left = """	
+                            <h3 style="clear:both">{countrytext}</h3>
+                            
+                            <div style="text-align:center; margin-left:5%">
+
+                            <p>This country has not been included in the database yet.</p>
+
+                            </div>
+            """.format(countrytext=country.encode("utf8"))
+
+
+        right = """<br>
+                        <div style="text-align:center; margin-left:5%">
+
+                            <div style="background-color:orange; width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#timeline" style="text-decoration:none; color:inherit">
+                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                                <h3 style="display:inline">Timeline ({daterange})</h3>
+                                </a>
+                            </div>
+
+                            <div style="background-color:rgb(122,122,122); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#sources" style="text-decoration:none; color:inherit">
+                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                                <h3 style="display:inline">Sources ({sources})</h3>
+                                </a>
+                            </div>
+
+                            <div style="background-color:rgb(58,177,73); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#maps" style="text-decoration:none; color:inherit">
+                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+                                <h3 style="display:inline">Maps ({maps})</h3>
+                                </a>
+                            </div>
+
+                            <div style="background-color:rgb(27,138,204); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#comments" style="text-decoration:none; color:inherit">
+                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
+                                <h3 style="display:inline">Comments ({comments})</h3>
+                                </a>
+                            </div>
+                            
+                        </div>
+
+                <br><br>
+                
+                """.format(countrytext=country.encode("utf8"),
+                           daterange='%s to %s' % (dates[0].split('-')[0],dates[-1].split('-')[0]) if dates else '-',
+                           sources=len(sources),
+                           maps=len(maps),
+                           comments=allcomments.count(),
+                           )
+
+##        bottom = """	
+##                        <div style="margin-left:20%; margin-bottom:80px">
+##
+##                            <div style="float:left; background-color:orange; border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#timeline" style="text-decoration:none; color:inherit">
+##                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+##                                <h3 style="display:inline">Timeline</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="float:left; background-color:rgb(122,122,122); border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#sources" style="text-decoration:none; color:inherit">
+##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                                <h3 style="display:inline">Sources</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="float:left; background-color:rgb(58,177,73); border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#maps" style="text-decoration:none; color:inherit">
+##                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+##                                <h3 style="display:inline">Maps</h3>
+##                                </a>
+##                            </div>
+##
+##                            <div style="float:left; background-color:rgb(27,138,204); border-radius:5px; text-align:left; padding:5px; margin:5px">
+##                                <a href="#comments" style="text-decoration:none; color:inherit">
+##                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
+##                                <h3 style="display:inline">Comments</h3>
+##                                </a>
+##                            </div>
+##                            
+##                        </div>
+##        """.format(countrytext=country.encode("utf8"), country=urlquote(country))
+
+        custombanner = """
+
+                        {top}
+                        
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+                        
+                        <td style="width:48%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:top">
+                        {left}
+                        </td>
+                        
+                        <td style="width:48%; padding:1%; padding:0px; margin:0px; vertical-align:text-top;">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(top=top, left=left, right=right)
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )

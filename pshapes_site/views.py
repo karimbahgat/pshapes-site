@@ -12,8 +12,11 @@ from provshapes.models import ProvShape
 
 shortdescr = """
 Pshapes (pronounced p-shapes) is an open-source crowdsourcing project for creating and maintaining
-data on historical provinces, created by and for data-enthusiasts, researchers,
-and others. 
+data on historical provinces and boundaries.
+The online platform makes it possible for anyone who has an interest in a particular country
+to code it themselves, whether that be data-enthusiasts, historians, researchers, or country-experts.
+Most of the information is already available from
+our list of online sources, making it easy to jump straight into it with little or no background-knowledge.
 """
 
 def lists2table(request, lists, fields):
@@ -221,7 +224,7 @@ def home(request):
     #<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
     bannerleft = """
                     <br>
-                    <img src="/static/webfrontimg.png" width="80%%">
+                    <img src="/static/webfrontimg.png" width="80%%" style="border-radius:5px">
                     <p>
                     %s
                     </p>
@@ -775,7 +778,7 @@ def download(request):
     bannerleft = """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-            <div style="width:90%; height:40vh; margins:auto; background-color:white;" id="map">
+            <div style="width:90%; height:40vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
             </div>
 	
 	<script defer="defer">
@@ -793,7 +796,7 @@ def download(request):
 	map.addLayers([countryLayer]);
         
 	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:'white'},
+	var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
 					);
 	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([provLayer]);
