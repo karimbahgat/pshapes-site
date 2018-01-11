@@ -391,7 +391,6 @@ about_menu = """
                         </style>
 
                         <ul class="blackbackground">
-                        <li><a href="/about/whatispshapes/">What is Pshapes?</a></li>
                         <li><a href="/about/motivation/">Motivation and Background</a></li>
                         <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
                         <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
@@ -421,29 +420,7 @@ about_banner = """
 about_grid = []
 
 def about(request):
-    return redirect("/about/whatispshapes")
-
-def about_whatispshapes(request):
-    grids = []
-    bannertitle = ""
-    bannerright = """
-                    <br>
-                    <h3 style="text-align:left">What is Pshapes?</h3>
-                    <div style="text-align:left">
-                        <p>
-                        The idea behind the Pshapes project is very simple. Most databases of administrative areas avilable today
-                        are simply snapshots of their boundaries on a particular date. As long as we have this,
-                        as well as a chronology of changes, that should be enough to reverse or forward engineer the situation to
-                        any point in the past or future. Where Pshapes contributes is in the tracking of changes
-                        as well as a method for reconstructing the world's boundaries based on these changes.
-                        </p>
-                    </div>
-                            """
-    bannerleft = about_menu
-    custombanner = about_banner.format(left=bannerleft, right=bannerright)
-    
-    return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
-                  )
+    return redirect("/about/motivation")
 
 def about_motivation(request):
     grids = []
@@ -454,46 +431,66 @@ def about_motivation(request):
                     <div class="blackbackground" style="text-align:left">
 
                         <p>
-                        The Pshapes project was first inspired by <a href="http://nils.weidmann.ws/projects/cshapes.html">the Cshapes dataset</a>, which tracks historical
-                        country borders and changes since 1946. Hence, the name Pshapes to parallel the Cshapes dataset. 
+                        Most databases of administrative areas avilable today
+                        are simply snapshots of their boundaries on a particular date.
+                        These are frequently used by researchers, analysts, and policy makers to
+                        geocode or visualize information originally reported at the administrative
+                        level, such as government statistics, surveys, NGO reports, and historical documents.
                         </p>
 
                         <p>
-                        No such historical data exists yet for subnational administrative boundaries (see "Aren't There Other Datasets?"). 
-                        Sub-national administrative area and boundary data 
-                        have in recent years become essential for many analysts and policy makers.
-                        The data that currently exist are great for representing
-                        modern or the most-recent boundaries. But subnational borders and names
-                        change quite frequently, and are very different today than
-                        they were even just a few years ago.
+                        But problems arise because administrative units change quite frequently,
+                        so even if looking at just the last few years, a lot of names will no longer be valid
+                        or their borders adjusted,
+                        requiring substantial followups to match historical units to modern boundaries.
                         </p>
 
                         <p>
-                        This makes it quite challenging for data providers to get an overview of
-                        past changes or regularly come out with new updates. For good reasons,
+                        So why is there <a href="/about/otherdata/">no historical data yet for subnational administrative boundaries?</a>
+                        It has already been done at the country-level. The <a href="http://nils.weidmann.ws/projects/cshapes.html">Cshapes dataset</a> tracks historical
+                        country borders and changes since 1946. It records these changes as a series of lifetimes, with a separate row and geometry for each time the country changes.
+                        The Pshapes project attempts to do for provinces what Cshapes has done for countries, hence, the name "Pshapes".
+                        </p>
+
+                        <p>
+                        It turns out the transient nature of sub-national administrative units makes it quite challenging for data providers to get an overview of
+                        province-level changes or regularly come out with new updates. It is for good reasons that
                         existing datasets on administrative boundaries simply 
                         do not capture these historical changes and are only updated every few years.
                         </p>
 
                         <p>
-                        Better data is needed for earlier historic periods.
-                        In project afer project, geospatial data are frequently created based on information
-                        that are originally reported at the administrative level, such as government statistics.
-                        These then have to be geocoded to their historical administrive areas, but using only data
-                        for the modern period. This means a lot of names are no longer valid, or borders have changed
-                        dramatically, requiring substantial followups to match historical units to modern boundaries.
+                        But one website in particular, <a href="http://www.statoids.com/">Statoids.com</a>, has shown that tracking the changes of administrative units is
+                        indeed possible, and has already done much of the work. So as long as we have the modern boundaries, as well as a chronology
+                        of changes, that should be enough to reverse or forward engineer the situation to any point in the past or future.
                         </p>
 
                         <p>
-                        The Pshapes project grew
-                        out of this need for an open-source and easily maintainable dataset
-                        for not only to uncover administrative units' changes for past historical periods,
-                        but also to help keep track of future changes as they occur. 
+                        The other major hurdle in collecting historical boundary data is that boundary data
+                        usually involve highly technical tasks and require dedicated geospatial software and skills.
+                        The specialized nature of this approach makes it less than ideal for coding the vast number of historical changes
+                        at the global level.
                         </p>
 
                         <p>
-                        The Pshapes project is the work of <a href="https://github.com/karimbahgat">Karim Bahgat</a> and started development in 2016,
+                        Pshapes grew
+                        out of this need for an open-source, low-cost, and easily maintainable dataset
+                        for coding historical changes of global administrative units.
+                        </p>
+
+                        <p>
+                        The Pshapes concept, website, and database is the work of <a href="https://github.com/karimbahgat">Karim Bahgat</a> and started development in 2016,
                         but was not finalized for alpha release until late 2017. 
+                        </p>
+
+                        <br>
+                        <hr>
+                        
+                        <p style="font-style:italic; margin-left:10px">
+                        * Sadly, it appears that the Statoids website, one of the main sources for historical province changes,
+                        <a href="http://www.statoids.com/mgtletter.html">will not be updated as frequently as before</a>.
+                        Hopefully, Pshapes can build on and continue the great work, vision, and legacy of the author of that website,
+                        Gwilliam Law. 
                         </p>
                         
                         </div>

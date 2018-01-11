@@ -84,7 +84,6 @@ urlpatterns = [
     # ------
     # ABOUT
     url('^about/$', "pshapes_site.views.about"),
-    url('^about/whatispshapes/$', "pshapes_site.views.about_whatispshapes"),
     url('^about/motivation/$', "pshapes_site.views.about_motivation"),
     url('^about/whycrowdsourcing/$', "pshapes_site.views.about_whycrowdsourcing"),
     url('^about/otherdata/$', "pshapes_site.views.about_otherdata"),

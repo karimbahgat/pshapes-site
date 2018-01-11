@@ -1439,10 +1439,12 @@ def allcountries(request):
 
                         <svg class="chart" width="420" height="120">
                         <g transform="translate(0,110) scale(1,-1)">
-                        {% for bar in bars %}
-                                <rect x="{% widthratio forloop.counter0 1 10 %}%" y="0%" width="10%" height="{{ bar.value }}%"></rect>
-                                <text transform="scale(1,-1)" x="{% widthratio forloop.counter0 1 10 %}%" y="5%" dy=".35em">{{ bar.label }}</text>
-                        {% endfor %}
+                            
+                            {% for bar in bars %}
+                                    <rect x="{% widthratio forloop.counter0 1 10 %}%" y="0%" width="10%" height="{{ bar.value }}%"></rect>
+                                    <text transform="scale(1,-1)" x="{% widthratio forloop.counter0 1 10 %}%" y="5%" dy=".35em">{{ bar.label }}</text>
+                            {% endfor %}
+                            
                         </g>
                         </svg>
                     """
@@ -2272,8 +2274,11 @@ def viewcountry(request, country):
                             <h3 style="clear:both">{countrytext}</h3>
                             
                             <div style="text-align:center; margin-left:5%">
+                            <br>
 
-                            <p>This country has not been included in the database yet.</p>
+                            <p>The historical boundaries for this country have not yet been reconstructed.
+                            Just start adding events on the timeline below, and once they have been reviewed
+                            and accepted by an administrator, you will see your changes visualized on a map here.</p>
 
                             </div>
             """.format(countrytext=country.encode("utf8"))
@@ -2315,7 +2320,7 @@ def viewcountry(request, country):
                 <br><br>
                 
                 """.format(countrytext=country.encode("utf8"),
-                           daterange='%s to %s' % (dates[0].split('-')[0],dates[-1].split('-')[0]) if dates else '-',
+                           daterange='%s - %s' % (dates[0].split('-')[0],dates[-1].split('-')[0]) if dates else '-',
                            sources=len(sources),
                            maps=len(maps),
                            comments=allcomments.count(),
@@ -3706,7 +3711,7 @@ class UserInfoForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["first_name","last_name","email","institution"]
+        fields = ["first_name","last_name","email","affiliation"]
 
 @login_required
 def account_edit(request):
@@ -3716,7 +3721,7 @@ def account_edit(request):
         userobj.first_name = request.POST["first_name"]
         userobj.last_name = request.POST["last_name"]
         userobj.email_name = request.POST["email"]
-        userobj.institution = request.POST["institution"]
+        userobj.affiliation = request.POST["affiliation"]
         print userobj.first_name
         userobj.save()
         return redirect("/account/")
@@ -3736,7 +3741,10 @@ class UploadFileForm(forms.Form):
         templ = """
                     <form method="post" action="/update/" enctype="multipart/form-data">
                         {% csrf_token %}
+                        <table>
                         {{ form }}
+                        </table>
+                        <br>
                         <input type="submit" value="Update Boundary Data" onClick="alert('The website boundary data will now be updated, this may take a while.');" style="font-weight:bold; background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
                         </input>
                     </form>
@@ -3777,16 +3785,17 @@ def account(request):
         field.widget.attrs['readonly'] = "readonly"
         field.widget.attrs["style"] = 'background-color:black; color:white'
     bannerleft = """
-                <div style="text-align:center">
+                <table style="text-align:right; padding-left:20%; padding-bottom:3%;">
                     {userinfoform}
-                </div>
+                </table>
+                
                 <div style="text-align:center">
                     <a href="/account/edit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
                         Edit
                     </a>                    
                 </div>
                 <br>
-                """.format(userinfoform=userform.as_p(),
+                """.format(userinfoform=userform.as_table(),
                            )
 
 ##    for field in userform.fields.values():
@@ -3803,7 +3812,6 @@ def account(request):
     if request.user.is_staff:
         uploadform = UploadFileForm(request=request).as_p()
         bannerright = """
-                        <br><br><br><br><br>
                         {uploadform}
                         
                         <br><br>
@@ -3813,13 +3821,33 @@ def account(request):
                         """.format(uploadform=uploadform)
     else:
         bannerright = """
-                        <br><br><br><br><br>
-                        
                         <br><br>
                         <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
                             <b>Logout</b>
                         </a>
                         """
+
+    custombanner = """
+                    <h2>{bannertitle}</h2>
+                    
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+
+                        <td style="width:20%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
+                            <img width="80%" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png">
+                        </td>
+                        
+                        <td style="width:60%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
+                        {left}
+                        </td>
+                        
+                        <td style="width:20%; padding:1%; padding:0px; margin:0px; vertical-align:top; text-align:center">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+                        """.format(left=bannerleft, right=bannerright, bannertitle=bannertitle)
 
     # stats
 ##    qstats = """
@@ -3885,7 +3913,7 @@ def account(request):
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                                                           "custombanner":custombanner}
                   )
 
 

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User as OrigUser
 
 
 class User(OrigUser):
-    institution = models.CharField(max_length=400)
+    affiliation = models.CharField(max_length=400)
                              
 
 class Vouch(models.Model):
