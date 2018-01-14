@@ -4011,19 +4011,22 @@ class SourceEventForm(forms.ModelForm):
 
         # new
         sources = get_country_sources(country)
+        self.suggested_sources = sorted([(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
         #self.fields["sources"].widget = GridSelectMultipleWidget(choices=[(s.pk, SourceForm(instance=s).as_griditem()) for s in sources])
-        self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
+        #self.fields["sources"].widget = forms.CheckboxSelectMultiple(choices=[(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
         
         maps = get_country_maps(country)
+        self.suggested_mapsources = sorted([(m.pk, "{title} ({yr})".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
         #self.fields["mapsources"].widget = GridSelectMultipleWidget(choices=[(m.pk, MapForm(instance=m).as_griditem()) for m in maps])
-        self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
+        #self.fields["mapsources"].widget = forms.CheckboxSelectMultiple(choices=[(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
 
         # old, to be phased out
         sources = [r.source for r in (ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)).annotate(count=Count('source')).order_by('-count')]
         if sources:
             mostcommon = sources[0]
             sources = sorted(set(sources))
-            self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(type="text",size=120,autocomplete="on"))
+            #self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(type="text",size=120,autocomplete="on"))
+            self.fields["source"].widget = forms.Textarea(attrs=dict(style='width:90%; font:inherit'))
             self.fields['source'].initial = mostcommon
 
     def clean(self):
@@ -4045,22 +4048,33 @@ class SourceEventForm(forms.ModelForm):
                         If you have not already done so, go ahead and <a href="/addsource/?country={{ country }}">register the source(s) for this country now.</a> 
                         </p>
 
-                        <h4>OLD (to be phased out)!</h4>
                         <div style="">
                         {{ form.source.label_tag }}
                         {{ form.source }}
                         </div>
 
-                        <h4>NEW!</h4>
-                        <div style="">
-                        {{ form.sources.label_tag }}
-                        {{ form.sources }}
-                        </div>
-
-                        <div style="">
-                        {{ form.mapsources.label_tag }}
-                        {{ form.mapsources }}
-                        </div>
+                        <p>
+					<div style="width:45%; margin-left:20px; display:inline-block"><em>Suggested Sources:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in form.suggested_sources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+					<div style="width:45%; display:inline-block"><em>Suggested Maps:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in form.suggested_mapsources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+			</p>
                     </div>
                     """
         
@@ -4616,35 +4630,53 @@ class GeneralChangeForm(SourceEventForm):
                         {{ form.date }}
                         </p>
 
-                        <h4>OLD (to be phased out)!</h4>
                         <div style="">
                         {{ form.source.label_tag }}
                         {{ form.source }}
                         </div>
 
-                        <h4>NEW!</h4>
-                        <div style="">
-                        {{ form.sources.label_tag }}
-                        <ul style="list-style-type:none">
-                        {% for c in form.sources %}
-                            <li>{{ c.tag }} {{ c.choice_label }}</li>
-                        {% endfor %}
-                        </ul>
-                        </div>
-
-                        <div style="">
-                        {{ form.mapsources.label_tag }}
-                        <ul style="list-style-type:none">
-                        {% for c in form.mapsources %}
-                            <li>{{ c.tag }} {{ c.choice_label }}</li>
-                        {% endfor %}
-                        </ul>
-                        </div>
+                        <p>
+					<div style="margin-left:20px; width:45%; display:inline-block"><em>Suggested Sources:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in form.suggested_sources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+					<div style="width:45%; display:inline-block"><em>Suggested Maps:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in form.suggested_mapsources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+			</p>
+					
                     </div>
                     """
         
         rendered = Template(html).render(Context({"form":self, 'country':urlquote(self.country)}))
         return rendered
+
+    def get_source_formatted(self):
+        import re
+        val = self['source'].value()
+        
+        def repl(matchobj):
+            id = matchobj.group(2)
+            return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png">{id}</a>'.format(id=id)
+        val,n = re.subn('#(map)([1-9]*)', repl, val)
+        def repl(matchobj):
+            id = matchobj.group(2)
+            return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{id}</a>'.format(id=id)
+        val,n = re.subn('#(source)([1-9]*)', repl, val)
+        return val
 
 class FromChangeForm(forms.ModelForm):
 
