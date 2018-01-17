@@ -2398,8 +2398,13 @@ def viewprov(request, country, province):
     else:
         raise Exception("You must set at least the date and type GET params to view an event")
 
-def editprov(request):
-    pass
+def editprov(request, country, province):
+    if all((k in request.GET for k in "date type".split())):
+        # edit event, ensure enough params
+        return editevent(request, country, province)
+
+    else:
+        raise Exception("You must set at least the date and type GET params to view an event")
 
 def addprov(request, country, province=None):
     if len(request.GET) == 0:
@@ -2428,7 +2433,87 @@ def markcountrychange(country, provtext, provcountries):
             break
     return provtext
 
-def viewevent(request, country, province):
+##def proveventtable(request, objects):
+##    html = """
+##		<table class="proveventtable"> 
+##		
+##			<style>
+##			table.proveventtable {
+##				border-collapse: collapse;
+##				width: 100%;
+##			}
+##
+##			th.proveventtable, td.proveventtable {
+##				text-align: left;
+##				padding: 8px;
+##			}
+##
+##			tr.proveventtable:nth-child(even){background-color: #f2f2f2}
+##
+##			tr.proveventtable:nth-child(odd){background-color: white}
+##
+##			th.proveventtable {
+##				background-color: orange;
+##				color: white;
+##			}
+##			</style>
+##		
+##			<tr class="proveventtable">
+##				<th class="proveventtable"> 
+##				</th>
+##
+##				{% if typ == 'Split' %}
+##                                    <th class="proveventtable">
+##                                        <b>Province</b>
+##                                    </th>
+##                                {% endif %}
+##                                    
+##			</tr>
+##			</a>
+##
+##                        {% if objects %}
+##			
+##                            {% for obj in objects %}
+##                                    <tr class="proveventtable">
+##                                            <td class="proveventtable">
+##                                                <a href="{% url 'viewchange' pk=obj.instance.pk %}">View</a>
+##                                            </td>
+##                                            
+##                                            {% for field in obj %}
+##                                                <td class="proveventtable">{{ field.value }}</td>
+##                                            {% endfor %}
+##                                            
+##                                    </tr>
+##                            {% endfor %}
+##
+##                        {% else %}
+##
+##                            <tr class="proveventtable">
+##                            <td class="proveventtable"></td>
+##                            {% for _ in fields %}
+##                                <td class="proveventtable"> - </td>
+##                            {% endfor %}
+##                            </tr>
+##
+##                        {% endif %}
+##                            
+##		</table>
+##                """
+##
+##    if changes[0].type == 'Split':
+##        formfields = 'source fromname fromalterns fromiso fromfips fromhasc fromcapital fromtype'
+##    
+##    class ProvChangeForm(forms.ModelForm):
+##
+##        class Meta:
+##            model = ProvChange
+##            fields = formfields
+##            
+##    objects = [ProvChangeForm(instance=obj) for obj in objects]
+##    rendered = Template(html).render(Context({"request":request, "objects":objects, "title":title}))
+##    return rendered
+
+def viewevent(request, country, province, editmode=False):
     # TODO: add "edit-event" button in main banner
     # and "add-change" button down by the table
     assert all((param in request.GET for param in "date type".split()))
@@ -2450,6 +2535,18 @@ def viewevent(request, country, province):
     #bannertitle = '<a href="/contribute/view/{country}" style="color:inherit">{countrytext}</a>, {provtext}:'.format(country=urlquote(country),countrytext=country.encode("utf8"),provtext=prov.encode("utf8"))
     bannertitle = ""
     grids = []
+
+    if typ in 'Split Merge Transfer':
+        # edit buttons
+        #editmode = False # testing only
+        if not editmode:
+            onbut = '<a href="/contribute/edit/{country}/{province}?{params}" style="text-align:center; background-color:gray; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">OFF</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode())
+
+            grids.append(dict(title="Edit Multiple" + onbut,
+                              content="",
+                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                              width="99%",
+                              ))
     
     print "TYPE",repr(typ)
     if typ == "NewInfo":
@@ -2538,7 +2635,6 @@ def viewevent(request, country, province):
                             </tr>
                             </table>
                             """.format(top=top, left=left, mid=mid, right=right)
-
 
 ##            pendingedits = ProvChange.objects.filter(changeid=change.changeid, status="Pending").exclude(pk=change.pk).order_by("-added") # the dash reverses the order
 ##            if pendingedits:
@@ -2635,7 +2731,7 @@ def viewevent(request, country, province):
         else:
             # new event, so cant know the tocountry yet
             changes = ProvChange.objects.filter(fromcountry=request.GET['fromcountry'],date=date,type="Breakaway",fromname=prov).exclude(status="NonActive")
-        changes = changes.order_by("-added") # the dash reverses the order
+        changes = changes.order_by("toname") 
 
         GET = request.GET.copy()
         GET["type"] = "NewInfo"
@@ -2708,6 +2804,30 @@ def viewevent(request, country, province):
                         </table>
                         """.format(top=top, left=left, mid=mid, right=right)
 
+        # change forms
+        if editmode:
+            tables = []
+
+            for obj in changes:
+
+                viewbut = '<a href="/provchange/%s/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>' % obj.pk
+
+                lists = [("",
+                          [     SimpleTypeChangeForm(instance=obj).as_p(),
+                               ToChangeNameForm(instance=obj).as_p(),
+                               ToChangeCodesForm(instance=obj).as_p(),
+                               ToChangeInfoForm(instance=obj).as_p(),
+                                GeneralChangeForm(instance=obj).as_simple(),
+                              ])
+                          ]
+
+                changestable = lists2table(request, lists,
+                                          fields=["Type","Province","Codes","Info","General"])
+                
+                header = "<h3>{title}: {viewbut}</h3>".format(title=markcountrychange(country, obj.toname, obj.tocountry).encode("utf8"),
+                                                                    viewbut=viewbut)
+                tables.append((header,obj.pk,changestable))
+
     elif typ == "Merge":
         fields = ["fromname","type","status"]
         if 'fromcountry' in request.GET:
@@ -2716,7 +2836,7 @@ def viewevent(request, country, province):
         else:
             # new event, so fromcountry doesnt exist yet
             changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],date=date,type="FullTransfer",toname=prov).exclude(status="NonActive")
-        changes = changes.order_by("-added") # the dash reverses the order
+        changes = changes.order_by("fromname") 
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
         plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
@@ -2780,6 +2900,29 @@ def viewevent(request, country, province):
                         </table>
                         """.format(top=top, left=left, mid=mid, right=right)
 
+        # change forms
+        if editmode:
+            tables = []
+
+            for obj in changes:
+
+                viewbut = '<a href="/provchange/%s/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>' % obj.pk
+
+                lists = [("",
+                          [     SimpleTypeChangeForm(instance=obj).as_p(),
+                               FromChangeForm(instance=obj).as_p(),
+                               GeoChangeForm(instance=obj, country=obj.tocountry, province=obj.toname, date=obj.date).as_nogeo(),
+                                GeneralChangeForm(instance=obj).as_simple(),
+                              ])
+                          ]
+
+                changestable = lists2table(request, lists,
+                                          fields=["Type","Province","Geo","General"])
+                
+                header = "<h3>{title}: {viewbut}</h3>".format(title=markcountrychange(country, obj.fromname, obj.fromcountry).encode("utf8"),
+                                                                    viewbut=viewbut)
+                tables.append((header,obj.pk,changestable))
+
     elif typ == "Transfer":
         fields = ["toname","type","status"]
         if 'fromcountry' in request.GET:
@@ -2788,7 +2931,7 @@ def viewevent(request, country, province):
         else:
             # new event, so fromcountry doesnt exist yet
             changes = ProvChange.objects.filter(tocountry=request.GET['tocountry'],date=date,type="PartTransfer",toname=prov).exclude(status="NonActive")
-        changes = changes.order_by("-added") # the dash reverses the order
+        changes = changes.order_by("fromname") 
 
         butstyle = 'text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;'
         plusbutstyle = 'text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:none; margin:5px;'
@@ -2851,6 +2994,29 @@ def viewevent(request, country, province):
                         </tr>
                         </table>
                         """.format(top=top, left=left, mid=mid, right=right)
+
+        # change forms
+        if editmode:
+            tables = []
+
+            for obj in changes:
+
+                viewbut = '<a href="/provchange/%s/view" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">View</a>' % obj.pk
+
+                lists = [("",
+                          [     SimpleTypeChangeForm(instance=obj).as_p(),
+                               FromChangeForm(instance=obj).as_p(),
+                               GeoChangeForm(instance=obj, country=obj.tocountry, province=obj.toname, date=obj.date).as_nogeo(),
+                                GeneralChangeForm(instance=obj).as_simple(),
+                              ])
+                          ]
+
+                changestable = lists2table(request, lists,
+                                          fields=["Type","Province","Geo","General"])
+                
+                header = "<h3>{title}: {viewbut}</h3>".format(title=markcountrychange(country, obj.fromname, obj.fromcountry).encode("utf8"),
+                                                                    viewbut=viewbut)
+                tables.append((header,obj.pk,changestable))
 
     elif typ == "Begin":
         fields = ["toname","type","status"]
@@ -3052,15 +3218,90 @@ def viewevent(request, country, province):
 ##            obj.save()
 ##
 ##            prov = data["toname"]
+
+    if editmode and typ in 'Split Merge Transfer':
+        templ = """
+                    <form action="/contribute/edit/{{ country }}/{{ province }}/?{{ params }}" method="post">
+                        {% csrf_token %}
+                        <h4>
+                            Edit Multiple
+                            <a href="/contribute/view/{{ country }}/{{ province }}?{{ params }}" style="text-align:center; background-color:red; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Cancel</a>
+                            <input type="submit" value="Save" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">
+                        </h4>
+                        {% for h,pk,t in tables %}
+                            <input type="hidden" name="pk" value={{ pk }}>
+                            {{ h | safe }}
+                            {{ t | safe }}
+                        {% endfor %}
+                    </form>
+                    """
+
+        changesform = Template(templ).render(RequestContext(request, {"tables":tables,
+                                                             'country':urlquote(country), 'province':urlquote(prov), 'params':request.GET.urlencode(),
+                                                             }))
+
+        grids.append(dict(title="",
+                          content=changesform,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids, "custombanner":custombanner}
                   )
 
 
 @login_required
-def editevent(request):
-    # wizard with one screen for editing prov info
-    pass
+def editevent(request, country, province):
+    # batch editing multiple changes at once
+    if request.method == "POST":
+        # receive lists of values for each attribute incl pk, zip and loop over to change each
+        modelfields = [f.name for f in ProvChange._meta.get_fields()]
+        keys,vals = zip(*[(k,v) for k,v in request.POST.lists() if k in modelfields or k=='pk'])
+        print keys
+        print vals
+        print '-----'
+        rows = zip(*vals)
+        for row in zip(*vals):
+            # QUITE MESSY, ADDS A NEW CHANGE SOMEHOW, LOOK AT EXISTING CODE...
+            rowdict = dict(zip(keys,row))
+            pk = rowdict.pop('pk')
+            change = ProvChange.objects.get(pk=pk)
+
+            formfieldvalues = dict(rowdict.items())
+            print 'posted',formfieldvalues
+            
+            formfieldvalues["user"] = request.user.username
+            formfieldvalues["added"] = datetime.datetime.now()
+            formfieldvalues["status"] = "Pending"
+
+            if request.user.username == change.user:
+                for c in ProvChange.objects.filter(changeid=change.changeid):
+                    # all previous versions by same user become nonactive and nonbestversion
+                    c.bestversion = False
+                    c.status = "NonActive"
+                    c.save()
+                formfieldvalues["bestversion"] = True
+
+            formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
+
+            formfieldvalues.pop('sources',None) # deprecated
+            formfieldvalues.pop('mapsources',None) # deprecated
+            
+            print formfieldvalues
+
+            for k,v in formfieldvalues.items():
+                setattr(change, k, v)
+
+            change.pk = None # nulling the pk will add a modified copy of the instance
+            change.save()
+            
+            print change
+
+        return viewevent(request, country, province)
+        
+    elif request.method == "GET":
+        # make table into editable form
+        return viewevent(request, country, province, editmode=True)
 
 @login_required
 def addevent(request, country):
@@ -3188,16 +3429,16 @@ def model2table(request, title, objects, fields):
 			</tr>
 			</a>
 
-                        {% if changelist %}
+                        {% if objects %}
 			
-                            {% for pk,changerow in changelist %}
+                            {% for obj in objects %}
                                     <tr class="modeltable">
                                             <td class="modeltable">
-                                                <a href="{% url 'viewchange' pk=pk %}">View</a>
+                                                <a href="{% url 'viewchange' pk=obj.instance.pk %}">View</a>
                                             </td>
                                             
-                                            {% for value in changerow %}
-                                                <td class="modeltable">{{ value }}</td>
+                                            {% for field in obj %}
+                                                <td class="modeltable">{{ field.value }}</td>
                                             {% endfor %}
                                             
                                     </tr>
@@ -3216,8 +3457,17 @@ def model2table(request, title, objects, fields):
                             
 		</table>
                 """
-    changelist = [(change.pk, [getattr(change,field) for field in fields]) for change in objects]
-    rendered = Template(html).render(Context({"request":request, "fields":fields, "changelist":changelist, "title":title}))
+
+    _fields = fields
+    
+    class ProvChangeForm(forms.ModelForm):
+
+        class Meta:
+            model = ProvChange
+            fields = _fields
+            
+    objects = [ProvChangeForm(instance=obj) for obj in objects]
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "objects":objects, "title":title}))
     return rendered
 
 
@@ -4532,7 +4782,27 @@ class TypeChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ['type']
         widgets = {"type": forms.RadioSelect(renderer=TypeChangeRenderer) }
-        
+
+
+class SimpleTypeChangeForm(forms.ModelForm):
+
+    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    step_title = "Type of Change"
+    step_descr = """
+                    What type of change was it? 
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ['type']
+
+    def as_readonly(self):
+        html = """
+                    {{ form.type.label_tag }}
+                    {{ form.type.value }}
+                """
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
 
 class MergeTypeChangeForm(forms.ModelForm):
     icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
@@ -4664,6 +4934,51 @@ class GeneralChangeForm(SourceEventForm):
         rendered = Template(html).render(Context({"form":self, 'country':urlquote(self.country)}))
         return rendered
 
+    def as_simple(self):
+        html = """
+                    <div style="margin-left:2%">
+
+                        <p>
+                        {{ form.date.label_tag }}
+                        {{ form.date }}
+                        </p>
+
+                        <div style="">
+                        {{ form.source.label_tag }}
+                        {{ form.source }}
+                        </div>
+
+                        <p>
+                        OLD:
+                        Sources: {{ form.sources.value }}
+                        Maps: {{ form.mapsources.value }}
+                        </p>
+					
+                    </div>
+                    """
+        
+        rendered = Template(html).render(Context({"form":self, 'country':urlquote(self.country)}))
+        return rendered
+
+    def as_simple_readonly(self):
+        html = """
+                    <div style="margin-left:2%">
+
+                        <p>
+                        {{ form.date.label_tag }}
+                        {{ form.date.value }}
+                        </p>
+
+                        <div style="">
+                        {{ form.source.label_tag }}
+                        {{ form.get_source_formatted | safe }}
+                        </div>
+					
+                    </div>
+                    """
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
     def get_source_formatted(self):
         import re
         val = self['source'].value()
@@ -4703,6 +5018,63 @@ class FromChangeForm(forms.ModelForm):
             provlist = sorted(provlist)
             self.fields["fromname"].widget = ListTextWidget(data_list=provlist, name="fromprovlist")
 
+    def as_readonly(self):
+        return as_readonly(self)
+
+class FromChangeNameForm(forms.ModelForm):
+
+    icon = "/static/fromicon.png"
+    step_title = "From Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'fromcountry fromname fromalterns'.split()
+
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(FromChangeNameForm, self).__init__(*args, **kwargs)
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
+        self.fields["fromcountry"].widget = ListTextWidget(data_list=countrylist, name="fromcountrylist")
+
+        if "initial" in kwargs:
+            country = kwargs["initial"]["fromcountry"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+            provlist = sorted(provlist)
+            self.fields["fromname"].widget = ListTextWidget(data_list=provlist, name="fromprovlist")
+
+    def as_readonly(self):
+        return as_readonly(self)
+
+class FromChangeCodesForm(forms.ModelForm):
+
+    icon = "/static/fromicon.png"
+    step_title = "From Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'fromiso fromfips fromhasc'.split()
+
+    def as_readonly(self):
+        return as_readonly(self)
+
+class FromChangeInfoForm(forms.ModelForm):
+
+    icon = "/static/fromicon.png"
+    step_title = "From Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'fromcapitalname fromcapital fromtype'.split()
+
+    def as_readonly(self):
+        return as_readonly(self)
+
 class ToChangeForm(forms.ModelForm):
 
     icon = "/static/toicon.png"
@@ -4728,6 +5100,74 @@ class ToChangeForm(forms.ModelForm):
             provlist = sorted(provlist)
             self.fields["toname"].widget = ListTextWidget(data_list=provlist, name="toprovlist")
 
+    def as_readonly(self):
+        return as_readonly(self)
+
+class ToChangeNameForm(forms.ModelForm):
+
+    icon = "/static/toicon.png"
+    step_title = "To Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'tocountry toname toalterns'.split()
+
+    def __init__(self, *args, **kwargs):
+        self.step_descr = kwargs.pop("step_descr", "")
+        super(ToChangeNameForm, self).__init__(*args, **kwargs)
+        countrylist = set((r.fromcountry for r in ProvChange.objects.distinct("fromcountry"))) | set((r.tocountry for r in ProvChange.objects.distinct("tocountry")))
+        countrylist.update((c[0] for c in countries))
+        countrylist = sorted(countrylist)
+        self.fields["tocountry"].widget = ListTextWidget(data_list=countrylist, name="tocountrylist")
+
+        if "initial" in kwargs:
+            country = kwargs["initial"]["tocountry"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            provlist = set((r.fromname for r in provs.distinct("fromname"))) | set((r.toname for r in provs.distinct("toname")))
+            provlist = sorted(provlist)
+            self.fields["toname"].widget = ListTextWidget(data_list=provlist, name="toprovlist")
+
+    def as_readonly(self):
+        return as_readonly(self)
+
+class ToChangeCodesForm(forms.ModelForm):
+
+    icon = "/static/toicon.png"
+    step_title = "To Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'toiso tofips tohasc'.split()
+
+    def as_readonly(self):
+        return as_readonly(self)
+
+class ToChangeInfoForm(forms.ModelForm):
+
+    icon = "/static/toicon.png"
+    step_title = "To Province"
+    step_descr = ""
+
+    class Meta:
+        model = ProvChange
+        fields = 'tocapitalname tocapital totype'.split()
+
+    def as_readonly(self):
+        return as_readonly(self)
+
+def as_readonly(form):
+    html = """
+            {% for field in form %}
+                    <p>
+                    {{ field.label_tag }}
+                    {{ field.value | safe }}
+                    </p>
+            {% endfor %}
+                """
+    rendered = Template(html).render(Context({"form":form}))
+    return rendered
 
 
 
@@ -5003,8 +5443,8 @@ class GeoChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ["transfer_reference", "transfer_source", "transfer_map", "transfer_geom"]
         widgets = {"transfer_geom": CustomOLWidget(attrs={"id":"geodjango_transfer_geom"}),
-                    "transfer_source": ListTextWidget([], name="sources", attrs={'size': 90, "id":"id_transfer_source"}),
-                    "transfer_reference": ListTextWidget([], name="references", attrs={'size': 90, "id":"id_transfer_reference"}),
+                    "transfer_source": ListTextWidget([], name="sources", attrs={'style':'width:80%',"id":"id_transfer_source"}),
+                    "transfer_reference": ListTextWidget([], name="references", attrs={'style':'width:80%',"id":"id_transfer_reference"}),
                    }
         
     def __init__(self, *args, **kwargs):
@@ -5037,7 +5477,7 @@ class GeoChangeForm(forms.ModelForm):
 
         maps = get_country_maps(country)
         choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
-        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:70%'))
+        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:80%'))
 
         # make wms auto add/update on sourceurl input
         #self.fields['transfer_geom'].widget = EditableLayerField().widget
@@ -5134,6 +5574,36 @@ class GeoChangeForm(forms.ModelForm):
                 """.format(geoj=geoj_str)
         
         rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
+        return rendered
+
+    def as_nogeo(self):
+        html = """
+                        <p>OLD (to be phased out)!</p>
+                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
+                        <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
+
+                        <p>NEW!</p>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
+
+                        <br>                        
+                    """
+        
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
+    def as_nogeo_readonly(self):
+        html = """
+                        <p>OLD (to be phased out)!</p>
+                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source.value }}</div>
+                        <div style="padding:20px">Map Description: {{ form.transfer_reference.value }}</div>
+
+                        <p>NEW!</p>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map.value }}</div>
+
+                        <br>                        
+                    """
+        
+        rendered = Template(html).render(Context({"form":self}))
         return rendered
 
     def clean(self):
