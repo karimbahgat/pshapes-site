@@ -12,7 +12,7 @@
 
 <div style="padding: 0 4% 0 4%; width:80%;" >
 
-<h2>Viewing Map</h2>
+<h2>Map</h2>
 
     <div style="padding-left:20px;">
         <div style="float:left;">
@@ -26,18 +26,6 @@
             Edit
             </a>
         </div>
-
-        {% if mapform.url.value %}
-            <a target="_blank" href="{{ mapform.url.value }}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-weight:bold; margin:5px;">
-            External Link
-            </a>
-        {% endif %}
-
-        {% if mapform.source.value %}
-            <a href="/viewsource/{{ mapform.source.value }}" style="text-align:center; background-color:rgb(60,60,60); color:white; border-radius:5px; padding:5px; font-weight:bold; margin:5px;">
-            Source
-            </a>
-        {% endif %}
 
         {% if mapform.status.value == "Active" %}
             <div style="float:right;">
@@ -55,9 +43,108 @@
 
     </div>
 
-    <br><br>
+    <br>
+    <br>
     
-    {{ mapform.as_custom | safe }}
+
+
+
+
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url, #id_wms {
+                width:98%
+                }
+        </style>
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png">{{ pk }}
+        </h2>
+        <h2 style="text-align:center">{{ mapform.title.value }}</h2>
+		
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px; padding-bottom:100px">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.year.label_tag }}</td>
+                <td style="font-weight:normal">{{ mapform.year.value }}</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.country.label_tag }}</td>
+                <td style="font-weight:normal">{{ mapform.country.value }}</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">
+                    {{ mapform.url.label_tag }}
+                </td>
+                <td style="font-weight:normal">
+                    <a target="_blank" href="{{ mapform.url.value }}">{{ mapform.url.value }}</a>
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
+                <td style="font-weight:normal">
+                {% if mapform.source.value %}
+                    <a href="/viewsource/{{ mapform.source.value }}" target="_blank">
+                        <img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{{ mapform.source.value }}
+                    </a>
+                {% endif %}
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.wms.label_tag }}</td>
+                
+                {% if mapform.wms.value %}
+                    <td style="font-weight:normal">
+                        {{ mapform.wms.value }}
+                        <div style="padding:5%; text-align:center; width:100%; height:70vh" id="map">
+
+                            <script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+                            <script>
+                            function setupmap() {
+                                var map = new OpenLayers.Map('map');
+                                
+                                // wms
+                                var wmsurl = "{{ mapform.wms.value }}";
+                                var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
+                                var layer = new OpenLayers.Layer.WMS("Historical Map", wmsurl);
+                                map.addLayer(layer);
+
+                                // zoom
+                                //map.zoomToMaxExtent();
+                                map.zoomToExtent({{ mapform.extent }});
+                            };
+                            setupmap();
+                            </script>
+
+                        </div>
+                    </td>
+                {% else %}
+                    <td style="font-weight:normal">
+                        {{ mapform.wms.value }}
+                        <div style="padding:5%; text-align:center">
+                            <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" style="opacity:0.1; width:40%">
+                        </div>
+                    </td>
+                {% endif %}
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.note.label_tag }}</td>
+                <td style="font-weight:normal">{{ mapform.note.value }}</td>
+            </td>            
+
+        </table>
+
+
+
 
 </div>
 

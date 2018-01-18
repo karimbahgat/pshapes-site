@@ -12,12 +12,102 @@
 
 <div style="padding: 0 4% 0 4%; width:80%;" >
 
-<h2>Editing Map</h2>
+<h2>Edit Map</h2>
+
+    <div style="padding-left:20px;">
+        <div style="float:left;">
+            <a href="{{ request.META.HTTP_REFERER }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Back
+            </a>
+        </div>
+    </div>
+
+<br><br>
     
 <form action="/editmap/{{ pk }}/" method="post">
     {% csrf_token %}
 
-    {{ mapform.as_custom | safe }}
+
+
+
+
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url, #id_wms {
+                width:98%
+                }
+        </style>
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png">{{ pk }}
+        </h2>
+		
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.title.label_tag }}</td>
+                <td>
+                    {{ mapform.title }}
+                    <div style="float:right; margin-right:2%">
+                        {{ mapform.year.label_tag }}
+                        {{ mapform.year }}
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">Hint:</td>
+                <td style="font-weight:normal">To make this map available to multiple countries, list all countries
+                in the country field, separated by the "pipe" (|) symbol.</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.country.label_tag }}</td>
+                <td style="font-weight:normal">{{ mapform.country }}</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">
+                    {{ mapform.url.label_tag }}
+                </td>
+                <td style="font-weight:normal">
+                    {{ mapform.url }}
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.source.label_tag }}</td>
+                <td style="font-weight:normal">
+                {{ mapform.source }}
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.wms.label_tag }}</td>
+                <td style="font-weight:normal">
+                        {{ mapform.wms }}
+                        <div style="padding:5%; text-align:center">
+                            <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" style="opacity:0.1; width:40%">
+                        </div>
+                </td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ mapform.note.label_tag }}</td>
+                <td style="font-weight:normal">{{ mapform.note }}</td>
+            </td>            
+
+        </table>
+
+
+
+
+
+
+
 
     <input type="submit" style="float:right; text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
 

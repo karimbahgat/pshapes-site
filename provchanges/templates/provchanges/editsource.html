@@ -11,7 +11,7 @@
 
 <div style="padding: 0 4% 0 4%; width:80%;" >
 
-<h2>Editing Source</h2>
+<h2>Edit Source</h2>
 
     <div style="padding-left:20px;">
         <div style="float:left;">
@@ -26,7 +26,58 @@
 <form action="/editsource/{{ pk }}/" method="post">
     {% csrf_token %}
 
-    {{ sourceform.as_custom | safe }}
+
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url {
+                width:98%
+                }
+        </style>
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{{ pk }}
+        </h2>
+
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px;">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.title.label_tag }}</td>
+                <td style="font-weight:normal">{{ sourceform.title }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">Hint:</td>
+                <td style="font-weight:normal">To make this source available to multiple countries, list all countries
+                in the country field, separated by the "pipe" (|) symbol.</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.country.label_tag }}</td>
+                <td style="font-weight:normal">{{ sourceform.country }}</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.url.label_tag }}</td>
+                <td style="font-weight:normal">{{ sourceform.url }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.citation.label_tag }}</td>
+                <td style="font-weight:normal; padding-bottom:20px">{{ sourceform.citation }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ sourceform.note.label_tag }}</td>
+                <td style="font-weight:normal">{{ sourceform.note }}</td>
+            </td>
+
+        </table>
+
+
+
 
     <input type="submit" style="float:right; text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
 

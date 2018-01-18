@@ -144,7 +144,20 @@
                                                     <img height="30px" src="{{ geochange.icon }}">
                                                     Geo Change
                                                 </legend>
-						{{ geochange.as_simple }}
+                                                        <div style="padding:10px 0 20px 0">Map Overlay:
+                                                            {% if geochange.transfer_map.value %}
+                                                                <a href="/viewmap/{{ geochange.transfer_map.value }}" target="_blank">
+                                                                    <img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{{ geochange.transfer_map.value }}
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+
+                                                        <div>{{ geochange.transfer_geom }}</div>
+
+                                                        <div style="clear:both">
+                                                        
+                                                        </div>
+
 					</fieldset>
 					
 				{% endif %}

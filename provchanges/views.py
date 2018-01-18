@@ -160,9 +160,7 @@ class SourceForm(forms.ModelForm):
                    "note":forms.Textarea(attrs=dict(style="font-family:inherit")),
                    #"country":forms.HiddenInput(),
                    }
-
-    def as_custom(self):
-        return get_template("provchanges/sourceform.html").render({'sourceform':self})
+    
 
 ##    def as_griditem(self):
 ##        source = self.instance
@@ -291,21 +289,22 @@ class MapForm(forms.ModelForm):
         if wms:
             try:
                 self.wms_helper = WMS_Helper(wms)
+                self.extent = self.wms_helper.bbox
             except:
                 self.wms_helper = None # something went wrong, skip gracefully
 
-    def as_custom(self):
-        wms = self.instance.wms
-        if wms and self.wms_helper:
-            extent = self.wms_helper.bbox
-##            params = self.wms_helper.get_link_params(width=400)
-##            wmslink = wms + "?" + params
-##            wmsimage = '<img src="{wmslink}" width="40%">'.format(wmslink=wmslink)
-        else:
-            extent = None
-##            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
-##            wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
-        return get_template("provchanges/mapform.html").render({'mapform':self, 'extent':extent})
+##    def as_custom(self):
+##        wms = self.instance.wms
+##        if wms and self.wms_helper:
+##            extent = self.wms_helper.bbox
+####            params = self.wms_helper.get_link_params(width=400)
+####            wmslink = wms + "?" + params
+####            wmsimage = '<img src="{wmslink}" width="40%">'.format(wmslink=wmslink)
+##        else:
+##            extent = None
+####            wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+####            wmsimage = '<img src="{wmslink}" style="opacity:0.1; width:40%">'.format(wmslink=wmslink)
+##        return get_template("provchanges/mapform.html").render({'mapform':self, 'extent':extent})
 
 ##    def as_griditem(self):
 ##        mapp = self.instance
