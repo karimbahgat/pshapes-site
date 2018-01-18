@@ -361,7 +361,7 @@ def addmap(request):
     if request.method == "GET":
         # new empty form
         mapform = MapForm(initial=request.GET.dict())
-        return render(request, "provchanges/addmap.html", {'mapform':mapform})
+        return render(request, "provchanges/addmap.html", {'mapform':mapform, 'map_resources':map_resources})
     
     elif request.method == "POST":
         # save submitted info
@@ -501,10 +501,10 @@ class Grid:
 def registration(request):
     
     if request.method == "POST":
-        print "data",request.POST
         fieldnames = [f.name for f in User._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
-        print formfieldvalues
+        if User.objects.filter(email=request.POST['email']).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
         obj = User.objects.create_user(**formfieldvalues)
         print obj
         obj.save()
@@ -1133,6 +1133,31 @@ def logout(request):
 ##                                and want to quality check what others have already contributed? 
 ##                                </p>
 
+# MAYBE USE TEXT:
+##                                <p>
+##                                Do you need historical boundaries for a particular project?<br>
+##                                Perhaps you are a historian or expert on a country or region
+##                                and want to quality check what others have already contributed?<br>
+##                                Or maybe you just love working with geographic and historical data,
+##                                and want to help out? 
+##                                </p>
+
+map_resources = """
+                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
+                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
+                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                                    <li><a target="_blank" href="https://www.euratlas.net/history/hisatlas/index.html">EurAtlas Historical Maps</a></li>
+                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+                """
+
 GUIDE = """
                         <style>
                             #blackbackground a { color:white }
@@ -1198,17 +1223,16 @@ GUIDE = """
                             <div id="instr1">
                                 <h2>Welcome</h2>
                                 <p>
-                                Do you need historical boundaries for a particular project?<br>
-                                Perhaps you are a historian or expert on a country or region
-                                and want to quality check what others have already contributed?<br>
-                                Or maybe you just love working with geographic and historical data,
-                                and want to help out? 
-                                </p>
-                                <p>
+                                Thanks for helping out! 
                                 Contributing to Pshapes is both easy and fast: just register and
                                 contribute as little or as much as possible. You can add changes, quality check,
                                 vouch or edit the work of others, raise issues, or discuss difficult cases. 
-                                Click "Next" to read more about how to get started. 
+                                </p>
+                                <p>
+                                Click "Next" for a brief walkthrough of how it works,
+                                or get started right away by choosing a country from
+                                the list below.
+                                </p>
                             </div>
 
                             <div id="instr2">
@@ -1302,18 +1326,7 @@ GUIDE = """
                                 <p>
                                 <h4>Recommended Map Sources:</h4>
                                 <ul>
-                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
-                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
-                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+                                """ + map_resources + """
                                 </ul>
                                 </p>
                             </div>
@@ -3962,14 +3975,29 @@ class UserInfoForm(forms.ModelForm):
         model = User
         fields = ["first_name","last_name","email","affiliation"]
 
+    def __init__(self, *args, **kwargs):
+        super(UserInfoForm, self).__init__(*args, **kwargs)
+
+        self.fields['email'].widget.attrs['required'] = 'true'
+
+    def clean(self):
+        # NOTE: Doesnt get called yet, because form is not used when adding/editing
+        data = self.cleaned_data
+        print 'EMAIL',self.cleaned_data['email'],len(User.objects.filter(email=self.cleaned_data['email']))
+        if User.objects.filter(email=self.cleaned_data['email']).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
+        return data
+
 @login_required
 def account_edit(request):
     userobj = User.objects.get(username=request.user)
     form = UserInfoForm(instance=userobj)
     if request.POST:
+        if User.objects.filter(email=request.POST['email']).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
         userobj.first_name = request.POST["first_name"]
         userobj.last_name = request.POST["last_name"]
-        userobj.email_name = request.POST["email"]
+        userobj.email = request.POST["email"]
         userobj.affiliation = request.POST["affiliation"]
         print userobj.first_name
         userobj.save()

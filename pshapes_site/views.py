@@ -202,10 +202,10 @@ def home(request):
 			</a>
 			"""
     bannerright = """
-                    <br>
+                    <br><br>
                     <h3 style="text-align:left">Crowdsourcing Historical Province Boundaries</h3>
                     <div style="text-align:left">
-                        <p>%s</p>
+                        <p>{shortdescr}</p>
 
                         <p style="font-size:smaller"><em>Note: This is an early Alpha trial version of the website to test
                         out the data collection effort. Suggestions
@@ -215,20 +215,16 @@ def home(request):
 
                     <br>
                     <div style="text-align:right;">
-                        <a href="/about" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        <b>Read More</b>
-                        </a>
+                        {quickstartbut}
                     </div>
                     <br>
-                    """ % shortdescr
+                    """.format(shortdescr=shortdescr, quickstartbut=quickstartbut)
     #<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
     bannerleft = """
-                    <br>
-                    <img src="/static/webfrontimg.png" width="80%%" style="border-radius:5px">
-                    <p>
-                    %s
-                    </p>
-                    """ % quickstartbut
+                    <img src="/static/pshapes pen2 transp.png" width="40%">
+                    <img src="/static/webfrontimg.png" width="60%%" style="border-radius:5px">
+                    <br><br><br>
+                    """
 ##    if request.user.is_authenticated():
 ##        bannerright = """
 ##                        <br>
