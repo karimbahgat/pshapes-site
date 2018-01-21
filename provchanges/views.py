@@ -4912,7 +4912,7 @@ class FormTypeChangeRenderer(RadioFieldRenderer):
 class ExpandTypeChangeRenderer(RadioFieldRenderer):
 
     def render(self):
-        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in "MergeExisting TransferExisting FullTransfer PartTransfer"]
+        choices = [(w,TYPEINFO[w.choice_label]) for w in self if w.choice_label in "MergeExisting TransferExisting"]
         html = """
             <table class="myradio">
             {% for choice,extra in choices %}
@@ -5415,7 +5415,8 @@ var selectedFeature;
 var selectControl;
 
 function syncwms() {
-    var wmsurl = document.getElementById('id_transfer_source').value;
+    var mapOverlayId = document.getElementById('id_transfer_map').value;
+    var wmsurl = document.getElementById('id_transfer_map_wms_'+mapOverlayId).value;
     if (wmsurl.trim() != "") {
         var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
         
@@ -5476,9 +5477,6 @@ function setupmap() {
     jsmap.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
     jsmap.map.addControl(new OpenLayers.Control.MousePosition());
 
-    // wms
-    syncwms();
-
     // existing clips
     var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"gray", fillOpacity:0.3}});
     jsmap.map.addLayers([existingClipLayer]);
@@ -5487,6 +5485,9 @@ function setupmap() {
     //selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
     //jsmap.map.addControl(selectControl);
     //selectControl.activate();
+
+    // wms
+    syncwms();
 };
 
 setupmap();
@@ -5689,15 +5690,15 @@ class GeoChangeForm(forms.ModelForm):
             self.fields['transfer_source'].widget._list = sources
             self.fields['transfer_reference'].widget._list = references
 
-        maps = get_country_maps(country)
+        self.maps = maps = list(get_country_maps(country))
         choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
-        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(style='width:80%'))
+        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(id="id_transfer_map", style='width:80%'))
 
-        # make wms auto add/update on sourceurl input
+        # make wms auto add/update on map change
         #self.fields['transfer_geom'].widget = EditableLayerField().widget
         print 888,kwargs
         jsmapname = "geodjango_transfer_geom" if kwargs.get("instance") else "geodjango_3_transfer_geom"
-        self.fields['transfer_source'].widget.attrs.update({
+        self.fields['transfer_map'].widget.attrs.update({
 ##            "onload": "setupmap();",
 ##            'oninput': "".join(["alert(OpenLayers.objectName);","var wmsurl = document.getElementById('id_transfer_source').value;",
 ##                                "alert(wmsurl);",
@@ -5706,7 +5707,7 @@ class GeoChangeForm(forms.ModelForm):
 ##                                "alert(customwms.objectName);",
 ##                                """geodjango_transfer_geom.map.addLayer(customwms);""",
 ##                                ])
-            "oninput": "syncwms();",
+            "onchange": "syncwms();",
             })
         self.fields["transfer_geom"].widget.attrs["jsmapname"] = jsmapname
         
@@ -5717,12 +5718,6 @@ class GeoChangeForm(forms.ModelForm):
                         To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
                         If you have not already done so, go ahead and <a href="/addmap/?country={{ country }}">register the map for this country now.</a> 
 
-                        <h4>OLD (to be phased out)!</h4>
-                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
-
-                        <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
-
-                        <h4>NEW!</h4>
                         <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
 
                         <br>
@@ -5749,17 +5744,20 @@ class GeoChangeForm(forms.ModelForm):
                 setExistingClipFeatures('{geoj}')
                 </script>
                 """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
         
         rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct, 'country':urlquote(self.country)}))
         return rendered
 
     def as_simple(self):
         html = """
-                        <p>OLD (to be phased out)!</p>
-                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
-                        <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
-
-                        <p>NEW!</p>
                         <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
 
                         <br>
@@ -5786,6 +5784,43 @@ class GeoChangeForm(forms.ModelForm):
                 setExistingClipFeatures('{geoj}')
                 </script>
                 """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
+        
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
+        return rendered
+
+    def as_maponly(self):
+        html = """
+                        <div>{{ form.transfer_geom }}</div>
+
+                        <div style="clear:both">                        
+                    """
+        # add features
+        import json
+        geoj = {"type":"FeatureCollection",
+                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
+                             for f in self.otherfeats]}
+        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
+        print geoj_str
+        html += """<script>
+                setExistingClipFeatures('{geoj}')
+                </script>
+                """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
         
         rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
         return rendered
@@ -6207,8 +6242,11 @@ class AddChangeWizard(SessionWizardView):
 
         objvalues = dict(eventvalues)
         objvalues.update(formfieldvalues)
-        sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
-        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
+
+        objvalues.pop('sources',None)
+        objvalues.pop('mapsources',None)
+        #sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
+        #mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
         print objvalues
         
         obj = ProvChange.objects.create(**objvalues)
@@ -6216,11 +6254,11 @@ class AddChangeWizard(SessionWizardView):
         print obj
         
         obj.save()
-        for s in sources:
-            obj.sources.add(s)
-        for m in mapsources:
-            obj.mapsources.add(m)
-        obj.save()
+##        for s in sources:
+##            obj.sources.add(s)
+##        for m in mapsources:
+##            obj.mapsources.add(m)
+##        obj.save()
         
         html = self.done_redirect(obj)
 

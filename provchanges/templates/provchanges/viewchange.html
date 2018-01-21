@@ -137,13 +137,14 @@
 				</fieldset>
 				</div>
 
-				{% if "Transfer" in typechange.type.value %}
+				{% if typechange.type.value in "MergeNew TransferNew MergeExisting TransferExisting PartTransfer FullTransfer" %}
 					
 					<fieldset style="clear:both">
                                                 <legend>
                                                     <img height="30px" src="{{ geochange.icon }}">
                                                     Geo Change
                                                 </legend>
+                                                        <input type="hidden" id="id_transfer_map" value="{{ geochange.transfer_map.value }}">
                                                         <div style="padding:10px 0 20px 0">Map Overlay:
                                                             {% if geochange.transfer_map.value %}
                                                                 <a href="/viewmap/{{ geochange.transfer_map.value }}" target="_blank">
@@ -152,7 +153,7 @@
                                                             {% endif %}
                                                         </div>
 
-                                                        <div>{{ geochange.transfer_geom }}</div>
+                                                        <div>{{ geochange.as_maponly }}</div>
 
                                                         <div style="clear:both">
                                                         

@@ -120,11 +120,6 @@ class ProvChange(models.Model):
     transfer_geom = models.MultiPolygonField(null=True, blank=True, verbose_name=u"Province geometry")
 
     # old meta
-    source = models.CharField(max_length=400, verbose_name=u"Source of information")
-    transfer_source = models.CharField(max_length=200, verbose_name=u"Link to map data")
-    transfer_reference = models.CharField(max_length=400, verbose_name=u"Map description")
-
-    # new meta
     sources = models.ManyToManyField(Source, # A ProvChange can reference one or more sources.
                                      blank=True,
                                      verbose_name=u"Sources of information") 
@@ -132,6 +127,11 @@ class ProvChange(models.Model):
                                         blank=True,
                                         related_name="mapsources_set",
                                          verbose_name=u"Maps used for information") 
+    transfer_source = models.CharField(max_length=200, blank=True, verbose_name=u"Link to map data")
+    transfer_reference = models.CharField(max_length=400, blank=True, verbose_name=u"Map description")
+
+    # new meta
+    source = models.CharField(max_length=400, verbose_name=u"Source of information")
     transfer_map = models.ForeignKey(Map, # A ProvChange geometry is drawn after a single map.
                                      on_delete=models.PROTECT,
                                      blank=True, null=True, default=None,
@@ -160,6 +160,7 @@ class ProvChange(models.Model):
                                          ("Commune","Commune"),
                                          ("Circumscription","Circumscription"),
                                          ("Cercle","Cercle"),
+                                         ("Division","Division"),
                                          ("Other...","Other..."),
                                          ],
                                 verbose_name=u"From province type",
@@ -187,6 +188,7 @@ class ProvChange(models.Model):
                                          ("Commune","Commune"),
                                          ("Circumscription","Circumscription"),
                                          ("Cercle","Cercle"),
+                                         ("Division","Division"),
                                          ("Other...","Other...")
                                          ],
                                 verbose_name=u"To province type",
