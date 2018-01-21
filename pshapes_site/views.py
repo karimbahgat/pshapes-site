@@ -276,20 +276,40 @@ def home(request):
 
     # random check
     obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
-    typ = {'NewInfo': 'changed information to',
-           'Breakaway': 'split into',
-           'PartTransfer': 'tranferred territory to',
-           'FullTransfer': 'merged into',
-           'Begin': 'was created'}[obj.type]
     country = obj.fromcountry
-    fromname = "'%s'" % obj.fromname
-    toname = "'%s'" % obj.toname
     if obj.fromcountry != obj.tocountry:
-        toname += ' (%s)' % obj.tocountry
+        tocountry = ' (%s)' % obj.tocountry
+    else:
+        tocountry = ''
+    # override special for begin
     if obj.type == 'Begin':
         country = obj.tocountry
-        fromname = toname
-        toname = ""
+        tocountry = ''
+    # texts
+    if obj.type == 'NewInfo':
+        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'Breakaway':
+        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
+    elif obj.type == 'SplitPart':
+        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
+    elif obj.type == 'TransferNew':
+        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'MergeNew':
+        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'TransferExisting':
+        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'MergeExisting':
+        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'Begin':
+        changetext = "'%s' was created" % obj.toname
+
+    # OLD, to be deprecated
+    elif obj.type == 'PartTransfer':
+        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+    elif obj.type == 'FullTransfer':
+        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+
+    
     vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
     vouchicon = """
     				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
@@ -311,7 +331,7 @@ def home(request):
     content = """
                 <h3>{country}</h3>
                 <div style="font-size:small">
-                <p><b>{date}:</b> {fromname} {typ} {toname}</p>
+                <p><b>{date}:</b> {changetext}</p>
                 <p><em>(Source: {source})</em></p> 
 
                 <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
@@ -320,10 +340,10 @@ def home(request):
                 
                 <div style="">{vouchicon}{commenticon}</div>
                 </div>
-                """.format(date=obj.date, country=country.encode("utf8"), fromname=fromname.encode("utf8"), typ=typ, toname=toname.encode("utf8"),
+                """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
                            vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source.encode("utf8"))
 
-    grids.append(dict(title="Quick Check:",
+    grids.append(dict(title="Quality Check:",
                       content=content,
                       #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="30%",

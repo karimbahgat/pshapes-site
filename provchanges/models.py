@@ -101,10 +101,17 @@ class ProvChange(models.Model):
     #import pycountries as pc
     date = models.DateField(verbose_name=u"Date of change")
     type = models.CharField(choices=[("NewInfo","NewInfo"),
+                                       ("MergeNew","MergeNew"),
+                                       ("TransferNew","TransferNew"),
+                                     ("MergeExisting","MergeExisting"),
+                                     ("TransferExisting","TransferExisting"),
+                                       ("Breakaway","Breakaway"),
+                                       ("SplitPart","SplitPart"),
+
                                        ("PartTransfer","PartTransfer"),
                                        ("FullTransfer","FullTransfer"),
-                                       ("Breakaway","Breakaway"),
-                                       ("Begin","Begin"),
+
+                                     ("Begin","Begin"),
                                         ],
                             verbose_name=u"Type of Change",
                             max_length=40,)
