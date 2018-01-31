@@ -208,7 +208,10 @@ def viewsource(request, pk):
         field.disabled = True
         field.widget.disabled = True
         field.widget.attrs['readonly'] = 'readonly'
-    return render(request, "provchanges/viewsource.html", {'sourceform':sourceform, 'pk':obj.pk})
+    countrylinks = ['<a id="blackbackground" href="/contribute/view/{countryencode}">{countrytext}</a>'.format(countryencode=urlquote(co.strip()), countrytext=co.strip().encode('utf8'))
+                    for co in obj.country.split('|')]
+    countrylinks = ', '.join(countrylinks)
+    return render(request, "provchanges/viewsource.html", {'sourceform':sourceform, 'pk':obj.pk, 'countrylinks':countrylinks})
 
 @login_required
 def editsource(request, pk):
@@ -388,7 +391,10 @@ def viewmap(request, pk):
         field.disabled = True
         field.widget.disabled = True
         field.widget.attrs['readonly'] = 'readonly'
-    return render(request, "provchanges/viewmap.html", {'mapform':mapform, 'pk':obj.pk})
+    countrylinks = ['<a id="blackbackground" href="/contribute/view/{countryencode}">{countrytext}</a>'.format(countryencode=urlquote(co.strip()), countrytext=co.strip().encode('utf8'))
+                    for co in obj.country.split('|')]
+    countrylinks = ', '.join(countrylinks)
+    return render(request, "provchanges/viewmap.html", {'mapform':mapform, 'pk':obj.pk, 'countrylinks':countrylinks})
 
 @login_required
 def editmap(request, pk):
@@ -2086,11 +2092,12 @@ def viewcountry(request, country):
 ##                    """.format(griditem=griditem)
 ##            content += html
 
-        fields = ['title', 'citation']
+        fields = ['title', 'citation', 'external link']
         lists = []
         for source in sources:
             link = '/viewsource/{pk}/'.format(pk=source.pk)
-            row = [source.title, source.citation]
+            urllink = '<a href="{url}">{urlshort}</a>'.format(url=source.url, urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
+            row = [source.title, source.citation, urllink]
             lists.append((link,row))
 
         table = lists2table(request, lists, fields, 'sourcetable', color)
@@ -2143,17 +2150,22 @@ def viewcountry(request, country):
 ##                    """.format(country=urlquote(country), griditem=griditem)
 ##            content += html
 
-        fields = ['', 'year', 'title', 'url']
+        fields = ['', 'year', 'title', 'note', 'external link']
         lists = []
         for mapp in maps:
             wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
             if wms:
-                wmslink = WMS_Helper(wms).image_url(height=50)
-                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+                try:
+                    wmslink = WMS_Helper(wms).image_url(height=50)
+                    imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+                except:
+                    wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+                    imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             else:
                 wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
                 imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-            row = [imglink, mapp.year, mapp.title, mapp.url]
+            urllink = '<a href="{url}">{urlshort}</a>'.format(url=mapp.url, urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+            row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
             lists.append((None,row))
 
         table = lists2table(request, lists, fields, 'maptable', color)
@@ -2458,7 +2470,7 @@ def markcountrychange(country, provtext, provcountries):
         provcountries = [provcountries]
     for provcountry in provcountries:
         if provcountry and provcountry != country:
-            provtext += " (%s)" % provcountry
+            provtext += ' (<a id="blackbackground" style="color:gray" href="/contribute/view/{countryencode}">{countrytext}</a>)'.format(countryencode=urlquote(provcountry), countrytext=provcountry.encode('utf8'))
             break
     return provtext
 
@@ -4432,6 +4444,8 @@ class SourceEventForm(forms.ModelForm):
             #self.fields["source"].widget = ListTextWidget(data_list=sources, name="sources", attrs=dict(type="text",size=120,autocomplete="on"))
             self.fields["source"].widget = forms.Textarea(attrs=dict(style='width:90%; font:inherit'))
             self.fields['source'].initial = mostcommon
+        else:
+            self.fields["source"].widget = forms.Textarea(attrs=dict(style='width:90%; font:inherit'))
 
     def clean(self):
         # store the sources and mapsources objects as pks
@@ -4444,8 +4458,9 @@ class SourceEventForm(forms.ModelForm):
         html = """
                     <div style="margin-left:2%">
 
-                        <p>Select all sources that were used to code this change.
-                        This includes information that was inferred by visually comparing maps.
+                        <p>Indicate the sources of information used to code this change (e.g. <em>'#source15'</em>).
+                        <br>
+                        This includes information that was inferred by visually comparing maps (e.g. <em>'deduced by comparing #map12 and #map9'</em>).
                         </p>
                         
                         <p>                        

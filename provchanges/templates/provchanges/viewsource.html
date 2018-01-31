@@ -15,11 +15,6 @@
 <h2>Source</h2>
 
     <div style="padding-left:20px;">
-        <div style="float:left;">
-            <a href="{{ request.META.HTTP_REFERER }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-            Back
-            </a>
-        </div>
 
         <div style="float:left;">
             <a href="/editsource/{{ pk }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
@@ -67,7 +62,7 @@
 
             <tr>
                 <td style="text-align:right; vertical-align:top">{{ sourceform.country.label_tag }}</td>
-                <td style="font-weight:normal">{{ sourceform.country.value }}</td>
+                <td style="font-weight:normal">{{ countrylinks | safe }}</td>
             </tr>
 
             <tr>
