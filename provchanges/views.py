@@ -1229,7 +1229,7 @@ GUIDE = """
                             <div id="instr1">
                                 <h2>Welcome</h2>
                                 <p>
-                                Thanks for helping out! 
+                                If you're looking to get involved in the Pshapes project you've come to the right place!
                                 Contributing to Pshapes is both easy and fast: just register and
                                 contribute as little or as much as possible. You can add changes, quality check,
                                 vouch or edit the work of others, raise issues, or discuss difficult cases. 
@@ -1416,7 +1416,7 @@ GUIDE = """
 
 
 def allcountries(request):
-    bannertitle = "Contributions at a Glance:"
+    bannertitle = "Countries:"
 
     from django.db.models import Count
     changes = ProvChange.objects.all().count()
@@ -1581,28 +1581,22 @@ def allcountries(request):
     
     countriestable = lists2table(request, lists=lists,
                                   fields=["Country","Entries","First Change","Last Change"])
-    content = countriestable
-    grids.append(dict(title="Continue coding:",
+    content = """
+                {countriestable}
+                <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                </div>
+                """.format(countriestable=countriestable)
+    grids.append(dict(title="Code a Country:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
 
-    # remaining
-    lists = []
-    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries
-                     if countryid not in rowdicts.keys()])
-
-    for country in sorted(rowdicts.keys()):
-        rowdict = rowdicts[country]
-        row = [rowdict[f] for f in fields]
-        url = "/contribute/view/%s" % urlquote(rowdict["country"])
-        lists.append((url,row))
-    
-    countriestable = lists2table(request, lists=lists,
-                                  fields=["Country","Entries","First Change","Last Change"])
-    content = countriestable
-    grids.append(dict(title="Add a new country:",
+    # comments
+    allcomments = Comment.objects.filter(country='', changeid=None, status="Active")
+    content = '<br><br><hr><h3 id="comments"><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">General Discussions:</h3>'
+    content += '<div style="margin-left:2%%"> %s </div>' % comments2html(request, allcomments, '', None, 'rgb(27,138,204)')
+    grids.append(dict(title="",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -2440,7 +2434,50 @@ def editcountry(request):
     pass
 
 def addcountry(request):
-    pass
+    grids = []
+
+    # new historical
+    content = """
+                <input id="customcountry" type="text" style="width:40%">
+                <script>
+                function getcountryval() {
+                    return document.getElementById('customcountry').value;
+                };
+                </script>
+                <a id="customcountrybutton" onclick="var countryval = getcountryval(); location.href='/contribute/view/' + countryval" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">
+                Add
+                </a>
+                """
+    grids.append(dict(title="Add a New Country",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    # remaining
+    fromcountries = [vd['fromcountry'] for vd in ProvChange.objects.distinct('fromcountry').exclude(status="NonActive").values("fromcountry")]
+    tocountries = [vd['tocountry'] for vd in ProvChange.objects.distinct('tocountry').exclude(status="NonActive").values("tocountry")]
+    existing = set(fromcountries + tocountries)
+    remaining = [cval for cval,clab in countries if cval not in existing]
+    
+    lists = []
+    for country in sorted(remaining):
+        url = '<a href="/contribute/view/%s">Add</a>' % urlquote(country)
+        row = [url,country]
+        lists.append((None,row))
+    
+    countriestable = lists2table(request, lists=lists,
+                                  fields=["","Country"])
+    content = countriestable
+    grids.append(dict(title="",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,
+                                                    "nomainbanner":True}
+                      )
 
 
 def viewprov(request, country, province):
