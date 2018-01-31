@@ -1940,6 +1940,18 @@ def viewcountry(request, country):
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
 
             changeids = [c.changeid for c in items]
+
+            comments=len(list(Comment.objects.filter(changeid__in=changeids, status='Active')))
+            if comments:
+                commentitem = '''
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px/>
+                            </div>
+                            '''.format(comments=comments)
+            else:
+                commentitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
+            
             vouches=len(list(Vouch.objects.filter(changeid__in=changeids, status='Active')))
             if vouches:
                 vouchitem = '''
@@ -1950,9 +1962,9 @@ def viewcountry(request, country):
                             '''.format(vouches=vouches)
             else:
                 vouchitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
-            return link,(prov,typ,vouchitem)
+            return link,(typ,prov,'<b>%s</b>'%len(items),vouchitem,commentitem)
         events = [getlinkrow(date,prov,typ,fromcountry,tocountry,items) for (date,(prov,typ,fromcountry,tocountry)),items in events]
-        eventstable = lists2table(request, events, ["Province", "EventType", "Vouches"])
+        eventstable = lists2table(request, events, ["EventType", "Province", "Changes", "Vouches", "Comments"])
 
         content = eventstable
         
@@ -2096,7 +2108,7 @@ def viewcountry(request, country):
         lists = []
         for source in sources:
             link = '/viewsource/{pk}/'.format(pk=source.pk)
-            urllink = '<a href="{url}">{urlshort}</a>'.format(url=source.url, urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
+            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url, urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
             row = [source.title, source.citation, urllink]
             lists.append((link,row))
 
@@ -2164,7 +2176,7 @@ def viewcountry(request, country):
             else:
                 wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
                 imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-            urllink = '<a href="{url}">{urlshort}</a>'.format(url=mapp.url, urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url, urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
             row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
             lists.append((None,row))
 
@@ -2330,29 +2342,29 @@ def viewcountry(request, country):
 
                             <div style="background-color:orange; width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#timeline" style="text-decoration:none; color:inherit">
-                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-                                <h3 style="display:inline">Timeline ({daterange})</h3>
+                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="30px">
+                                <h4 style="display:inline">Timeline ({daterange})</h3>
                                 </a>
                             </div>
 
                             <div style="background-color:rgb(122,122,122); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#sources" style="text-decoration:none; color:inherit">
-                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-                                <h3 style="display:inline">Sources ({sources})</h3>
+                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="30px">
+                                <h4 style="display:inline">Sources ({sources})</h3>
                                 </a>
                             </div>
 
                             <div style="background-color:rgb(58,177,73); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#maps" style="text-decoration:none; color:inherit">
-                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
-                                <h3 style="display:inline">Maps ({maps})</h3>
+                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="30px">
+                                <h4 style="display:inline">Maps ({maps})</h3>
                                 </a>
                             </div>
 
                             <div style="background-color:rgb(27,138,204); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#comments" style="text-decoration:none; color:inherit">
-                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
-                                <h3 style="display:inline">Comments ({comments})</h3>
+                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="30px">
+                                <h4 style="display:inline">Comments ({comments})</h3>
                                 </a>
                             </div>
                             
@@ -2615,6 +2627,7 @@ def viewevent(request, country, province, editmode=False):
                             Back to {countrytext}
                             </a>
                             """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
             left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
@@ -2631,8 +2644,13 @@ def viewevent(request, country, province, editmode=False):
                         <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
                         <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
                         </div>
+
+                        <div style="display:inline; border-radius:10px; ">
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                        <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                        </div>
 				
-                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
             if change.fromalterns != change.toalterns: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             if change.fromiso != change.toiso: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             if change.fromfips != change.tofips: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -2665,11 +2683,11 @@ def viewevent(request, country, province, editmode=False):
                             {left}
                             </td>
 
-                            <td style="width:31%; padding:1%">
+                            <td style="width:20%; padding:1%">
                             {mid}
                             </td>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:36%; padding:1%">
                             {right}
                             </td>
 
@@ -2714,6 +2732,7 @@ def viewevent(request, country, province, editmode=False):
                             Back to {countrytext}
                             </a>
                             """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
             left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
@@ -2752,11 +2771,11 @@ def viewevent(request, country, province, editmode=False):
                             {left}
                             </td>
 
-                            <td style="width:31%; padding:1%">
+                            <td style="width:20%; padding:1%">
                             {mid}
                             </td>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:36%; padding:1%">
                             {right}
                             </td>
 
@@ -2783,6 +2802,7 @@ def viewevent(request, country, province, editmode=False):
 			Back to {countrytext}
 			</a>
 			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
         
         left = """
                         <div style="clear:both; text-align: left">
@@ -2803,8 +2823,13 @@ def viewevent(request, country, province, editmode=False):
 				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
 				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
 				</div>
+
+                                <div style="display:inline; border-radius:10px; ">
+                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                                <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                                </div>
 				
-                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
+                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
                                  for change in changes))
         splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         right = """
@@ -2829,15 +2854,15 @@ def viewevent(request, country, province, editmode=False):
                         <table width="99%" style="clear:both">
                         <tr>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:34%; padding:1%">
                         {left}
                         </td>
 
-                        <td style="width:31%; padding:1%">
+                        <td style="width:20%; padding:1%">
                         {mid}
                         </td>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:36%; padding:1%">
                         {right}
                         </td>
 
@@ -2888,6 +2913,7 @@ def viewevent(request, country, province, editmode=False):
 			Back to {countrytext}
 			</a>
 			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
         
         left = """
                         <div style="clear:both; text-align: left">
@@ -2908,8 +2934,13 @@ def viewevent(request, country, province, editmode=False):
 				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
 				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
 				</div>
+
+                                <div style="display:inline; border-radius:10px; ">
+                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                                <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                                </div>
 				
-                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
+                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
                                  for change in changes))
         splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         right = """
@@ -2934,15 +2965,15 @@ def viewevent(request, country, province, editmode=False):
                         <table width="99%" style="clear:both">
                         <tr>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:34%; padding:1%">
                         {left}
                         </td>
 
-                        <td style="width:31%; padding:1%">
+                        <td style="width:20%; padding:1%">
                         {mid}
                         </td>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:36%; padding:1%">
                         {right}
                         </td>
 
@@ -2994,13 +3025,20 @@ def viewevent(request, country, province, editmode=False):
                             <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
                             </div>
 
-                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                            </div>
+
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
 			</a>
 			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        
         left = """			
                         <style>
                             #blackbackground a {{ color:white }}
@@ -3030,15 +3068,15 @@ def viewevent(request, country, province, editmode=False):
                         <table width="99%" style="clear:both">
                         <tr>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:34%; padding:1%">
                         {left}
                         </td>
 
-                        <td style="width:31%; padding:1%">
+                        <td style="width:25%; padding:1%">
                         {mid}
                         </td>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:36%; padding:1%">
                         {right}
                         </td>
 
@@ -3089,13 +3127,20 @@ def viewevent(request, country, province, editmode=False):
                             <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
                             </div>
 
-                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
+                            <div style="display:inline; border-radius:10px; ">
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                            </div>
+
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
 			Back to {countrytext}
 			</a>
 			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
+        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        
         left = """			
                         <style>
                             #blackbackground a {{ color:white }}
@@ -3125,15 +3170,15 @@ def viewevent(request, country, province, editmode=False):
                         <table width="99%" style="clear:both">
                         <tr>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:34%; padding:1%">
                         {left}
                         </td>
 
-                        <td style="width:31%; padding:1%">
+                        <td style="width:25%; padding:1%">
                         {mid}
                         </td>
                         
-                        <td style="width:31%; padding:1%">
+                        <td style="width:36%; padding:1%">
                         {right}
                         </td>
 
@@ -3181,6 +3226,8 @@ def viewevent(request, country, province, editmode=False):
                             Back to {countrytext}
                             </a>
                             """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+            
             left = """
                             <div style="clear:both; text-align: left">
                             
@@ -3198,7 +3245,12 @@ def viewevent(request, country, province, editmode=False):
                         <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
                         </div>
 
-                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))))
+                        <div style="display:inline; border-radius:10px; ">
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
+                        <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                        </div>
+
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -3224,15 +3276,15 @@ def viewevent(request, country, province, editmode=False):
                             <table width="99%" style="clear:both">
                             <tr>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:33%; padding:1%">
                             {left}
                             </td>
 
-                            <td style="width:31%; padding:1%">
+                            <td style="width:20%; padding:1%">
                             {mid}
                             </td>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:36%; padding:1%">
                             {right}
                             </td>
 
@@ -3268,6 +3320,8 @@ def viewevent(request, country, province, editmode=False):
                             Back to {countrytext}
                             </a>
                             """.format(country=urlquote(country), countrytext=country.encode("utf8"))
+            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+            
             left = """
                             <div style="clear:both; text-align: left">
                             
@@ -3314,15 +3368,15 @@ def viewevent(request, country, province, editmode=False):
                             <table width="99%" style="clear:both">
                             <tr>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:33%; padding:1%">
                             {left}
                             </td>
 
-                            <td style="width:31%; padding:1%">
+                            <td style="width:20%; padding:1%">
                             {mid}
                             </td>
                             
-                            <td style="width:31%; padding:1%">
+                            <td style="width:36%; padding:1%">
                             {right}
                             </td>
 
