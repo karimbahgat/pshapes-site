@@ -19,6 +19,7 @@ from .models import ProvChange, Vouch, Comment, Source, Map
 from provshapes.models import ProvShape
 
 from django.db.models import Count
+from django.db import transaction
 
 import datetime
 import urllib2
@@ -2102,7 +2103,7 @@ def viewcountry(request, country):
         lists = []
         for source in sources:
             link = '/viewsource/{pk}/'.format(pk=source.pk)
-            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url, urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
+            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url.encode('utf8'), urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
             row = [source.title, source.citation, urllink]
             lists.append((link,row))
 
@@ -2170,7 +2171,7 @@ def viewcountry(request, country):
             else:
                 wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
                 imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url, urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
             row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
             lists.append((None,row))
 
@@ -3498,41 +3499,43 @@ def editevent(request, country, province):
         print vals
         print '-----'
         rows = zip(*vals)
-        for row in zip(*vals):
-            # QUITE MESSY, ADDS A NEW CHANGE SOMEHOW, LOOK AT EXISTING CODE...
-            rowdict = dict(zip(keys,row))
-            pk = rowdict.pop('pk')
-            change = ProvChange.objects.get(pk=pk)
+        
+        with transaction.atomic():
+            for row in zip(*vals):
+                # QUITE MESSY, ADDS A NEW CHANGE SOMEHOW, LOOK AT EXISTING CODE...
+                rowdict = dict(zip(keys,row))
+                pk = rowdict.pop('pk')
+                change = ProvChange.objects.get(pk=pk)
 
-            formfieldvalues = dict(rowdict.items())
-            print 'posted',formfieldvalues
-            
-            formfieldvalues["user"] = request.user.username
-            formfieldvalues["added"] = datetime.datetime.now()
-            formfieldvalues["status"] = "Pending"
+                formfieldvalues = dict(rowdict.items())
+                print 'posted',formfieldvalues
+                
+                formfieldvalues["user"] = request.user.username
+                formfieldvalues["added"] = datetime.datetime.now()
+                formfieldvalues["status"] = "Pending"
 
-            if request.user.username == change.user:
-                for c in ProvChange.objects.filter(changeid=change.changeid):
-                    # all previous versions by same user become nonactive and nonbestversion
-                    c.bestversion = False
-                    c.status = "NonActive"
-                    c.save()
-                formfieldvalues["bestversion"] = True
+                if request.user.username == change.user:
+                    for c in ProvChange.objects.filter(changeid=change.changeid):
+                        # all previous versions by same user become nonactive and nonbestversion
+                        c.bestversion = False
+                        c.status = "NonActive"
+                        c.save()
+                    formfieldvalues["bestversion"] = True
 
-            formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
+                formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
 
-            formfieldvalues.pop('sources',None) # deprecated
-            formfieldvalues.pop('mapsources',None) # deprecated
-            
-            print formfieldvalues
+                formfieldvalues.pop('sources',None) # deprecated
+                formfieldvalues.pop('mapsources',None) # deprecated
+                
+                print formfieldvalues
 
-            for k,v in formfieldvalues.items():
-                setattr(change, k, v)
+                for k,v in formfieldvalues.items():
+                    setattr(change, k, v)
 
-            change.pk = None # nulling the pk will add a modified copy of the instance
-            change.save()
-            
-            print change
+                change.pk = None # nulling the pk will add a modified copy of the instance
+                change.save()
+                
+                print change
 
         return viewevent(request, country, province)
         
@@ -4099,36 +4102,40 @@ def editchange(request, pk):
         formfieldvalues["added"] = datetime.datetime.now()
         formfieldvalues["status"] = "Pending"
 
-        if request.user.username == change.user:
-            for c in ProvChange.objects.filter(changeid=change.changeid):
-                # all previous versions by same user become nonactive and nonbestversion
-                c.bestversion = False
-                c.status = "NonActive"
-                c.save()
-            formfieldvalues["bestversion"] = True
+        with transaction.atomic():
 
-        sources = [get_object_or_404(Source, pk=int(pk)) for pk in formfieldvalues.pop('sources') if pk]
-        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in formfieldvalues.pop('mapsources') if pk]
+            if request.user.username == change.user:
+                for c in ProvChange.objects.filter(changeid=change.changeid):
+                    # all previous versions by same user become nonactive and nonbestversion
+                    c.bestversion = False
+                    c.status = "NonActive"
+                    c.save()
+                formfieldvalues["bestversion"] = True
 
-        formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
-        
-        print formfieldvalues
-        print sources, mapsources
+    ##        sources = [get_object_or_404(Source, pk=int(pk)) for pk in formfieldvalues.pop('sources') if pk]
+    ##        mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in formfieldvalues.pop('mapsources') if pk]
 
-        for k,v in formfieldvalues.items():
-            setattr(change, k, v)
+            formfieldvalues['transfer_map'] = get_object_or_404(Map, pk=int(formfieldvalues['transfer_map'])) if formfieldvalues.get('transfer_map') else None
+            
+            print formfieldvalues
+            #print sources, mapsources
 
-        geoform = GeoChangeForm(instance=change, data=formfieldvalues, country=change.tocountry, province=change.toname, date=change.date)
-        geoform.is_valid()
-        change.transfer_geom = geoform.clean()["transfer_geom"]
-        change.pk = None # nulling the pk will add a modified copy of the instance
-                    
-        change.save()
-        for s in sources:
-            change.sources.add(s)
-        for m in mapsources:
-            change.mapsources.add(m)
-        change.save()
+            for k,v in formfieldvalues.items():
+                setattr(change, k, v)
+
+            if formfieldvalues['type'] in 'MergeNew MergeExisting TransferNew TransferExisting PartTransfer FullTransfer':
+                geoform = GeoChangeForm(instance=change, data=formfieldvalues, country=change.tocountry, province=change.toname, date=change.date)
+                geoform.is_valid()
+                change.transfer_geom = geoform.clean()["transfer_geom"]
+            
+            change.pk = None # nulling the pk will add a modified copy of the instance
+            change.save()
+            
+    ##        for s in sources:
+    ##            change.sources.add(s)
+    ##        for m in mapsources:
+    ##            change.mapsources.add(m)
+    ##        change.save()
 
         html = redirect("/provchange/%s/view/" % change.pk)
         
