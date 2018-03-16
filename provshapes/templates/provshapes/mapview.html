@@ -4,9 +4,9 @@
 
     <div id="maptab">
 
-        <div class="leftside" style="display:inline-block; width:70%">
+        <div class="leftside" style="display:inline-block; width:95%; height:300px">
 
-            <div class="mapheader" style="padding:10px; width:100%">
+            <div class="mapheader" style="display:flex; align-items:center; padding:10px; width:100%">
 
                             <script>
                             var dates = {{ dates|safe }};
@@ -24,13 +24,19 @@
                             };
                             </script>
 
-                            <div style="display:inline-block; vertical-align:middle;"><img height="60px" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png"/></div>
+                            <div style="display:inline-block; vertical-align:middle;">
+                                <h2>Search the Database</h2>
+                            </div>
+
+                            <!--
+                                <div style="display:inline-block; vertical-align:middle;"><img height="60px" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png"/></div>
+                            -->
 
                             <div style="display:inline-block; vertical-align:middle; padding:5px;">
-                                <input id="datetext" type="text" style="width:100px; text-align:center; font-size:large; font-weight:bold; z-index:1000; border: 3px solid black; border-radius: 7px;" oninput="update_slider(document.getElementById('datetext').value);"/>
+                                <input id="datetext" type="text" style="width:100px; margin:0 20px 0 20px; text-align:center; font-size:large; font-weight:bold; z-index:1000; border: 3px solid black; border-radius: 7px;" oninput="update_slider(document.getElementById('datetext').value);"/>
                             </div>
                             
-                            <div class="dateslidercontainer" style="display:inline-block; vertical-align:middle; padding:5px; width:70%; white-space:nowrap;">
+                            <div class="dateslidercontainer" style="display:inline-block; vertical-align:middle; padding:5px; flex-grow:1; white-space:nowrap;">
                                     <div id="ticks" style="position:relative; top:22px; left:-5px;">
                                         <script>
                                         var ticks = document.getElementById('ticks');
@@ -202,7 +208,7 @@
 
 
 
-	<div id="mapcontainer" style="clear:both; width:100%; margin-left:1%; height:60vh; padding:0 0 30px 0;">
+	<div id="mapcontainer" style="clear:both; width:100%; margin-left:1%; height:100%; padding:0 0 30px 0;">
             <div style="width:100%; height:100%; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
 
                 <script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>

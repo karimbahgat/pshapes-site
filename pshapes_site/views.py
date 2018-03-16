@@ -442,7 +442,7 @@ def about_motivation(request):
     grids = []
     bannertitle = ""
     bannerright = """
-                    <br>
+                    <br><br><br>
                     <h3 style="text-align:left">Motivation and Background</h3>
                     <div class="blackbackground" style="text-align:left">
 
@@ -521,7 +521,7 @@ def about_otherdata(request):
     grids = []
     bannertitle = ""
     bannerright = """
-                    <br>
+                    <br><br><br>
                     <h3 style="text-align:left">What About Other Boundary Data?</h3>
                     <div class="blackbackground" style="text-align:left">
 
@@ -582,7 +582,7 @@ def about_whycrowdsourcing(request):
     grids = []
     bannertitle = ""
     bannerright = """
-                    <br>
+                    <br><br><br>
                     <h3 style="text-align:left">Why Crowdsourcing?</h3>
                     <div style="text-align:left">
                                 <p>
@@ -625,7 +625,7 @@ def about_howitworks(request):
     grids = []
     bannertitle = ""
     bannerright = """
-                    <br>
+                    <br><br><br>
                     <h3 style="text-align:left">How Does It Work?</h3>
                     <div style="text-align:left">
 
@@ -736,7 +736,7 @@ def about_contact(request):
     grids = []
     bannertitle = ""
     bannerright = """
-                    <br>
+                    <br><br><br>
                     <h3 style="text-align:left">Contact</h3>
                     <div style="text-align:left">
                                 <p>

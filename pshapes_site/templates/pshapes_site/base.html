@@ -63,22 +63,22 @@
 							<td class="topmenu"><a id="notcurr" href="/">Home</a></td>
 						{% endif %}
 
-						{% if request.path|slice:":9" == "/explore/" %}
-							<td class="topmenu"><a id="current" href="/explore/">Map</a></td>
+						{% if request.path|slice:":22" == "/contribute/countries/" %}
+							<td class="topmenu"><a id="current" href="/contribute/countries/">Contribute</a></td>
 						{% else %}
-							<td class="topmenu"><a id="notcurr" href="/explore/">Map</a></td>
+							<td class="topmenu"><a id="notcurr" href="/contribute/countries/">Contribute</a></td>
+						{% endif %}
+
+						{% if request.path|slice:":9" == "/explore/" %}
+							<td class="topmenu"><a id="current" href="/explore/">View</a></td>
+						{% else %}
+							<td class="topmenu"><a id="notcurr" href="/explore/">View</a></td>
 						{% endif %}
 
 						{% if request.path|slice:":10" == "/download/" %}
 							<td class="topmenu"><a id="current" href="/download/">Download</a></td>
 						{% else %}
 							<td class="topmenu"><a id="notcurr" href="/download/">Download</a></td>
-						{% endif %}
-						
-						{% if request.path|slice:":22" == "/contribute/countries/" %}
-							<td class="topmenu"><a id="current" href="/contribute/countries/">Countries</a></td>
-						{% else %}
-							<td class="topmenu"><a id="notcurr" href="/contribute/countries/">Countries</a></td>
 						{% endif %}
 						
 						{% if request.path|slice:":7" == "/about/" %}

@@ -1417,11 +1417,11 @@ GUIDE = """
 
 
 def allcountries(request):
-    bannertitle = "Countries:"
+    bannertitle = "Contributions:"
 
     from django.db.models import Count
-    changes = ProvChange.objects.all().count()
-    pending = ProvChange.objects.filter(status="Pending").count()
+    changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
+    edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
     countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
     comments = Comment.objects.filter(status="Active").count()
     vouches = Vouch.objects.filter(status="Active").count()
@@ -1447,36 +1447,98 @@ def allcountries(request):
 ##        bars.append(dict(value=c, label=""))
 ##    bars[2]['label'] = d1.strftime("%Y-%m-%d")
 ##    bars[-1]['label'] = curdate.strftime("%Y-%m-%d")
-    contribcharttemplate = """
-                        <style>
-                        .chart rect {
-                          fill: rgb(0,162,232);
-                        }
-
-                        .chart text {
-                          fill: white;
-                          font: 10px sans-serif;
-                          text-anchor: end;
-                        }
-                        </style>
-
-                        <svg class="chart" width="420" height="120">
-                        <g transform="translate(0,110) scale(1,-1)">
-                            
-                            {% for bar in bars %}
-                                    <rect x="{% widthratio forloop.counter0 1 10 %}%" y="0%" width="10%" height="{{ bar.value }}%"></rect>
-                                    <text transform="scale(1,-1)" x="{% widthratio forloop.counter0 1 10 %}%" y="5%" dy=".35em">{{ bar.label }}</text>
-                            {% endfor %}
-                            
-                        </g>
-                        </svg>
-                    """
     
-    contribchart = Template(contribcharttemplate).render(Context({"request":request, 'bars':bars}))
+##    contribcharttemplate = """
+##                        <style>
+##                        .chart rect {
+##                          fill: rgb(0,162,232);
+##                        }
+##
+##                        .chart text {
+##                          fill: white;
+##                          font: 10px sans-serif;
+##                          text-anchor: end;
+##                        }
+##                        </style>
+##
+##                        <svg class="chart" width="420" height="120">
+##                        <g transform="translate(0,110) scale(1,-1)">
+##                            
+##                            {% for bar in bars %}
+##                                    <rect x="{% widthratio forloop.counter0 1 10 %}%" y="0%" width="10%" height="{{ bar.value }}%"></rect>
+##                                    <text transform="scale(1,-1)" x="{% widthratio forloop.counter0 1 10 %}%" y="5%" dy=".35em">{{ bar.label }}</text>
+##                            {% endfor %}
+##                            
+##                        </g>
+##                        </svg>
+##                    """
+##    
+##    contribchart = Template(contribcharttemplate).render(Context({"request":request, 'bars':bars}))
+
+    mapp = """
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+            <div style="width:90%; height:40vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            </div>
+	
+	<script defer="defer">
+	var map = new OpenLayers.Map('map', {allOverlays: true,
+                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            controls: [],
+                                            });
+	</script>
+
+        <script>
+	// empty country layer
+	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+        
+	// empty province layer
+	var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
+					);
+	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([provLayer]);
+
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		feats = [];
+		for (feat of countries) {
+                        feats.push(feat);
+		};
+		map.zoomToExtent([-170,70,180,-40]);
+		//map.zoomToExtent([-150,70,150,-70]);
+		//map.zoomToExtent([-80,30,80,-30]);
+		countryLayer.addFeatures(feats);
+	};
+
+        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
+        renderprovs = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		dateFeats = [];
+		for (feat of allProvs) {
+                        dateFeats.push(feat);
+		};
+		provLayer.addFeatures(dateFeats);
+	};
+
+        $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1}, renderprovs);
+        
+        </script>
+        """
+    
     bannerleft = """
                 <div>
                         <div style="text-align:center">
-                            {contribchart}
+                            {mapp}
                         </div>
 		    
                         <b>
@@ -1493,8 +1555,8 @@ def allcountries(request):
                             </td>
 
                             <td>
-                            <h1>{modifs}</h1>
-                            Edits made
+                            <h1>{avgedits}</h1>
+                            Edits per Change
                             </td>
 
                             <td>
@@ -1510,13 +1572,13 @@ def allcountries(request):
                         </table>
                         </b>
                 </div>
-                        """.format(users=users,
-                                   changes=pending,
-                                   modifs=changes-pending,
+                        """.format(mapp=mapp,
+                                   users=users,
+                                   changes=changes,
+                                   avgedits=format(edits/float(changes), '.1f'),
                                    comments=comments,
                                    vouches=vouches,
                                    countrycount=countrycount,
-                                   contribchart=contribchart,
                                    )
 
     #QUOTE
@@ -1587,7 +1649,7 @@ def allcountries(request):
                 <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 </div>
                 """.format(countriestable=countriestable)
-    grids.append(dict(title="Code a Country:",
+    grids.append(dict(title="Countries:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
@@ -4586,7 +4648,7 @@ class SourceEventForm(forms.ModelForm):
                                             {% for id,lab in form.suggested_mapsources %}
                                                 <tr>
                                                 <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
-                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
                                             </table>
@@ -5248,7 +5310,7 @@ class GeneralChangeForm(SourceEventForm):
                                             {% for id,lab in form.suggested_mapsources %}
                                                 <tr>
                                                 <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
-                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
                                             </table>
