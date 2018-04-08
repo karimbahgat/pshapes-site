@@ -1165,256 +1165,6 @@ map_resources = """
                                     <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
                 """
 
-GUIDE = """
-                        <style>
-                            #blackbackground a { color:white }
-                            #blackbackground a:visited { color:grey }
-                        </style>
-                        
-                        <div id="blackbackground" style="text-align: left;">
-
-
-                        <b>
-                        <a id="instrnext" style="float:right; padding:5px" href="javascript: nextstep()">Next</a>
-                        <a id="instrprev" style="float:right; padding:5px" href="javascript: prevstep()">Prev</a>
-                        </b>
-
-                        <h3><br></h3>
-
-                        <style>
-                        .instrnotsel {
-                            font-size: medium;
-                        }
-                        .instrsel {
-                            font-size: xx-large;
-                        }
-                        </style>
-
-                        <script>
-                        function showinstruction(num) {
-                            var steps = document.getElementById("instrsteps").children
-                            for (var i = 0; i < steps.length; i++) {
-                                var step = steps[i];
-                                step.style.display = "none";
-                            };
-                            document.getElementById("instrstepheader").innerHTML = num;
-                            document.getElementById("instr"+num).style.display = "block";
-                            
-                            if (num == 1) {
-                                document.getElementById("instrprev").href = "javascript: void(0)";
-                            } else if (num == steps.length) {
-                                document.getElementById("instrnext").href = "javascript: void(0)";
-                            } else {
-                                document.getElementById("instrprev").href = "javascript: prevstep()";
-                                document.getElementById("instrnext").href = "javascript: nextstep()";
-                            };
-                        };
-
-                        function nextstep() {
-                            var curstep = document.getElementById("instrstepheader").innerHTML;
-                            var newstep = parseInt(curstep) + 1;
-                            showinstruction(newstep);
-                        };
-
-                        function prevstep() {
-                            var curstep = document.getElementById("instrstepheader").innerHTML;
-                            var newstep = parseInt(curstep) - 1;
-                            showinstruction(newstep);
-                        };
-                        </script>
-
-                        <h1 id="instrstepheader" style="display:none;">1</h1>
-
-                        <div id="instrsteps">
-                        
-                            <div id="instr1">
-                                <h2>Welcome</h2>
-                                <p>
-                                If you're looking to get involved in the Pshapes project you've come to the right place!
-                                Contributing to Pshapes is both easy and fast: just register and
-                                contribute as little or as much as possible. You can add changes, quality check,
-                                vouch or edit the work of others, raise issues, or discuss difficult cases. 
-                                </p>
-                                <p>
-                                Click "Next" for a brief walkthrough of how it works,
-                                or get started right away by choosing a country from
-                                the list below.
-                                </p>
-                            </div>
-
-                            <div id="instr2">
-                                <h2>Sources of Information</h2>
-                                <p>
-                                There are several resources available detailing the administrative history of the country.
-                                Start in the present time and work yourself backwards.
-                                Each time you encounter a new date, register the date to the timeline.
-                                </p>
-                                <p>
-                                If the exact date is not known, then just set the date to the earliest
-                                possible date (e.g. 1st of the month, or 1st of january of the year).
-                                </p>
-                                <p>
-                                In cases where there is no documented history, the only way is to compare
-                                historical maps. In these cases the event of the date should be set to
-                                the newest map. 
-                                </p>
-                                <h4>Recommended Sources:</h4>
-                                <p style="font-size:medium; font-style:italic">
-                                <ul>
-                                    <li>
-                                    <a target="_blank" href="http://www.statoids.com">Statoids website</a>
-                                    </li>
-                                    
-                                    <li>
-                                    <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-                                    </li>
-
-                                    <li>
-                                    <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
-                                    </li>
-
-                                    <li>
-                                    <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
-                                    </li>
-
-                                    <li>
-                                    <a target="_blank" href="http://www.worldstatesmen.org/">World Statesmen website</a>
-                                    </li>
-                                </ul>
-                                </p>
-                            </div>
-
-                            <div id="instr3">
-                                <h2>Administrative Levels</h2>
-                                <p>
-                                For each date, look for changes to the the first-level administrative areas,
-                                the highest level in a country.
-                                </p>
-                                <p>
-                                Some countries have a special administrative level between the national and
-                                1st level, often referred to as "regions". These tend to be so big that sometimes there are only two or three of them.
-                                In Pshapes we prefer to ignore these regions and instead focus on the level below. When in doubt follow
-                                a rule that they should be small enough to provide good variation within the country and big enough that it
-                                is feasible to get complete information on all of its changes.
-                                </p>
-                                <p>
-                                If unsure about the correct level, leave a comment.
-                                </p>
-                            </div>
-
-                            <div id="instr4">
-                                <h2>Adding Events</h2>
-                                <p>
-                                On any given date, a province may experience one or more of the four basic event types:
-                                new information, mergers, transfers, and splits. An event may involve multiple individual
-                                changes, such as a province splitting into multiple new provinces. 
-                                </p>
-                                <p>
-                                To identify the province involved in an event, note that
-                                provinces are linked together via their name or any of their
-                                identifier codes, so try to keep these consistent with existing entries.
-                                </p>
-                                <p>
-                                For events where all provinces in a country experienced the same change, e.g.
-                                a country merged entirely into another country,
-                                you may set the name to * (star) to avoid having to register each province
-                                individually. 
-                                </p>
-                            </div>
-
-                            <div id="instr5">
-                                <h2>Georeferencing Maps</h2>
-                                <p>
-                                For the vast majority of province changes we do not
-                                need to consult historical maps or use valuable time on geocoding.
-                                </p>
-                                <p>
-                                For some types of changes however there is simply no way around it. In these situations, namely mergers and
-                                partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. To do this you will
-                                need to find a historical map and georeference it at the <a target="_blank" href="http://mapwarper.net/">MapWarper website</a>.
-                                </p>
-
-                                <p>
-                                <h4>Recommended Map Sources:</h4>
-                                <ul>
-                                """ + map_resources + """
-                                </ul>
-                                </p>
-                            </div>
-
-                            <div id="instr6">
-                                <h2>What to do Include or Exclude</h2>
-                                <p>
-                                In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
-                                listed as partial territorial transfers and drawn roughly by hand.
-                                </p>
-                                <p>
-                                However, if the change seems very small,
-                                or if there are too many of these types of minor changes, it is okay to ignore most of them and only focus on
-                                the big changes.
-                                </p>
-                            </div>
-
-                            <div id="instr7">
-                                <h2>Changes Between Countries</h2>
-                                <p>
-                                Sometimes you will come across cases where territory might be
-                                transferred to or change ownership from one country to another.
-                                Especially as you go further back in time you may encounter historical countries that don't exist anymore. 
-                                </p>
-                                <p>
-                                The way to code changes between countries is to
-                                register the event as usual, except changing the from-country field.
-                                </p>
-                                <p>
-                                For instance, for each of the ex-Soviet
-                                countries all of their provinces must be registered as changing info from the Soviet Union. The new country name
-                                as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
-                                </p>
-                            </div>
-
-                            <div id="instr8">
-                                <h2>How To Define a Country</h2>
-                                <p>
-                                It might not always be clear what constitutes a country. At all times follow what seems to have been the most
-                                internationally recognized country-units and names. 
-                                </p>
-                                <p>
-                                For territories under foreign colonial rule, these should be
-                                coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
-                                changes in their official name, avoid changing the country name.
-                                </p>
-                            </div>
-
-                            <div id="instr9">
-                                <h2>Finishing Up</h2>
-                                <p>
-                                If you are finished coding a country or believe it's not possible to code further
-                                back in time, then indicate this by adding the special "Begin" event.
-                                </p>
-                                <p>
-                                Set this for all provinces (name = *) with the date
-                                as the date beyond which we lack information about the administrative units.
-                                </p>
-                                <p>
-                                Begin events are important for reverse geocoding and visualizing provinces,
-                                especially for provinces that don't change much. 
-                                <p>
-                                Setting a Begin event does not not have to be final or definitive. It will always be possible to code a little further back in time, or others may sit on information
-                                that you don't have. When the situation changes, you may simply edit your own Begin event, or others
-                                may add their own Begin events. 
-                                </p>
-                            </div>
-
-                        </div>
-
-                        <script>
-                        showinstruction(1)
-                        </script>
-                        
-                        </div>
-                """
-
 
 def allcountries(request):
     bannertitle = "Contributions:"
@@ -1585,7 +1335,29 @@ def allcountries(request):
     #Anyone who has an interest in coding some changes for one or more countries,
     #should have the ability to do so themselves, regardless of skills or background. 
 
-    bannerright = GUIDE
+    bannerright = """
+                        <style>
+                            .blackbackground a { color:white }
+                            .blackbackground a:visited { color:grey }
+                        </style>
+                                
+                        <br><br>
+                        <div class="blackbackground" style="text-align:left">
+                                <h2>Welcome</h2>
+                                <p>
+                                If you're looking to get involved in the Pshapes project you've come to the right place!
+                                Contributing to Pshapes is both easy and fast: just register and
+                                contribute as little or as much as possible. You can add changes, quality check,
+                                vouch or edit the work of others, raise issues, or discuss difficult cases. 
+                                </p>
+                                
+                                <p>
+                                Read <a href="/about/tutorial">the tutorial</a> for a brief walkthrough of how it works,
+                                or get started right away by choosing a country from
+                                the list below.
+                                </p>
+                        </div>
+                        """
     
     grids = []
 

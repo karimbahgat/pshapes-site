@@ -399,7 +399,7 @@ about_menu = """
 
                         <img src="/static/pshapes pen2 transp.png" width="100%">
 
-                        <h4>Common Questions</h4>
+                        <h4>Introduction</h4>
 
                         <style>
                             .blackbackground a { color:white }
@@ -410,9 +410,22 @@ about_menu = """
                         <li><a href="/about/motivation/">Motivation and Background</a></li>
                         <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
                         <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
-                        <li><a href="/about/howitworks/">How Does It Work?</a></li>
-                        <li><a href="/about/contact/">Contact</a></li>
                         </ul>
+
+                        <h4 class="blackbackground"><a href="/about/tutorial/">Tutorial</a></h4>
+
+                        <ul class="blackbackground">
+                        <li><a href="/about/tutorial/">Sources of information</a></li>
+                        <li><a href="/about/tutorial/">Administrative levels</a></li>
+                        <li><a href="/about/tutorial/">Adding events</a></li>
+                        <li><a href="/about/tutorial/">Georeferencing maps</a></li>
+                        <li><a href="/about/tutorial/">What to include or exclude</a></li>
+                        <li><a href="/about/tutorial/">Changes between countries</a></li>
+                        <li><a href="/about/tutorial/">How to define a country</a></li>
+                        <li><a href="/about/tutorial/">Finishing up</a></li>
+                        </ul>
+
+                        <h4 class="blackbackground"><a href="/about/contact/">Contact</a><h4>
 
                     </div>
             """
@@ -603,14 +616,46 @@ def about_whycrowdsourcing(request):
                                 expert knowledge or skills.
                                 </p>
 
+                                <p>All possible province changes can be categorized into a handful of change types.
+                                Provinces can change information such as their name, capital, or administrative codes.
+                                Provinces can dissolve into several new ones or experience a secession. 
+                                New provinces can be formed by taking all or parts of territories from multiple provinces.
+                                Existing provinces can adjust the boundary between them. 
+                                </p>
+
                                 <p>
-                                This is why we broke these two processes apart:
-                                <ul>
-                                <li>Letting users and other contributors take care
-                                of the data entry through the website's user-friendly interface, </li>
-                                <li>while leaving the more difficult parts
-                                of constructing the final dataset up to an automated algorithm with expert supervision.</li>
-                                </ul>
+                                Provided we know what the provinces look like today and have the sequence and types of changes over time,
+                                it is possible to automate the necessary
+                                geospatial operations that a human coder would usually do, clipping apart or gluing together
+                                geometries. 
+                                </p>
+
+                                <p>
+                                The starting point can be any third-party global dataset of province boundaries reflecting how the situation looks like
+                                on a given (preferably recent) date. 
+                                The system would increment through the events listed in the change-data, starting with the
+                                most recent and going gradually further back in time. 
+                                </p>
+
+                                <p>
+                                Multiple complex configuratios of these changes can occur in a single event,
+                                and when processed in this way, the jigzaw puzzle of broken off parts and changing
+                                ownerships will reorganize itself to recreate how the provinces
+                                looked prior to the event.
+                                </p>
+
+                                <p>
+                                Doing these same iterative changes manually by hand would have 
+                                required that the reference dataset be chosen in advance, essentially
+                                locking in and tying down all the labor to that particular data, making it vulnerable to any particular
+                                errors or reconsiderations discovered later on.
+                                By focusing on replication and automation we can more efficiently 
+                                harness and reuse all the work put into the collective data collection. 
+                                </p>
+
+                                <p>
+                                By having this automated system in place, this enables us to simplify the data collection strategy so that users
+                                only code the pieces of information or parts that changed (not performing the more time-consuming modifications).
                                 </p>
 
                         </div>
@@ -621,116 +666,176 @@ def about_whycrowdsourcing(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
                   )
 
-def about_howitworks(request):
+from provchanges.views import map_resources
+
+def about_tutorial(request):
     grids = []
     bannertitle = ""
     bannerright = """
                     <br><br><br>
-                    <h3 style="text-align:left">How Does It Work?</h3>
-                    <div style="text-align:left">
+                    <h3 style="text-align:left">Tutorial</h3>
+                    <div class="blackbackground" style="text-align:left">
 
-                            <p>
-                            Since Pshapes is based on the idea of 
-                            automating the more technical and repepative tasks, this means that we need a system
-                            that can successfully process the user information and construct the final dataset at a later point.
-                            </p>
+                                <p>
+                                If you are looking to contribute to Pshapes, this page will walk you through the process on how to get started. 
+                                </p>
 
-                            <p>
-                            The final dataset is created as follows:
-                            </p>
-
-                            <ol>
-
-                                <li>
-                                The system starts by asking for a
-                                complete global dataset of province boundaries reflecting how the situation looks like
-                                on a given (preferably recent) date. This can be any third-party dataset, including the ones listed earlier. 
-                                </li>
-
-                                <li>It then increments through the events listed in the Pshapes change-data, starting with the
-                                most recent and going gradually further back in time. 
-                                </li>
-
-                                <li>
-                                As the Pshapes change-events are processed in reverse chronological order, they can be boiled down to three basic types.
-                                </li>
-
-                                    <ul>
-
+                                <h4>Sources of Information</h4>
+                                <p>
+                                There are several resources available detailing the administrative history of the country.
+                                Start in the present time and work yourself backwards.
+                                Each time you encounter a new date, register the date to the timeline.
+                                </p>
+                                <p>
+                                If the exact date is not known, then just set the date to the earliest
+                                possible date (e.g. 1st of the month, or 1st of january of the year).
+                                </p>
+                                <p>
+                                In cases where there is no documented history, the only way is to compare
+                                historical maps. In these cases the event of the date should be set to
+                                the newest map. 
+                                </p>
+                                <p>Some recommended sources:</p>
+                                <p style="font-size:medium; font-style:italic">
+                                <ul>
                                     <li>
-                                    <b>NewInfo</b>
-                                    Most changes simply involve changes to a province name or code. These events are handled
-                                    by simply noting the start-date of the existing modern province, and then adding a new province
-                                    that ends on that same date. Any subsequent changes involving that province will in turn result in
-                                    registering its start-date, before again adding the next historical iteration of that province.
-                                    <br><br>
-                                    </li>
-
-                                    <li>
-                                    <b>Splits</b>
-                                    If on a given date a split event was registered, this means that the current state of our boundary
-                                    dataset contains all the resulting breakaway
-                                    provinces and that these used to belong to a single large province. To
-                                    recreate this older province all we have to do is glue together the geometries of the provinces
-                                    that were registered as splitting away (incl. the remnants of the original province in case
-                                    the split was incomplete).
-                                    <br><br>
+                                    <a target="_blank" href="http://www.statoids.com">Statoids website</a>
                                     </li>
                                     
                                     <li>
-                                    <b>Transfers and Mergers</b>
-                                    The last type of change include events where a province receives territory from one or
-                                    more other provinces. 
-                                    If the receiving province was pre-existing then we are talking about a partial transfer of
-                                    territory. Since our boundary data represents the larger version of the province after it
-                                    received the territory, all that is needed is to cut off the piece that was received (based on a
-                                    cookie-cutter polygon that users draw when encountering such events) and glue it
-                                    back together to the province that originally gave away the territory.
-                                    The same principle applies if the receiving province did not previously exist but instead came
-                                    into existence as a result of two or more such transfers.
-                                    Finally, transfers can also involve the full transfer of entire provinces that afterwards cease to exist.
-                                    These are often known as mergers or annexations, but they are handled in the same way as other transfers
-                                    of territories: cut it off and give it back to its previous owner.
-                                    <br><br>
+                                    <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
                                     </li>
 
-                                    </ul>
+                                    <li>
+                                    <a target="_blank" href="http://www.zum.de/whkmla/">World History at KMLA</a>
+                                    </li>
 
-                                <li>
-                                Multiple complex configuratios of these changes can occur in a single event,
-                                and when processed in this way, the jigzaw puzzle of broken off parts and changing
-                                ownerships will reorganize itself to recreate how the provinces
-                                looked prior to the event.
-                                </li>
+                                    <li>
+                                    <a target="_blank" href="http://www.populstat.info/">Populstat website</a>
+                                    </li>
 
-                                <li>
-                                Through repeating this process we can reverse geocode our
-                                way back in time for as long as we have a continuous list of changes. 
-                                </li>
-
-                            </ol>
-
-                            <p>
-                            By having this automated system in place, this enables us to simplify the data collection strategy so that users
-                            only code the pieces of information or parts that changed (not performing the actual modifications).
-                            </p>
-
-                            <p>
-                            Doing these same iterative changes manually by hand would have 
-                            required that the reference dataset be chosen in advance, essentially
-                            locking in and tying down all the labor to that particular data, making it vulnerable to any particular
-                            errors or reconsiderations discovered later on.
-                            By focusing on replication and automation we can more efficiently 
-                            harness and reuse all the work put into the collective data collection. 
-                            </p>
+                                    <li>
+                                    <a target="_blank" href="http://www.worldstatesmen.org/">World Statesmen website</a>
+                                    </li>
+                                </ul>
+                                </p>
                                 
-                        </div>
+                                <h4>Administrative Levels</h4>
+                                <p>
+                                For each date, look for changes to the the first-level administrative areas,
+                                the highest level in a country.
+                                </p>
+                                <p>
+                                Some countries have a special administrative level between the national and
+                                1st level, often referred to as "regions". These tend to be so big that sometimes there are only two or three of them.
+                                In Pshapes we prefer to ignore these regions and instead focus on the level below. When in doubt follow
+                                a rule that they should be small enough to provide good variation within the country and big enough that it
+                                is feasible to get complete information on all of its changes.
+                                </p>
+                                <p>
+                                If unsure about the correct level, leave a comment.
+                                </p>
+                                
+                                <h4>Adding Events</h4>
+                                <p>
+                                On any given date, a province may experience one or more of the four basic event types:
+                                new information, mergers, transfers, and splits. An event may involve multiple individual
+                                changes, such as a province splitting into multiple new provinces. 
+                                </p>
+                                <p>
+                                To identify the province involved in an event, note that
+                                provinces are linked together via their name or any of their
+                                identifier codes, so try to keep these consistent with existing entries.
+                                </p>
+                                <p>
+                                For events where all provinces in a country experienced the same change, e.g.
+                                a country merged entirely into another country,
+                                you may set the name to * (star) to avoid having to register each province
+                                individually. 
+                                </p>
+                                
+                                <h4>Georeferencing Maps</h4>
+                                <p>
+                                For the vast majority of province changes we do not
+                                need to consult historical maps or use valuable time on geocoding.
+                                </p>
+                                <p>
+                                For some types of changes however there is simply no way around it. In these situations, namely mergers and
+                                partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. To do this you will
+                                need to find a historical map and georeference it at the <a target="_blank" href="http://mapwarper.net/">MapWarper website</a>.
+                                </p>
+
+                                <p>
+                                <p>Some recommended map sources:</p>
+                                <ul>
+                                """ + map_resources + """
+                                </ul>
+                                </p>
+                                
+                                <h4>What to do Include or Exclude</h4>
+                                <p>
+                                In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
+                                listed as partial territorial transfers and drawn roughly by hand.
+                                </p>
+                                <p>
+                                However, if the change seems very small,
+                                or if there are too many of these types of minor changes, it is okay to ignore most of them and only focus on
+                                the big changes.
+                                </p>
+                                
+                                <h4>Changes Between Countries</h4>
+                                <p>
+                                Sometimes you will come across cases where territory might be
+                                transferred to or change ownership from one country to another.
+                                Especially as you go further back in time you may encounter historical countries that don't exist anymore. 
+                                </p>
+                                <p>
+                                The way to code changes between countries is to
+                                register the event as usual, except changing the from-country field.
+                                </p>
+                                <p>
+                                For instance, for each of the ex-Soviet
+                                countries all of their provinces must be registered as changing info from the Soviet Union. The new country name
+                                as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
+                                </p>
+                                
+                                <h4>How To Define a Country</h4>
+                                <p>
+                                It might not always be clear what constitutes a country. At all times follow what seems to have been the most
+                                internationally recognized country-units and names. 
+                                </p>
+                                <p>
+                                For territories under foreign colonial rule, these should be
+                                coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
+                                changes in their official name, avoid changing the country name.
+                                </p>
+                                
+                                <h4>Finishing Up</h4>
+                                <p>
+                                If you are finished coding a country or believe it's not possible to code further
+                                back in time, then indicate this by adding the special "Begin" event.
+                                </p>
+                                <p>
+                                Set this for all provinces (name = *) with the date
+                                as the date beyond which we lack information about the administrative units.
+                                </p>
+                                <p>
+                                Begin events are important for reverse geocoding and visualizing provinces,
+                                especially for provinces that don't change much. 
+                                <p>
+                                Setting a Begin event does not not have to be final or definitive. It will always be possible to code a little further back in time, or others may sit on information
+                                that you don't have. When the situation changes, you may simply edit your own Begin event, or others
+                                may add their own Begin events. 
+                                </p>
+
+                    </div>
                             """
     bannerleft = about_menu
     custombanner = about_banner.format(left=bannerleft, right=bannerright)
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":about_grid,"custombanner":custombanner,"bannertitle":bannertitle}
                   )
+
 
 def about_contact(request):
     grids = []
@@ -762,26 +867,20 @@ def download(request):
     bannertitle = ""
     versiondate = ProvShape.objects.first().added
     bannerright = """
-                    <br>
-                    <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
+                    <br><br><br>
                     <div style="text-align:left">
-                        <p>
-                        Here we provide the latest historical boundary dataset that has been reverse-engineered
-                        using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
-                        <em>Natural Earth province boundaries</em></a>
-                        as the starting-point. 
-                        </p>
                         <p>Version: Alpha ({versiondate})</p>
+                        <p>
+                        License: Free for non-commercial use and attribution (CC3). 
+                        </p>
+                        <p>Citation: If you use these data, please cite:
+                            <ul>
+                                <li><em>
+                                Bahgat, Karim (YEAR). Pshapes Database of Historical Province Boundaries, version [VERSION]. Available at www.pshapes.org. Accessed [DATE ACCESSED]. 
+                                </em></li>
+                            </ul>
+                        </p>
                     </div>
-
-                    <br>
-                    <div style="text-align:right;">
-                        <a href="/download/final/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        <img height=20px src="https://www.picpng.com/image/view/63838">
-                        <b>Download Boundary Data</b>
-                        </a>
-                    </div>
-                    <br>
                     """.format(versiondate=versiondate)
 ##    bannerleft = """
 ##                    <div style="text-align:center; padding:20px">
@@ -789,64 +888,18 @@ def download(request):
 ##		    </div>
 ##		    """
     bannerleft = """
-	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
-
-            <div style="width:90%; height:40vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
-            </div>
-	
-	<script defer="defer">
-	var map = new OpenLayers.Map('map', {allOverlays: true,
-                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
-                                            controls: [],
-                                            });
-	</script>
-
-        <script>
-	// empty country layer
-	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
-					);
-	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([countryLayer]);
-        
-	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
-					);
-	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([provLayer]);
-
-        rendercountries = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		countries = geojson_format.read(geoj_str, "FeatureCollection");
-		
-		feats = [];
-		for (feat of countries) {
-                        feats.push(feat);
-		};
-		map.zoomToExtent([-170,70,180,-40]);
-		//map.zoomToExtent([-150,70,150,-70]);
-		//map.zoomToExtent([-80,30,80,-30]);
-		countryLayer.addFeatures(feats);
-	};
-
-        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
-
-        renderprovs = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-		
-		dateFeats = [];
-		for (feat of allProvs) {
-                        dateFeats.push(feat);
-		};
-		provLayer.addFeatures(dateFeats);
-	};
-
-        $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1}, renderprovs);
-        
-        </script>
-	"""
+                <br>
+                <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
+                    <img src="/static/pshapes pen2 transp.png" width="60%">
+                    <div style="text-align:left">
+                        <p>
+                        Here we provide the latest historical boundary dataset that has been reverse-engineered
+                        using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">
+                        <em>Natural Earth province boundaries</em></a>
+                        as the starting-point. 
+                        </p>
+                    </div>
+                """
 
 
 ##                                The Pshapes framework uses reverse polygon geocoding to interpret
@@ -854,47 +907,58 @@ def download(request):
 ##                                This tool is open-source and freely available to programmers,
 ##                                allowing users to create their own historical versions of any input province dataset.
 
-    grids.append(dict(title="Raw Data Dump", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
-                      content="""
-                                <b>
-                                The latest data dump of the user
-                                contributions data is always available on-demand. This is the raw data
-                                used to replicate or rebuild the pshapes dataset.
-
-                                <div style="text-align:center">
-                                <table style="padding-top:20px; width:100%">
-                                    <tr>
-                                        <td style="text-align:center"><a href="/download/raw/"><img width="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png"><p>CSV</p></a></td>
-                                        <td style="text-align:center"><img width="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png"><p>Manual</p></td>
-                                    </tr>
-                                </table>
-                                </div>
-
-                                </b>
-                               """,
-                      width="46%",
-                      ))
-
-    grids.append(dict(title="Building Your Own", # <img width="50%"
-                      content="""
-                                <b>
-                                <table>
-                                <tr>
-                                    <td>
-                                    The Pshapes framework uses reverse polygon geocoding to interpret
+    fields = ['','file','description','link']
+    downloadlist = [
+                    [
+                     '<img height=20px src="https://www.picpng.com/image/view/63838">',
+                     'Provinces',
+                     'The main dataset of historical province boundaries',
+                     '<a href="/download/final/">Download</a>',
+                     ],
+                    [
+                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
+                     'Provinces (Codebook)',
+                     'Codebook describing the main historical province data.',
+                     '<a href="/">Download</a>',
+                     ],
+                    [
+                     '<img height=20px src="https://www.picpng.com/image/view/63838">',
+                     'Countries',
+                     'Country boundaries derived from historical provinces',
+                     '<a href="/">Download</a>',
+                     ],
+                    [
+                     '<img height="20px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">',
+                     'Raw Change Data',
+                     'The latest data dump of the user contributions data is always available on-demand. This is the raw data used to replicate or rebuild the pshapes dataset.',
+                     '<a href="/download/raw/">Download</a>',
+                     ],
+                    [
+                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
+                     'Raw Change Data (Codebook)',
+                     'Codebook describing the latest data dump of the user contributions data.',
+                     '<a href="/">Download</a>',
+                     ],
+                    [
+                     '<img height="20px" src="https://image.flaticon.com/icons/svg/25/25231.svg">',
+                     'Replication Code',
+                     '''            The Pshapes framework uses reverse polygon geocoding to interpret
                                     the user-contributed data and create the final historical boundary dataset.
                                     This tool is open-source and freely available to programmers,
                                     allowing users to create their own historical versions of any input province dataset.
-                                    </td>
+                                    ''',
+                     '<a href="https://github.com/karimbahgat/pshapes">Download</a>',
+                     ],
+                    ]
+    downloadlist = [('',row) for row in downloadlist]
 
-                                    <td style="text-align:center"><a href="https://github.com/karimbahgat/pshapes"><img width="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg"><p>GitHub</p></a></td>
+    downloadtable = lists2table(request, downloadlist, fields)
 
-                                </table>
-                                </tr>
-                                </b>
-                                """,
-                      width="46%",
-                      ))                      
+    grids.append(dict(title="File Downloads", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
+                      content=downloadtable,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="95%",
+                      ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
