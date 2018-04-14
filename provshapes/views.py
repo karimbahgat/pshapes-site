@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.gis import forms
 from django.contrib.gis.geos import Polygon, MultiPolygon
 
-from .models import ProvShape
+from .models import ProvShape, CntrShape
 
 from rest_framework import response
 from rest_framework import decorators
@@ -34,6 +34,10 @@ def update_dataset(request):
                 if not props['start'] or props['start']=='None':
                     print 'missing start date, not adding:', props
                     continue
+
+                if props['country'] not in 'Cameroon Nigeria':
+                    continue # temp dropping
+                
                 values = dict(name=props['name'],
                               alterns='|'.join(props['alterns']),
                               country=props['country'],
@@ -71,6 +75,34 @@ def update_dataset(request):
                     provshape.save()
                 
             print 'provshapes updated!'
+
+            # update countries
+            for f in ProvShape.objects.distinct('country'):
+                cntr = f.country
+                print 'country:', cntr
+                feats = ProvShape.objects.filter(country=cntr)
+                dates = sorted(set( [f.start for f in feats] + [f.end for f in feats] ))
+                for start,end in zip(dates[:-1], dates[1:]):
+                    print start,end
+                    datefeats = feats.filter(start__lte=start, end__gte=start)
+                    print len(list(datefeats))
+                    geoms = (f.geom.buffer(0.000001) for f in datefeats)
+                    first = next(geoms)
+                    union = reduce(lambda prev,nxt: prev.union(nxt), geoms, first)
+                    print 'bbox',union.extent
+                    for tolerance in [0.2,0.1,0]:
+                        geom = union.simplify(tolerance, preserve_topology=True)
+                        if geom.geom_type == 'Polygon':
+                            geom = MultiPolygon([geom])
+                        cntrshape = CntrShape(name=cntr,
+                                          start=start,
+                                          end=end,
+                                          simplify=tolerance,
+                                          geom=geom,
+                                          geoj=geom.geojson,)
+                        cntrshape.save()
+
+            print 'countries updated!'
             
         t = threading.Thread(target=work)
         t.daemon = True
@@ -86,9 +118,15 @@ def update_dataset(request):
 def apiview(request):
     print request.query_params
     print "------"
-    queryset = ProvShape.objects.all()
-
     params = dict(((k,v) for k,v in request.query_params.items() if v))
+
+    getlvl = int(float(params.pop('getlevel', 1)))
+    if getlvl == 1:
+        queryset = ProvShape.objects.all()
+    elif getlvl == 0:
+        queryset = CntrShape.objects.all()
+    else:
+        raise Exception('getlevel must be 0 (countries) or 1 (provinces)')
 
     frmt = params.pop('format', None)
 
@@ -119,45 +157,82 @@ def apiview(request):
         box = Polygon.from_bbox(bbox)
         queryset = queryset.filter(geom__bboverlaps=box)
 
-    # attribute filtering
-    print 'apiparams',params
-    # special name search
-    if 'name' in params:
-        queryset = queryset.filter(name__icontains=params['name']) | queryset.filter(alterns__icontains=params['name'])
-    # add remaining conditions
-    restdict = dict(((k,v) for k,v in params.items() if k!='name'))
-    if restdict:
-        queryset = queryset.filter(**restdict)
+    if getlvl == 1:
+        # attribute filtering
+        print 'apiparams',params
+        # special name search
+        if 'name' in params:
+            queryset = queryset.filter(name__icontains=params['name']) | queryset.filter(alterns__icontains=params['name'])
+        # add remaining conditions
+        restdict = dict(((k,v) for k,v in params.items() if k!='name'))
+        if restdict:
+            queryset = queryset.filter(**restdict)
 
-    import time
-    t=time.time()
+        import time
+        t=time.time()
 
-    # convert to json
-    fields = ['geoj','name','alterns','country','iso','fips','hasc','start','end']
-        
-    jsondict = dict(type='FeatureCollection', features=[])
-    for props in queryset.values(*fields):
-        props['start'] = props['start'].isoformat()
-        props['end'] = props['end'].isoformat()
+        # convert to json
+        fields = ['geoj','name','alterns','country','iso','fips','hasc','start','end']
+            
+        jsondict = dict(type='FeatureCollection', features=[])
+        for props in queryset.values(*fields):
+            props['start'] = props['start'].isoformat()
+            props['end'] = props['end'].isoformat()
 
-        geojstring = props.pop('geoj')
-        geoj = json.loads(geojstring)
+            geojstring = props.pop('geoj')
+            geoj = json.loads(geojstring)
 
-        # NOTE: wkt or hex is way faster than real-time geojson (ca 75%)
-        # TODO: maybe consider using that in future...
-        #geoj = geom.wkt #.hex
+            # NOTE: wkt or hex is way faster than real-time geojson (ca 75%)
+            # TODO: maybe consider using that in future...
+            #geoj = geom.wkt #.hex
 
-        #print str(geoj)[:200]
-        fdict = dict(type='Feature', properties=props, geometry=geoj)
-        jsondict['features'].append(fdict)
+            #print str(geoj)[:200]
+            fdict = dict(type='Feature', properties=props, geometry=geoj)
+            jsondict['features'].append(fdict)
 
-##    from django.core.serializers import serialize
-##    jsondict = serialize('geojson', queryset,
-##                          geometry_field='geom',
-##                          #fields=('name',))
-##                         )
-        
-    print time.time()-t
+    ##    from django.core.serializers import serialize
+    ##    jsondict = serialize('geojson', queryset,
+    ##                          geometry_field='geom',
+    ##                          #fields=('name',))
+    ##                         )
+            
+        print time.time()-t
+
+    elif getlvl == 0:
+
+        import time
+        t=time.time()
+
+        # convert to json
+        fields = ['geoj','name','start','end']
+            
+        jsondict = dict(type='FeatureCollection', features=[])
+        for props in queryset.values(*fields):
+            props['start'] = props['start'].isoformat()
+            props['end'] = props['end'].isoformat()
+
+            geojstring = props.pop('geoj')
+            geoj = json.loads(geojstring)
+
+            # NOTE: wkt or hex is way faster than real-time geojson (ca 75%)
+            # TODO: maybe consider using that in future...
+            #geoj = geom.wkt #.hex
+
+            #print str(geoj)[:200]
+            fdict = dict(type='Feature', properties=props, geometry=geoj)
+            jsondict['features'].append(fdict)
+
+    ##    from django.core.serializers import serialize
+    ##    jsondict = serialize('geojson', queryset,
+    ##                          geometry_field='geom',
+    ##                          #fields=('name',))
+    ##                         )
+            
+        print time.time()-t
+
+
+
+
     
 ##    # to raw string
 ##    raw = json.dumps(jsondict)

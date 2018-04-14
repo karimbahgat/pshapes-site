@@ -22,4 +22,18 @@ class ProvShape(models.Model):
     objects = models.GeoManager()
 
 
+class CntrShape(models.Model):
+    added = models.DateField(auto_now_add=True, null=True)
+    
+    name = models.CharField(max_length=100)
+    start = models.DateField()
+    end = models.DateField()
+
+    simplify = models.FloatField(db_index=True, null=True) # allows varying levels of detail
+    geom = models.MultiPolygonField(srid=4326)
+    geoj = models.TextField(null=True) # precomputed geojson string
+    
+    objects = models.GeoManager()
+
+
 

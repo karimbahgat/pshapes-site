@@ -910,7 +910,7 @@ def download(request):
     fields = ['','file','description','link']
     downloadlist = [
                     [
-                     '<img height=20px src="https://www.picpng.com/image/view/63838">',
+                     '<img height=25px src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQebLjy1yWNmGNbtjqdSUHM6m33dl1Rl0aacL0nYcJ-oBJi5mSf">',
                      'Provinces',
                      'The main dataset of historical province boundaries',
                      '<a href="/download/final/">Download</a>',
@@ -922,13 +922,13 @@ def download(request):
                      '<a href="/">Download</a>',
                      ],
                     [
-                     '<img height=20px src="https://www.picpng.com/image/view/63838">',
+                     '<img height=25px src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQebLjy1yWNmGNbtjqdSUHM6m33dl1Rl0aacL0nYcJ-oBJi5mSf">',
                      'Countries',
                      'Country boundaries derived from historical provinces',
                      '<a href="/">Download</a>',
                      ],
                     [
-                     '<img height="20px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">',
+                     '<img height="25px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">',
                      'Raw Change Data',
                      'The latest data dump of the user contributions data is always available on-demand. This is the raw data used to replicate or rebuild the pshapes dataset.',
                      '<a href="/download/raw/">Download</a>',
