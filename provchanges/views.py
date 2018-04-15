@@ -1289,16 +1289,22 @@ def allcountries(request):
             var name = feature.attributes.name;
             window.location.href = "/contribute/view/"+name;
         };
-        selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc} );
+        function highlightfunc(feature) {
+            //alert('hover');
+            feature.style = {fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:'white'}
+            provLayer.redraw();
+        };
+        function unhighlightfunc(feature) {
+            //alert('unhover');
+            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'}
+            provLayer.redraw();
+        };
+        selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc,
+                                                                        callbacks: {over:highlightfunc,
+                                                                                    out:unhighlightfunc}
+                                                                        } );
         map.addControl(selectControl);
         selectControl.activate();
-
-
-
-
-
-
-
 
         $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1, getlevel:0}, renderprovs);
         
@@ -1373,8 +1379,7 @@ def allcountries(request):
                                 
                                 <p>
                                 Read <a href="/about/tutorial">the tutorial</a> for a brief walkthrough of how it works,
-                                or get started right away by choosing a country from
-                                the list below.
+                                or get started right away by choosing a country from the map or list below.
                                 </p>
                         </div>
                         """
