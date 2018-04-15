@@ -219,9 +219,9 @@
                                                      });
 
                 // background country layer
-                var style = new OpenLayers.Style({fillColor:"rgb(244,244,244)", strokeWidth:0.4, strokeColor:'rgb(177,177,177)'},
+                var style = new OpenLayers.Style({fillColor:"rgb(178,170,159)", strokeWidth:0.4, strokeColor:'rgb(127,127,127)'},
                                                 );
-                var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+                var countryLayer = new OpenLayers.Layer.Vector("Countries", {styleMap:style});
                 map.addLayers([countryLayer]);
                 rendercountries = function(data) {
                         var geojson_format = new OpenLayers.Format.GeoJSON();
@@ -242,21 +242,76 @@
                 map.zoomToMaxExtent();
                 </script>
 
+
+
+
+
+                
+
                 <script>
 
+                // country borders and labels
+                var countryBorderStyle = new OpenLayers.Style( {fillOpacity:0.7, fillColor:"rgb(62,95,146)", strokeWidth:1.0, strokeColor:'white'} );
+                var countryBorderLayer = new OpenLayers.Layer.Vector("CountryBorders", {styleMap:countryBorderStyle});
+                
+                var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
+                                                       fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
+                                                       fontSize:"${getFontSize}", label:"${getLabel}"}, 
+                                                        {context: {
+                                                                        getLabel: function(feature) {
+                                                                                return feature.attributes.country.toUpperCase();
+                                                                                },
+                                                                        getFontSize: function(feature) {
+                                                                                if (map.resolution < 0.06) {
+                                                                                    return 19;
+                                                                                } else if (map.resolution < 0.12) {
+                                                                                    return 10;
+                                                                                } else if (map.resolution < 0.25) {
+                                                                                    return 4;
+                                                                                } else {
+                                                                                    return 0.01;
+                                                                                }
+                                                                        },
+                                                                    },
+                                                        })
+                
+                var countryLabelLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:countryLabelStyle});
+                
+                label_countries = function() {
+                    // drop previous
+                    countryLabelLayer.removeAllFeatures();
+                    
+                    // add to layer
+                    var feats = [];
+                    for (f of document.countryBorders) {
+                        var bounds = f.geometry.getBounds();
+                        var cntr = f.attributes.name;
+                        var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
+                                                             {country:cntr});
+                        feats.push(feat);
+                    };
+                    countryLabelLayer.addFeatures(feats);
+                };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 // empty province layer
-                var style = new OpenLayers.Style({fillColor:"${getColor}", fillOpacity:0.5, strokeWidth:0.4},
-                                                                                        {context: {
-                                                                                                        getColor: function(feature) {
-                                                                                                                return document.countryColors[feature.attributes.country];
-                                                                                                        },
-                                                                                                }
-                                                                                        });
+                var style = new OpenLayers.Style({fillOpacity:1, fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:"rgb(200,200,200)"});
                 var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-                map.addLayers([provLayer]);
 
                 // province centers
-                var provLabelStyle = new OpenLayers.Style({fillOpacity:0, fontSize:"${getFontSize}", label:"${getLabel}"},
+                var provLabelStyle = new OpenLayers.Style({fillColor:"rgb(62,95,146)", fontSize:"${getFontSize}", label:"${getLabel}"},
                                                                                         {context: {
                                                                                                         getLabel: function(feature) {
                                                                                                                 if (map.resolution < 0.04) {
@@ -276,7 +331,6 @@
                                                                                                                 }}
                                                                                                         }})
                 var provLabelLayer = new OpenLayers.Layer.Vector("ProvinceCenters", {styleMap:provLabelStyle});
-                map.addLayers([provLabelLayer]);
 
                 function getMaxPoly(polys) {
                       // https://stackoverflow.com/questions/37306548/how-to-show-one-label-per-multi-polygon-in-open-layers-3
@@ -318,85 +372,72 @@
                 };
                 
                 // how to render data
-                renderdata = function(data) {
+                renderProvs = function(data) {
                         var geojson_format = new OpenLayers.Format.GeoJSON();
                         var geoj_str = JSON.stringify(data);
                         document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-                        var date = document.getElementById('datetext').value;
-                        draw_borders(date);
-                        label_countries();
+                        
+                        // drop previous
+                        provLayer.removeAllFeatures();
+                        // select provs by date
+                        dateFeats = [];
+                        for (feat of document.allProvs) {
+                                dateFeats.push(feat);
+                        };
+                        // add to layer
+                        provLayer.addFeatures(dateFeats);
+
                         label_provs();
                 };
+                renderCountries = function(data) {
+                        var geojson_format = new OpenLayers.Format.GeoJSON();
+                        var geoj_str = JSON.stringify(data);
+                        document.countryBorders = geojson_format.read(geoj_str, "FeatureCollection");
 
-                // country centers
-                var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
-                                                       fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
-                                                       fontSize:"${getFontSize}", label:"${getLabel}"}, 
-                                                        {context: {
-                                                                        getLabel: function(feature) {
-                                                                                return feature.attributes.country.toUpperCase();
-                                                                                },
-                                                                        getFontSize: function(feature) {
-                                                                                if (map.resolution < 0.06) {
-                                                                                    return 19;
-                                                                                } else if (map.resolution < 0.12) {
-                                                                                    return 10;
-                                                                                } else if (map.resolution < 0.25) {
-                                                                                    return 4;
-                                                                                } else {
-                                                                                    return 0.01;
-                                                                                }
-                                                                        },
-                                                                    },
-                                                        })
-                
-                var cntrLayer = new OpenLayers.Layer.Vector("CountryCenters", {styleMap:countryLabelStyle});
-                map.addLayers([cntrLayer]);
-                
-                label_countries = function() {
-                    // drop previous
-                    cntrLayer.removeAllFeatures();
-                    
-                    // calc bbox for each country
-                    var cntrBox = {};
-                    for (feat of document.allProvs) {
-                        bounds = feat.geometry.getBounds();
-                        if (!bounds) { continue; }
-                        if ( !(feat.attributes.country in cntrBox)) {
-                            cntrBox[feat.attributes.country] = bounds;
-                        } else {
-                            cntrBox[feat.attributes.country].extend(bounds);
+                        // drop previous
+                        countryBorderLayer.removeAllFeatures();
+                        // select provs by date
+                        dateFeats = [];
+                        for (feat of document.countryBorders) {
+                                dateFeats.push(feat);
                         };
-                    };
+                        // add to layer
+                        countryBorderLayer.addFeatures(dateFeats);
 
-                    // add to layer
-                    var feats = [];
-                    for (cntr of Object.keys(cntrBox)) {
-                        var bounds = cntrBox[cntr];
-                        var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
-                                                             {country:cntr});
-                        feats.push(feat);
-                    };
-                    cntrLayer.addFeatures(feats);
+                        label_countries();
                 };
+
+
+
+
+
+
+
+                map.addLayers([countryBorderLayer]);
+                map.addLayers([provLayer]);
+                map.addLayers([provLabelLayer]);
+                map.addLayers([countryLabelLayer]);
+
+
+
+
+
+                
 
                 // initiate map
                 onstartup = function(data) {
-                        var geojson_format = new OpenLayers.Format.GeoJSON();
-                        var geoj_str = JSON.stringify(data);
-                        document.allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-                        var date = document.getElementById('datetext').value;
-                        draw_borders(date);
-                        label_countries();
-                        label_provs();
-                        map.zoomToExtent(provLayer.getDataExtent());
-                };
+                    renderCountries(data);
+                    // map.zoomToExtent(provLayer.getDataExtent());
+                    }
                 var date = document.getElementById('datetext').value;
                 var year = date.split("-")[0]
                 var month = date.split("-")[1]
                 var day = date.split("-")[2]
                 var datadict = Object.assign({}, {format:"json", simplify:0.2, year:year, month:month, day:day}, {{ getparams|safe }});
-                $.getJSON("/api/", datadict, onstartup);
+                var apiurl = "/api/";
+                datadict['simplify'] = 0.2;
+                datadict['getlevel'] = 0
+                $.getJSON(apiurl, datadict, onstartup);
 
                 // load data func
                 function loaddata() {
@@ -413,50 +454,37 @@
                         //alert(map.resolution);
                         if (map.resolution >= 0.17) {
                             datadict['simplify'] = 0.2;
-                            $.getJSON(apiurl, datadict, renderdata);
+                            datadict['getlevel'] = 0;
+                            provLayer.removeAllFeatures();
+                            $.getJSON(apiurl, datadict, renderCountries);
                         } else if (map.resolution >= 0.08) {
                             datadict['simplify'] = 0.1;
-                            $.getJSON(apiurl, datadict, renderdata);
+                            datadict['getlevel'] = 0;
+                            provLayer.removeAllFeatures();
+                            $.getJSON(apiurl, datadict, renderCountries);
                         } else if (map.resolution >= 0.04) {
+                            datadict['simplify'] = 0.1;
+                            datadict['getlevel'] = 0;
+                            $.getJSON(apiurl, datadict, renderCountries);
                             datadict['simplify'] = 0.05;
-                            $.getJSON(apiurl, datadict, renderdata);
+                            datadict['getlevel'] = 1;
+                            $.getJSON(apiurl, datadict, renderProvs);
                         } else if (map.resolution >= 0.02) {
+                            datadict['simplify'] = 0;
+                            datadict['getlevel'] = 0;
+                            $.getJSON(apiurl, datadict, renderCountries);
                             datadict['simplify'] = 0.025;
-                            $.getJSON(apiurl, datadict, renderdata);
+                            datadict['getlevel'] = 1;
+                            $.getJSON(apiurl, datadict, renderProvs);
                         } else {
-                            $.getJSON(apiurl, datadict, renderdata);
+                            datadict['getlevel'] = 0
+                            $.getJSON(apiurl, datadict, renderCountries);
+                            datadict['getlevel'] = 1
+                            $.getJSON(apiurl, datadict, renderProvs);
                         };
                 };
                 map.events.register("zoomend", map, loaddata);
                 map.events.register("moveend", map, loaddata);
-
-                // assign random colors to each country
-                document.countryColors = {};
-                
-                function getRandomColor(){
-                        var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
-                        return color;
-                };
-
-                // define drawing function
-                function draw_borders(date) {
-                
-                        // drop previous provs
-                        provLayer.removeAllFeatures();
-                        
-                        // select provs by date
-                        dateFeats = [];
-                        for (feat of document.allProvs) {
-                                if ( ! (feat.attributes.country in document.countryColors)) {
-                                        // assign random color for country
-                                        document.countryColors[feat.attributes.country] = getRandomColor();
-                                };
-                                dateFeats.push(feat);
-                        };
-                        
-                        // add to layer
-                        provLayer.addFeatures(dateFeats);
-                };
                 
                 </script>
 
@@ -464,32 +492,30 @@
             </div>
         </div>
 
-        <div class="rightside" style="display:inline-block; width:25%; vertical-align:top; margin:20px">
-            <form style="text-align:center; font-weight:bold;" action="/explore/" method="get">
+        <div class="rightside" style="text-align:center; vertical-align:top; margin:20px">
+            <form style="font-weight:bold;" action="/explore/" method="get">
 
-            <h2>Search the Database</h2>
-            
-            <table style="background-color:red">
+            <div>
+            <table align="center" style="background-color:red; width:auto">
                 <tr style="background-color:black">
                 <td>{{ searchform.country.label }}</td>
                 <td>{{ searchform.country }}</td>
-                </tr>
-
-                <tr style="background-color:black">
                 <td>{{ searchform.name.label }}</td>
                 <td>{{ searchform.name }}</td>
+                <td>
+                    <div style="display:inline-block;">
+                    <input id="searchbutton" type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
+                    </div>
+                </td>
                 </tr>
             </table>
+            </div>
 
             <script>
             submitsearch = function() {
                     document.getElementById("searchbutton").click();
                 }
             </script>
-            
-            <div style="padding:10px; display:inline-block;">
-                <input id="searchbutton" type="submit" value="Search" style="background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px;">
-            </div>
 
             </form>
         </div>

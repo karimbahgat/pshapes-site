@@ -890,8 +890,8 @@ def download(request):
     bannerleft = """
                 <br>
                 <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
-                    <img src="/static/pshapes pen2 transp.png" width="60%">
-                    <div style="text-align:left">
+                    <img src="/static/earth silhouette.jpg" width="80%">
+                    <div style="text-align:left; clear:both">
                         <p>
                         Here we provide the latest historical boundary dataset that has been reverse-engineered
                         using the <a target="_blank" style="color:white;" href="http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/">

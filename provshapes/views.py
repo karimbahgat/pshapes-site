@@ -35,8 +35,8 @@ def update_dataset(request):
                     print 'missing start date, not adding:', props
                     continue
 
-                if props['country'] not in 'Cameroon Nigeria':
-                    continue # temp dropping
+##                if props['country'] not in 'Cameroon Nigeria':
+##                    continue # temp dropping
                 
                 values = dict(name=props['name'],
                               alterns='|'.join(props['alterns']),
@@ -77,30 +77,38 @@ def update_dataset(request):
             print 'provshapes updated!'
 
             # update countries
+            CntrShape.objects.all().delete()
             for f in ProvShape.objects.distinct('country'):
                 cntr = f.country
                 print 'country:', cntr
-                feats = ProvShape.objects.filter(country=cntr)
+                feats = ProvShape.objects.filter(country=cntr, simplify=0)
                 dates = sorted(set( [f.start for f in feats] + [f.end for f in feats] ))
+                prevarea = None
                 for start,end in zip(dates[:-1], dates[1:]):
                     print start,end
-                    datefeats = feats.filter(start__lte=start, end__gte=start)
+                    datefeats = feats.filter(start__lte=start, end__gt=start)
                     print len(list(datefeats))
-                    geoms = (f.geom.buffer(0.000001) for f in datefeats)
+                    geoms = (f.geom for f in datefeats)
                     first = next(geoms)
                     union = reduce(lambda prev,nxt: prev.union(nxt), geoms, first)
-                    print 'bbox',union.extent
-                    for tolerance in [0.2,0.1,0]:
-                        geom = union.simplify(tolerance, preserve_topology=True)
-                        if geom.geom_type == 'Polygon':
-                            geom = MultiPolygon([geom])
-                        cntrshape = CntrShape(name=cntr,
-                                          start=start,
-                                          end=end,
-                                          simplify=tolerance,
-                                          geom=geom,
-                                          geoj=geom.geojson,)
-                        cntrshape.save()
+                    union = union.buffer(0.001).buffer(-0.001)
+                    area = union.area
+                    if area != prevarea:
+                        prevarea = area
+                        print 'bbox',union.extent
+                        for tolerance in [0.2,0.1,0]:
+                            geom = union.simplify(tolerance, preserve_topology=True)
+                            if geom.geom_type == 'Polygon':
+                                geom = MultiPolygon([geom])
+                            cntrshape = CntrShape(name=cntr,
+                                              start=start,
+                                              end=end,
+                                              simplify=tolerance,
+                                              geom=geom,
+                                              geoj=geom.geojson,)
+                            cntrshape.save()
+                    else:
+                        print 'no geo change'
 
             print 'countries updated!'
             

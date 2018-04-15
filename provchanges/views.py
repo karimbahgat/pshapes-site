@@ -1295,6 +1295,11 @@ def allcountries(request):
 
 
 
+
+
+
+
+
         $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1, getlevel:0}, renderprovs);
         
         </script>
