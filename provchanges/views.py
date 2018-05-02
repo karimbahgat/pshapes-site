@@ -55,11 +55,11 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = 'user country changeid added status title text'.split()
         widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
-                   'user':forms.HiddenInput(),
-                   'country':forms.HiddenInput(),
-                   'changeid':forms.HiddenInput(),
-                   'added':forms.HiddenInput(),
-                   'status':forms.HiddenInput(),
+##                   'user':forms.HiddenInput(),
+##                   'country':forms.HiddenInput(),
+##                   'changeid':forms.HiddenInput(),
+##                   'added':forms.HiddenInput(),
+##                   'status':forms.HiddenInput(),
                    }
 
 class ReplyForm(forms.ModelForm):
@@ -76,24 +76,201 @@ class ReplyForm(forms.ModelForm):
                    'status':forms.HiddenInput(),
                    }
 
+def topics2html(request, allcomments, country, changeid=None, commentheadercolor="orange"):
+    fields = ["title","user","added"]
+    
+    lists = []
+    for c in allcomments.distinct('title'):
+        title = c.title
+        print title
+        comments = allcomments.filter(title=title).order_by("added")
+        first = comments[0]
+        rowdict = dict([(f,getattr(first, f, "")) for f in fields])
+        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        row = [rowdict[f] for f in fields]
+        replies = len(comments) - 1
+        row += [replies]
+        link = "/viewcomment?title=%s&country=%s" % (title,country)
+        if changeid:
+            link += '&changeid=%s' % changeid
+        lists.append((link,row))  
+
+    print lists
+    
+    html = lists2table(request, lists, fields + ['replies'], classname="topicstable", color=commentheadercolor)
+    
+    return html
+
 @login_required
 def addcomment(request):
-    data = request.POST
-    if data.get('changeid'):
-        # change-specific comment
-        commentinst = Comment(user=request.user.username, country=data['country'], changeid=data['changeid'],
-                            added=datetime.datetime.now(),
-                              title=data['title'], text=data['text'])
-        commentinst.save()
-        print 'change-specific comment added'
-    else:
-        # country comment
-        commentinst = Comment(user=request.user.username, country=data['country'],
-                            added=datetime.datetime.now(),
-                              title=data['title'], text=data['text'])
-        commentinst.save()
-        print 'country comment added'
-    return redirect(request.META['HTTP_REFERER'])
+    if request.method == 'POST':
+        data = request.POST
+        if data.get('changeid'):
+            # change-specific comment
+            commentinst = Comment(user=request.user.username, country=data['country'], changeid=data['changeid'],
+                                added=datetime.datetime.now(),
+                                  title=data['title'], text=data['text'])
+            commentinst.save()
+            print 'change-specific comment added'
+            params = dict(title=data['title'], country=data['country'], changeid=data['changeid'])
+            return redirect('/viewcomment?' + urlencode(params) )
+        else:
+            # country comment
+            commentinst = Comment(user=request.user.username, country=data['country'],
+                                added=datetime.datetime.now(),
+                                  title=data['title'], text=data['text'])
+            commentinst.save()
+            print 'country comment added'
+            params = dict(title=data['title'], country=data['country'])
+            return redirect('/viewcomment?' + urlencode(params) )
+    
+    elif request.method == 'GET':
+        grids = []
+
+        templ = '''
+        	<h4 style="clear:both; margin-left:20px">New Topic:</h4>
+		<div style="margin-left:60px">
+                    <form action="/addcomment/" method="post">
+                    {% csrf_token %}
+
+                    <p>
+                    {{ new_comment.title.label }}
+                    {{ new_comment.title }}
+                    </p>
+                    
+                    <p>
+                    {{ new_comment.text.label }}
+                    {{ new_comment.text }}
+                    </p>
+
+                    {{ new_comment.country.as_hidden }}
+                    {{ new_comment.changeid.as_hidden }}
+                    
+                    <input type="submit" value="Comment" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    </form>
+		</div>
+		'''
+
+        # new comm
+        # SHOW EXTRA STUFF FOR COUNTRY AND CHANGE SPECIFIC
+        # MAKE SURE IS SENT TO POST
+        country = request.GET.get('country')
+        changeid = request.GET.get('changeid')
+        addcommentobj = Comment(user=request.user.username, country=country, changeid=changeid,
+                                added=datetime.datetime.now())
+        new_comment = CommentForm(instance=addcommentobj)
+        content = Template(templ).render(RequestContext(request, {'new_comment':new_comment}))
+		
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,
+                                                        "nomainbanner":True}
+                          )
+
+@login_required
+def editcomment(request, pk):
+    if request.method == 'POST':
+        obj = get_object_or_404(Comment, pk=pk)
+
+        comments = Comment.objects.filter(title=obj.title, country=obj.country, changeid=obj.changeid, status="Active").order_by("added")
+        
+        fields = [f.name for f in Comment._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues['changeid'] = int(formfieldvalues['changeid']) if formfieldvalues['changeid'] else None
+        print formfieldvalues
+        for k,v in formfieldvalues.items():
+            setattr(obj, k, v)
+        obj.save()
+
+        for c in comments:
+            c.title = obj.title
+            c.country = obj.country
+            c.changeid = obj.changeid
+            c.save()
+        
+        params = dict(title=obj.title, country=obj.country)
+        if obj.changeid:
+            params['changeid'] = obj.changeid
+        return redirect("/viewcomment?" + urlencode(params) )
+        
+    elif request.method == 'GET':
+        grids = []
+
+        templ = '''
+        	<h4 style="clear:both; margin-left:20px">Edit Topic:</h4>
+		<div style="margin-left:60px">
+                    <form action="/editcomment/{{ pk }}/" method="post">
+                    {% csrf_token %}
+
+                    <p>
+                    {{ edit_comment.country.label }}
+                    {{ edit_comment.country }}
+                    </p>
+
+                    <p>
+                    {{ edit_comment.changeid.label }}
+                    {{ edit_comment.changeid }}
+                    </p>
+
+                    <p>
+                    {{ edit_comment.title.label }}
+                    {{ edit_comment.title }}
+                    </p>
+                    
+                    <p>
+                    {{ edit_comment.text.label }}
+                    {{ edit_comment.text }}
+                    </p>
+                    
+                    <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    </form>
+		</div>
+		'''
+
+        # new comm
+        # SHOW EXTRA STUFF FOR COUNTRY AND CHANGE SPECIFIC
+        # MAKE SURE IS SENT TO POST
+        comment = get_object_or_404(Comment, pk=pk)
+        edit_comment = CommentForm(instance=comment)
+        content = Template(templ).render(RequestContext(request, {'edit_comment':edit_comment, 'pk':pk}))
+		
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+
+        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,
+                                                        "nomainbanner":True}
+                          )
+
+def viewcomment(request):
+    title = request.GET['title']
+    country = request.GET.get('country','')
+    changeid = request.GET.get('changeid',None)
+    commentheadercolor = 'rgb(27,138,204)'
+    
+    topics = []
+    comments = Comment.objects.filter(title=title, country=country, changeid=changeid, status="Active").order_by("added")
+    print title
+    fields = ["added","user","text","withdraw","status"]
+    rows = []
+    for c in comments:
+        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+        rowdict['pk'] = c.pk
+        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rows.append(rowdict)
+    addreplyobj = Comment(user=request.user.username, country=country, changeid=changeid,
+                            added=datetime.datetime.now(), title=title)
+    replyform = ReplyForm(instance=addreplyobj).as_p()
+    rendered = render(request, 'provchanges/viewdiscussion.html', {'title':title, 'comments':rows, 'replyform':replyform, 'commentheadercolor':commentheadercolor, 'country':country, 'changeid':changeid})
+    return rendered
+
+
 
 @login_required
 def dropcomment(request, pk):
@@ -1444,7 +1621,6 @@ def allcountries(request):
     content = """
                 {countriestable}
                 <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                </div>
                 """.format(countriestable=countriestable)
     grids.append(dict(title="Countries:",
                       content=content,
@@ -1454,8 +1630,15 @@ def allcountries(request):
 
     # comments
     allcomments = Comment.objects.filter(country='', changeid=None, status="Active")
-    content = '<br><br><hr><h3 id="comments"><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">General Discussions:</h3>'
-    content += '<div style="margin-left:2%%"> %s </div>' % comments2html(request, allcomments, '', None, 'rgb(27,138,204)')
+    
+    topicstable = topics2html(request, allcomments, '', None, 'rgb(27,138,204)')
+
+    content = """
+                <br><br><hr><h4 id="comments">General Discussion:</h4>
+                {topicstable}
+                <br><div width="100%" style="text-align:center"><a href="/addcomment" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(topicstable=topicstable)
+
     grids.append(dict(title="",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -1800,7 +1983,7 @@ def viewcountry(request, country):
                 commentitem = '''
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px/>
+                            <img src="/static/comment.png" height=25px/>
                             </div>
                             '''.format(comments=comments)
             else:
@@ -1811,7 +1994,7 @@ def viewcountry(request, country):
                 vouchitem = '''
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px/>
+                            <img src="/static/vouch.png" height=30px/>
                             </div>
                             '''.format(vouches=vouches)
             else:
@@ -1900,7 +2083,7 @@ def viewcountry(request, country):
 
         content = '''<hr>
                     <h3 id="timeline">
-                        <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
+                        <img src="/static/time.svg" height="40px">
                         Timeline:
                         <a style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/contribute/add/{country}">New Date</a>
                     </h3>'''.format(country=urlquote(country))
@@ -1971,7 +2154,7 @@ def viewcountry(request, country):
         content = '''<br><br>
                     <hr>
                      <h3 id="sources">
-                         <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+                         <img src="/static/source.png" height="40px">
                          Sources:
                     </h3>
                     <div style="margin-left:2%">
@@ -2025,10 +2208,10 @@ def viewcountry(request, country):
                     wmslink = WMS_Helper(wms).image_url(height=50)
                     imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
                 except:
-                    wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+                    wmslink = "/static/map.png"
                     imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             else:
-                wmslink = "http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"
+                wmslink = "/static/map.png"
                 imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
             row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
@@ -2039,7 +2222,7 @@ def viewcountry(request, country):
         content = '''<br><br>
                     <hr>
                      <h3 id="maps">
-                         <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
+                         <img src="/static/map.png" height="40px">
                          Maps:
                     </h3>
                     <div style="margin-left:2%">
@@ -2056,8 +2239,9 @@ def viewcountry(request, country):
 
         # comments
         allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
-        content = '<br><br><hr><h3 id="comments"><img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % comments2html(request, allcomments, country, None, 'rgb(27,138,204)')
+        content = '<br><br><hr><h3 id="comments"><img src="/static/comment.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % topics2html(request, allcomments, country, None, 'rgb(27,138,204)')
+        content += '<br><div width="100%" style="text-align:center"><a href="/addcomment?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=country)
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -2191,34 +2375,34 @@ def viewcountry(request, country):
             """.format(countrytext=country.encode("utf8"))
 
 
-        right = """<br><br>
+        right = """<br><br><br>
                         <div style="text-align:center; margin-left:5%">
 
-                            <div style="background-color:orange; width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#timeline" style="text-decoration:none; color:inherit">
-                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="30px">
-                                <h4 style="display:inline">Timeline ({daterange})</h3>
+                                <img style="filter:invert(100)" src="/static/time.svg" height="30px">
+                                <h4 style="margin-left:20px; display:inline">Timeline ({daterange})</h3>
                                 </a>
                             </div>
 
-                            <div style="background-color:rgb(122,122,122); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#sources" style="text-decoration:none; color:inherit">
-                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="30px">
-                                <h4 style="display:inline">Sources ({sources})</h3>
+                                <img style="filter:invert(100)" src="/static/source.png" height="30px">
+                                <h4 style="margin-left:20px; display:inline">Sources ({sources})</h3>
                                 </a>
                             </div>
 
-                            <div style="background-color:rgb(58,177,73); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#maps" style="text-decoration:none; color:inherit">
-                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="30px">
-                                <h4 style="display:inline">Maps ({maps})</h3>
+                                <img style="filter:invert(100)" src="/static/map.png" height="30px">
+                                <h4 style="margin-left:20px; display:inline">Maps ({maps})</h3>
                                 </a>
                             </div>
 
-                            <div style="background-color:rgb(27,138,204); width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#comments" style="text-decoration:none; color:inherit">
-                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="30px">
-                                <h4 style="display:inline">Comments ({comments})</h3>
+                                <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
+                                <h4 style="margin-left:20px; display:inline">Comments ({comments})</h3>
                                 </a>
                             </div>
                             
@@ -2539,12 +2723,12 @@ def viewevent(request, country, province, editmode=False):
 
                         <div style="display:inline; border-radius:10px; ">
                         <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-                        <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                        <img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
                         </div>
 
                         <div style="display:inline; border-radius:10px; ">
                         <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                        <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                        <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                         </div>
 				
                         <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
@@ -2718,12 +2902,12 @@ def viewevent(request, country, province, editmode=False):
 
 				<div style="display:inline; border-radius:10px; ">
 				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+				<img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
 				</div>
 
                                 <div style="display:inline; border-radius:10px; ">
                                 <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                                <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                                <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                                 </div>
 				
                                 </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
@@ -2829,12 +3013,12 @@ def viewevent(request, country, province, editmode=False):
 
 				<div style="display:inline; border-radius:10px; ">
 				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+				<img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
 				</div>
 
                                 <div style="display:inline; border-radius:10px; ">
                                 <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                                <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                                <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                                 </div>
 				
                                 </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
@@ -2919,12 +3103,12 @@ def viewevent(request, country, province, editmode=False):
 
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                            <img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
                             </div>
 
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                            <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                             </div>
 
                             &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
@@ -3021,12 +3205,12 @@ def viewevent(request, country, province, editmode=False):
 
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                            <img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
                             </div>
 
                             <div style="display:inline; border-radius:10px; ">
                             <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                            <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                             </div>
 
                             &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
@@ -3139,12 +3323,12 @@ def viewevent(request, country, province, editmode=False):
 
                         <div style="display:inline; border-radius:10px; ">
                         <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{vouches}</a>
-                        <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px style="filter:invert(100%)"/>
+                        <img src="/static/vouch.png" height=30px style="filter:invert(100%)"/>
                         </div>
 
                         <div style="display:inline; border-radius:10px; ">
                         <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                        <img src="https://png.icons8.com/metro/540/comments.png" height=25px style="filter:invert(100%)"/>
+                        <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
                         </div>
 
                         <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
@@ -3645,96 +3829,6 @@ def resubmitchange(request, pk):
 
     return redirect("/provchange/{pk}/view/".format(pk=pk) )
 
-def comments2html(request, allcomments, country, changeid=None, commentheadercolor="orange"):
-    topics = []
-    for c in allcomments.distinct('title'):
-        title = c.title
-        print title
-        comments = allcomments.filter(title=title).order_by("added") # the dash reverses the order
-        fields = ["added","user","text","withdraw"]
-        rows = []
-        for c in comments:
-            rowdict = dict([(f,getattr(c, f, "")) for f in fields])
-            rowdict['pk'] = c.pk
-            rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-            rows.append(rowdict)
-        addreplyobj = Comment(user=request.user.username, country=country, changeid=changeid,
-                                added=datetime.datetime.now(), title=title)
-        replyform = ReplyForm(instance=addreplyobj).as_p()
-        topics.append((title,rows,replyform))
-
-    print topics
-
-    # new comm    
-    addcommentobj = Comment(user=request.user.username, country=country, changeid=changeid,
-                            added=datetime.datetime.now())
-    new_comment = CommentForm(instance=addcommentobj).as_p()
-    
-    # template
-    templ = """
-			{% if topics %}
-                            {% for title,comments,replyform in topics %}
-                                <div style="font-size:small; padding-left:10px; padding-right:10px;" >
-                                    <div style="float:left; padding:0px; width:90%">
-                                        <h3 style="background-color:{{ commentheadercolor }}; color:white; padding:5px; border-radius:5px;">{{ title }}</h3>
-                                        <p style="float:right;">
-                                            {{ comments.0.added }}
-                                            {% if request.user.username == comments.0.user %}
-                                                <a href="/dropcomment/{{ comments.0.pk }}">
-                                                    <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
-                                                </a>
-                                            {% endif %}
-                                        </p>
-                                        <h4>
-                                        {{ comments.0.user }}
-                                        </h4>
-                                        <p style="float:left">{{ comments.0.text }}</p>
-                                    </div>
-
-                                    {% for comment in comments|slice:"1:" %}
-                                    <div style="padding-left:65px; padding-right:10px;" >
-                                        <div style="float:left; padding:0px; width:90%">
-                                            <p style="float:right">
-                                                {{ comments.0.added }}
-                                                {% if request.user.username == comment.user %}
-                                                    <a href="/dropcomment/{{ comment.pk }}">
-                                                        <img style="padding-left:10px" src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=14px/>
-                                                    </a>
-                                                {% endif %}
-                                            </p>
-                                            <h4>{{ comment.user }}</h4>
-                                            <p style="float:left">{{ comment.text }}</p>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-
-                                    <div style="margin-left:40px">
-                                            <h4 onClick="var replyform = document.getElementById('replyform{{ forloop.counter0 }}'); replyform.style.display = replyform.style.display === 'none' ? '' : 'none';" style="text-decoration:underline; clear:both; margin-left:80px; padding:10px">Reply</h4>
-                                            <form id="replyform{{ forloop.counter0 }}" style="display:none; padding-left:80px" action="/addcomment/" method="post">
-                                            {% csrf_token %}
-                                            {{ replyform }}
-                                            <input type="submit" value="Reply" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                                            </form>
-                                    </div>
-                                    
-                                </div>
-                            {% endfor %}
-			{% else %}
-				There are currently no comments.
-			{% endif %}
-
-			<h4 style="clear:both; margin-left:20px">New Topic:</h4>
-			<div style="margin-left:60px">
-				<form action="/addcomment/" method="post">
-				{% csrf_token %}
-				{{ new_comment }}
-	                	<input type="submit" value="Comment" style="text-align:center; background-color:{{ commentheadercolor }}; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-				</form>
-		</div>
-		"""
-    rendered = Template(templ).render(RequestContext(request, {'topics':topics, 'new_comment':new_comment, 'commentheadercolor':commentheadercolor}))
-    return rendered
-
 def viewchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
 
@@ -3927,7 +4021,8 @@ def viewchange(request, pk):
 ##    print topics
 
     #topics = [(title,comm) for title,comm in sorted(topics.items(), key=lambda t,c: c[0]['added'])]
-    args['topics'] = comments2html(request, allcomments, change.fromcountry, change.changeid, "rgb(27,138,204)")
+    args['topics'] = topics2html(request, allcomments, change.fromcountry, change.changeid, "rgb(27,138,204)")
+    args['topics'] += '<br><div width="100%" style="text-align:center"><a href="/addcomment?country={country}&changeid={changeid}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=change.fromcountry, changeid=change.changeid)
 
     # try to emulate https://cloud.netlifyusercontent.com/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b549e4a7-f9d9-4f64-b597-21c7d8f2a166/facebook-comments.png
     # user icon: "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
@@ -4207,7 +4302,7 @@ def account(request):
                         <tr>
 
                         <td style="width:20%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
-                            <img width="80%" src="https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png">
+                            <img width="80%" src="/static/user.png">
                         </td>
                         
                         <td style="width:60%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
@@ -4261,23 +4356,18 @@ def account(request):
                       ))
 
     # comments
-    fields = ["added","country","title","text","withdraw"]
+    fields = ["added","country","title","text"]
     lists = []
     for c in comments[:10]:
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
-        rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-        if c.user == request.user.username:
-            rowdict['withdraw'] = '''
-                            <div style="display:inline; border-radius:10px; ">
-                            <a href="/dropcomment/{pk}">
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=20px/>
-                            </a>
-                            </div>
-                                '''.format(pk=c.pk)
+        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         row = [rowdict[f] for f in fields]
-        lists.append(("",row))
+        link = "/viewcomment?title=%s&country=%s" % (c.title,c.country)
+        if c.changeid:
+            link += '&changeid=%s' % c.changeid
+        lists.append((link,row))
     content = lists2table(request, lists=lists,
-                                        fields=["Added","Country","Title","Comment",""])
+                                        fields=["Added","Country","Title","Comment"])
 
     grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
                       content=content,
@@ -4359,7 +4449,7 @@ class ListTextWidget(forms.TextInput):
 
 class SourceEventForm(forms.ModelForm):
 
-    icon = "https://cdn0.iconfinder.com/data/icons/huge-black-icons/512/Info.png"
+    icon = "/static/info.png"
     step_title = "Source of Information"
     step_descr = """
                    Where are you getting the information from? 
@@ -4434,7 +4524,7 @@ class SourceEventForm(forms.ModelForm):
                                             <table style="margin-left:20px">
                                             {% for id,lab in form.suggested_sources %}
                                                 <tr>
-                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/source.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
                                                 <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
@@ -4444,7 +4534,7 @@ class SourceEventForm(forms.ModelForm):
                                             <table style="margin-left:20px">
                                             {% for id,lab in form.suggested_mapsources %}
                                                 <tr>
-                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/map.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
                                                 <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
@@ -4526,7 +4616,7 @@ class TypeEventRenderer(RadioFieldRenderer):
 
 class TypeEventForm(forms.Form):
 
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of event was it? 
@@ -4751,7 +4841,7 @@ class AddEventWizard(SessionWizardView):
 
 class MetaChangeForm(forms.ModelForm):
 
-    icon = "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
+    icon = "/static/user.png"
 
     class Meta:
         model = ProvChange
@@ -4946,7 +5036,7 @@ class SplitTypeChangeRenderer(RadioFieldRenderer):
 
 class TypeChangeForm(forms.ModelForm):
 
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -4960,7 +5050,7 @@ class TypeChangeForm(forms.ModelForm):
 
 class SimpleTypeChangeForm(forms.ModelForm):
 
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -4979,7 +5069,7 @@ class SimpleTypeChangeForm(forms.ModelForm):
         return rendered
 
 class FormTypeChangeForm(forms.ModelForm):
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -4991,7 +5081,7 @@ class FormTypeChangeForm(forms.ModelForm):
         widgets = {"type": forms.RadioSelect(renderer=FormTypeChangeRenderer) }
 
 class ExpandTypeChangeForm(forms.ModelForm):
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -5003,7 +5093,7 @@ class ExpandTypeChangeForm(forms.ModelForm):
         widgets = {"type": forms.RadioSelect(renderer=ExpandTypeChangeRenderer) }
 
 class BreakawayTypeChangeForm(forms.ModelForm):
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -5015,7 +5105,7 @@ class BreakawayTypeChangeForm(forms.ModelForm):
         widgets = {"type": forms.RadioSelect(renderer=BreakawayTypeChangeRenderer) }
 
 class SplitTypeChangeForm(forms.ModelForm):
-    icon = "https://cdn1.iconfinder.com/data/icons/ui-glynh-04-of-5/100/UI_Glyph_07-07-512.png"
+    icon = "/static/typechange.png"
     step_title = "Type of Change"
     step_descr = """
                     What type of change was it? 
@@ -5032,7 +5122,7 @@ class GeneralChangeForm(SourceEventForm):
     # THE DESCRIPTIONS DONT ACTUALLY SHOW, SO SHOULD BE REMOVED
     # ...
 
-    icon = "https://cdn0.iconfinder.com/data/icons/huge-black-icons/512/Info.png"
+    icon = "/static/info.png"
     step_title = "Basic Information"
     step_descr = """
                     Welcome to the step-by-step wizard for submitting historical
@@ -5096,7 +5186,7 @@ class GeneralChangeForm(SourceEventForm):
                                             <table style="margin-left:20px">
                                             {% for id,lab in form.suggested_sources %}
                                                 <tr>
-                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/source.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
                                                 <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
@@ -5106,7 +5196,7 @@ class GeneralChangeForm(SourceEventForm):
                                             <table style="margin-left:20px">
                                             {% for id,lab in form.suggested_mapsources %}
                                                 <tr>
-                                                <td style="width:60px; vertical-align:top"><img height="20px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/map.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
                                                 <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
                                                 </tr>
                                             {% endfor %}
@@ -5171,11 +5261,11 @@ class GeneralChangeForm(SourceEventForm):
         
         def repl(matchobj):
             id = matchobj.group(2)
-            return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png">{id}</a>'.format(id=id)
+            return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
         val,n = re.subn('#(map)([1-9]*)', repl, val)
         def repl(matchobj):
             id = matchobj.group(2)
-            return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{id}</a>'.format(id=id)
+            return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
         val,n = re.subn('#(source)([1-9]*)', repl, val)
         return val
 
@@ -5620,7 +5710,7 @@ geoinstruct = """
 
 class GeoChangeForm(forms.ModelForm):
 
-    icon = "https://cdn4.iconfinder.com/data/icons/eldorado-education/40/291382-geography_globe-512.png"
+    icon = "/static/globe.png"
     step_title = "Territory"
     step_descr = """
                     What did the giving province look like before giving away territory?

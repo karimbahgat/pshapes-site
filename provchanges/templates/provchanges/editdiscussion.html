@@ -1,0 +1,101 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+    <div style="padding: 0 4% 0 4%; width:80%;">
+
+        <h2>Discussion</h2>
+
+        <div style="padding-left:20px;">
+
+            <div style="float:right;">
+                <a href="/blehhhhh/{{ comments.0.pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                Back
+                </a>
+            </div>
+
+        </div>
+
+        <br><br>
+
+
+
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="/static/comment.png">
+        </h2>
+
+
+
+
+        <table style="font-weight:bold; overflow:hidden; border-spacing:0 10px; padding-bottom:100px; padding-left:40px">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">User:</td>
+                <td style="font-weight:normal">{{ comments.0.user }}</td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">Added:</td>
+                <td style="font-weight:normal">{{ comments.0.added }}</td>
+            </tr>
+            
+            {% if country %}
+                <tr>
+                <td style="text-align:right; vertical-align:top">Country:</td>
+                <td style="font-weight:normal"><a href="/contribute/view/{{ country }}">{{ country }}</a></td>
+                </tr>
+            {% endif %}
+            
+            {% if changeid %}
+                <tr>
+                    <td style="text-align:right; vertical-align:top">Change ID:</td>
+                    <td style="font-weight:normal"><a href="/provchange/{{ changeid }}/view">{{ changeid }}</a></td>
+                </tr>
+            {% endif %}
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">Text:</td>
+                <td style="font-weight:normal; padding-bottom:10px">{{ comments.0.text }}</td>
+            </tr>
+
+        </table>
+                
+        <div style="float:left; padding-left:10%; width:90%">
+        {% for comment in comments|slice:"1:" %}
+            <div style="clear:both; background-color:{{ commentheadercolor }}; color:white; padding:5px; border-radius:5px;">
+                <p style="float:right;">
+                    {{ comment.added }}
+                    {% if request.user.username == comment.user %}
+                        <a href="/dropcomment/{{ comment.pk }}">
+                            <img style="padding-left:10px" src="/static/drop.png" height=14px/>
+                        </a>
+                    {% endif %}
+                </p>
+                <h3>{{ comment.user }}</h3>
+            </div>
+            <p style="float:left">{{ comment.text }}</p>
+            <br style="clear:both"><br><hr><br>
+        {% endfor %}
+        </div>
+
+        <br style="clear:both">
+        <h3 style="margin-left:10%">You:</h3>
+
+        <div style="margin-left:10%">
+                <form id="replyform{{ forloop.counter0 }}" action="/addcomment/" method="post">
+                {% csrf_token %}
+                {{ replyform }}
+                <input type="submit" value="Reply" style="text-align:center; background-color:{{ commentheadercolor }}; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                </form>
+        </div>
+        
+    </div>
+
+
+{% endblock %}

@@ -316,7 +316,7 @@ def home(request):
 				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 				%s
 				</a>
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px />
+				<img src="/static/vouch.png" height=30px />
 				</div>
 				""" % len(vouches)
     comments = list(Comment.objects.filter(changeid=obj.changeid, status='Active'))
@@ -325,7 +325,7 @@ def home(request):
 		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 		%s
 		</a>
-		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
+		<img src="/static/comment.png" height=25px />
 		</div>
 				""" % len(comments)
     content = """
@@ -357,23 +357,18 @@ def home(request):
 
     # comments
     comments = Comment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
-    fields = ["added","country","title","user","text","withdraw"]
+    fields = ["added","country","title","user","text"]
     lists = []
     for c in comments[:2]:
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
-        rowdict['added'] = rowdict['added'].strftime('%Y-%M-%d %H:%M')
-        if rowdict['user'] == request.user.username:
-            rowdict['withdraw'] = '''
-                            <div style="display:inline; border-radius:10px; ">
-                            <a href="/dropcomment/{pk}">
-                            <img src="https://d30y9cdsu7xlg0.cloudfront.net/png/3058-200.png" height=20px/>
-                            </a>
-                            </div>
-                                '''.format(pk=c.pk)
+        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         row = [rowdict[f] for f in fields]
-        lists.append(("",row))
+        link = "/viewcomment?title=%s&country=%s" % (c.title,c.country)
+        if c.changeid:
+            link += '&changeid=%s' % c.changeid
+        lists.append((link,row))
     content = lists2table(request, lists=lists,
-                                        fields=["Added","Country","Title","User","Comment",""])
+                                        fields=["Added","Country","Title","User","Comment"])
 
     grids.append(dict(title="Recent Discussions",
                       content=content,
