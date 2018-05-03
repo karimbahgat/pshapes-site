@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django.template import Template,Context
 from django.contrib.auth.decorators import login_required
 
-from provchanges.models import ProvChange, Comment, Vouch
+from provchanges.models import ProvChange, Comment, Vouch, Issue, IssueComment
 from provshapes.models import ProvShape
 
 shortdescr = """
@@ -319,15 +319,15 @@ def home(request):
 				<img src="/static/vouch.png" height=30px />
 				</div>
 				""" % len(vouches)
-    comments = list(Comment.objects.filter(changeid=obj.changeid, status='Active'))
-    commenticon = """
+    issues = Issue.objects.filter(changeid=obj.changeid, status='Active').count()
+    issueicon = """
 		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
 		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 		%s
 		</a>
-		<img src="/static/comment.png" height=25px />
+		<img src="/static/issue.png" height=25px />
 		</div>
-				""" % len(comments)
+				""" % issues
     content = """
                 <h3>{country}</h3>
                 <div style="font-size:small">
@@ -338,10 +338,10 @@ def home(request):
                 Check Now
                 </a>
                 
-                <div style="">{vouchicon}{commenticon}</div>
+                <div style="">{vouchicon}{issueicon}</div>
                 </div>
                 """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
-                           vouchicon=vouchicon, commenticon=commenticon, pk=obj.pk, source=obj.source.encode("utf8"))
+                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=obj.source.encode("utf8"))
 
     grids.append(dict(title="Quality Check:",
                       content=content,
@@ -356,17 +356,26 @@ def home(request):
                       ))
 
     # comments
-    comments = Comment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    issues = Issue.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    comments = IssueComment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    objects = sorted(list(issues[:3]) + list(comments[:3]),
+                     key=lambda d: d.added, reverse=True)
     fields = ["added","country","title","user","text"]
     lists = []
-    for c in comments[:2]:
-        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+    for o in objects[:3]:
+        if isinstance(o, Issue):
+            pk = o.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.country, title=o.title)
+        elif isinstance(o, IssueComment):
+            pk = o.issue.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         row = [rowdict[f] for f in fields]
-        link = "/viewcomment?title=%s&country=%s" % (c.title,c.country)
-        if c.changeid:
-            link += '&changeid=%s' % c.changeid
+        link = "/viewissue/%s" % pk
         lists.append((link,row))
+        
     content = lists2table(request, lists=lists,
                                         fields=["Added","Country","Title","User","Comment"])
 

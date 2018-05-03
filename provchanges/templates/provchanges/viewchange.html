@@ -27,7 +27,7 @@
 				<div style="display:inline-block; background-color:green; color:white; border:3px solid black; border-radius:10px; padding:3px; margin:7px; color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 				{{ vouches|length }}
 				<a href="/provchange/{{pk}}/withdrawvouch/">
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=22px />
+				<img src="/static/vouch.png" height=22px />
 				</a>
 				</div>
 			
@@ -35,7 +35,7 @@
 				<div style="display:inline-block; color:white; border:3px solid black; border-radius:10px; padding:3px; margin:7px; color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 				{{ vouches|length }}
 				<a href="/provchange/{{pk}}/addvouch/">
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=22px />
+				<img src="/static/vouch.png" height=22px />
 				</a>
 				</div>
 
@@ -44,16 +44,16 @@
 				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
 				{{ vouches|length }}
 				</a>
-				<img src="https://d30y9cdsu7xlg0.cloudfront.net/png/110875-200.png" height=30px />
+				<img src="/static/vouch.png" height=30px />
 				</div>
 			
 		{% endif %}
 
 		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
 		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-		{{ comments }}
+		{{ issues }}
 		</a>
-		<img src="https://png.icons8.com/metro/540/comments.png" height=25px />
+		<img src="/static/issue.png" height=25px />
 		</div>
 
 		{% if metachange.status.value != 'NonActive' %}
@@ -168,7 +168,7 @@
 		<br/>
 
                 <h3>
-                    Notes & Discussions:
+                    Issues:
                 </h3>
                 
 		<div>

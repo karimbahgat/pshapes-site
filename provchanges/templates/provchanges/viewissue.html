@@ -9,11 +9,11 @@
 
     <div style="padding: 0 4% 0 4%; width:80%;">
 
-        <h2>Discussion</h2>
+        <h2>Issue</h2>
 
         <div style="padding-left:20px;">
 
-            <a href="/editcomment/{{ comments.0.pk }}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+            <a href="/editissue/{{ comments.0.pk }}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
             Edit
             </a>
 
@@ -25,7 +25,7 @@
                 </div>
             {% else %}
                 <div style="float:right;">
-                    <a href="/notimplementedyet/{{ pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    <a href="/notimplementedyet/{{ comments.0.pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
                     Resubmit?
                     </a>
                 </div>
@@ -39,27 +39,27 @@
 
 
         <h2 style="text-align:center; margin-top:0">
-            <img height="25px" src="/static/comment.png">
+            <img height="25px" src="/static/issue.png">{{ comments.0.pk }}
         </h2>
 
-        <h2 style="text-align:center">{{ title }}</h2>
+        <h2 style="text-align:center">{{ issue.title }}</h2>
 
 
 
 
         <table style="font-weight:bold; overflow:hidden; border-spacing:0 10px; padding-bottom:20px; padding-left:40px">
             
-            {% if country %}
+            {% if issue.country %}
                 <tr>
                 <td style="text-align:right; vertical-align:top">Country:</td>
-                <td style="font-weight:normal"><a href="/contribute/view/{{ country }}">{{ country }}</a></td>
+                <td style="font-weight:normal"><a href="/contribute/view/{{ issue.country }}">{{ issue.country }}</a></td>
                 </tr>
             {% endif %}
             
-            {% if changeid %}
+            {% if issue.changeid %}
                 <tr>
                     <td style="text-align:right; vertical-align:top">Change ID:</td>
-                    <td style="font-weight:normal"><a href="/provchange/{{ changeid }}/view">{{ changeid }}</a></td>
+                    <td style="font-weight:normal"><a href="/provchange/{{ issue.changeid }}/view">{{ issue.changeid }}</a></td>
                 </tr>
             {% endif %}
 
@@ -72,7 +72,7 @@
                 <p style="float:right;">
                     {{ comment.added }}
                     {% if forloop.counter0 != 0 and request.user.username == comment.user %}
-                        <a href="/dropcomment/{{ comment.pk }}">
+                        <a href="/dropissuecomment/{{ comment.pk }}">
                             <img style="padding-left:10px; padding-right:10px; filter:invert(100)" src="/static/drop.png" height=14px/>
                         </a>
                     {% endif %}
@@ -89,7 +89,7 @@
         <h3 style="margin-left:4%">You:</h3>
 
         <div style="margin-left:4%">
-                <form id="replyform{{ forloop.counter0 }}" action="/addcomment/" method="post">
+                <form id="replyform{{ forloop.counter0 }}" action="/addissuecomment/" method="post">
                 {% csrf_token %}
                 {{ replyform }}
                 <input type="submit" value="Reply" style="text-align:center; background-color:{{ commentheadercolor }}; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">

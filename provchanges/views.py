@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 
 from formtools.wizard.views import SessionWizardView
 
-from .models import ProvChange, Vouch, Comment, Source, Map
+from .models import ProvChange, Comment, Vouch, Issue, IssueComment, Source, Map
 from provshapes.models import ProvShape
 
 from django.db.models import Count
@@ -49,50 +49,39 @@ def advancedchanges(request):
 
 # Comments
 
-class CommentForm(forms.ModelForm):
+class IssueForm(forms.ModelForm):
 
     class Meta:
-        model = Comment
+        model = Issue
         fields = 'user country changeid added status title text'.split()
         widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
-##                   'user':forms.HiddenInput(),
-##                   'country':forms.HiddenInput(),
-##                   'changeid':forms.HiddenInput(),
-##                   'added':forms.HiddenInput(),
-##                   'status':forms.HiddenInput(),
                    }
 
 class ReplyForm(forms.ModelForm):
 
     class Meta:
-        model = Comment
-        fields = 'user country changeid added status title text'.split()
+        model = IssueComment
+        fields = 'user issue added status text'.split()
         widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
-                   'title':forms.HiddenInput(),
                    'user':forms.HiddenInput(),
-                   'country':forms.HiddenInput(),
-                   'changeid':forms.HiddenInput(),
                    'added':forms.HiddenInput(),
                    'status':forms.HiddenInput(),
+                   'issue':forms.HiddenInput(),
                    }
 
-def topics2html(request, allcomments, country, changeid=None, commentheadercolor="orange"):
+def issues2html(request, issues, commentheadercolor="orange"):
     fields = ["title","user","added"]
     
     lists = []
-    for c in allcomments.distinct('title'):
-        title = c.title
+    for i in issues:
+        title = i.title
         print title
-        comments = allcomments.filter(title=title).order_by("added")
-        first = comments[0]
-        rowdict = dict([(f,getattr(first, f, "")) for f in fields])
+        rowdict = dict([(f,getattr(i, f, "")) for f in fields])
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         row = [rowdict[f] for f in fields]
-        replies = len(comments) - 1
+        replies = IssueComment.objects.filter(issue=i, status='Active').count()
         row += [replies]
-        link = "/viewcomment?title=%s&country=%s" % (title,country)
-        if changeid:
-            link += '&changeid=%s' % changeid
+        link = "/viewissue/%s" % i.pk
         lists.append((link,row))  
 
     print lists
@@ -102,27 +91,64 @@ def topics2html(request, allcomments, country, changeid=None, commentheadercolor
     return html
 
 @login_required
-def addcomment(request):
+def migrate_comments(request):
+    # clear
+    Issue.objects.all().delete()
+    IssueComment.objects.all().delete()
+    
+    # general
+    titles = [c.title for c in Comment.objects.filter(country=None, changeid=None).distinct('title')]
+    for title in titles:
+        comments = Comment.objects.filter(title=title, country=None, changeid=None)
+        first = comments[0]
+        issue = Issue(user=first.user.username, added=datetime.datetime.now(),
+                      status=first.status, title=title, text=first.text)
+        issue.save()
+        for c in comments[1:]:
+            comment = Comment(user=first.user.username, added=datetime.datetime.now(),
+                              status=c.status, issue=issue, text=c.text)
+            comment.save()
+
+    # country comments
+    groups = [(c.country,c.title) for c in Comment.objects.filter(country__isnull=False, changeid=None).distinct('country','title')]
+    for country,title in groups:
+        comments = Comment.objects.filter(title=title, country=country, changeid=None)
+        first = comments[0]
+        issue = Issue(user=first.user, added=first.added, status=first.status, 
+                      country=country, title=title, text=first.text)
+        issue.save()
+        for c in comments[1:]:
+            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
+                                  issue=issue, text=c.text)
+            comment.save()
+
+    # change comments
+    groups = [(c.country,c.title,c.changeid) for c in Comment.objects.filter(country__isnull=False, changeid__isnull=False).distinct('country','title','changeid')]
+    for country,title,changeid in groups:
+        comments = Comment.objects.filter(title=title, country=country, changeid=changeid)
+        first = comments[0]
+        issue = Issue(user=first.user, added=first.added, status=first.status, 
+                      country=first.country, changeid=changeid, title=title, text=first.text)
+        issue.save()
+        for c in comments[1:]:
+            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
+                                  issue=issue, text=c.text)
+            comment.save()
+
+    print 'done!'
+
+@login_required
+def addissue(request):
     if request.method == 'POST':
         data = request.POST
+        obj = Issue(user=request.user.username, country=data['country'],
+                            added=datetime.datetime.now(),
+                              title=data['title'], text=data['text'])
         if data.get('changeid'):
-            # change-specific comment
-            commentinst = Comment(user=request.user.username, country=data['country'], changeid=data['changeid'],
-                                added=datetime.datetime.now(),
-                                  title=data['title'], text=data['text'])
-            commentinst.save()
-            print 'change-specific comment added'
-            params = dict(title=data['title'], country=data['country'], changeid=data['changeid'])
-            return redirect('/viewcomment?' + urlencode(params) )
-        else:
-            # country comment
-            commentinst = Comment(user=request.user.username, country=data['country'],
-                                added=datetime.datetime.now(),
-                                  title=data['title'], text=data['text'])
-            commentinst.save()
-            print 'country comment added'
-            params = dict(title=data['title'], country=data['country'])
-            return redirect('/viewcomment?' + urlencode(params) )
+            obj.changeid = data['changeid']
+        obj.save()
+        print 'issue added'
+        return redirect('/viewissue/%s' % obj.pk )
     
     elif request.method == 'GET':
         grids = []
@@ -130,23 +156,23 @@ def addcomment(request):
         templ = '''
         	<h4 style="clear:both; margin-left:20px">New Topic:</h4>
 		<div style="margin-left:60px">
-                    <form action="/addcomment/" method="post">
+                    <form action="/addissue/" method="post">
                     {% csrf_token %}
 
                     <p>
-                    {{ new_comment.title.label }}
-                    {{ new_comment.title }}
+                    {{ issueform.title.label }}
+                    {{ issueform.title }}
                     </p>
                     
                     <p>
-                    {{ new_comment.text.label }}
-                    {{ new_comment.text }}
+                    {{ issueform.text.label }}
+                    {{ issueform.text }}
                     </p>
 
-                    {{ new_comment.country.as_hidden }}
-                    {{ new_comment.changeid.as_hidden }}
+                    {{ issueform.country.as_hidden }}
+                    {{ issueform.changeid.as_hidden }}
                     
-                    <input type="submit" value="Comment" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
                     </form>
 		</div>
 		'''
@@ -156,10 +182,10 @@ def addcomment(request):
         # MAKE SURE IS SENT TO POST
         country = request.GET.get('country')
         changeid = request.GET.get('changeid')
-        addcommentobj = Comment(user=request.user.username, country=country, changeid=changeid,
-                                added=datetime.datetime.now())
-        new_comment = CommentForm(instance=addcommentobj)
-        content = Template(templ).render(RequestContext(request, {'new_comment':new_comment}))
+        obj = Issue(user=request.user.username, country=country, changeid=changeid,
+                    added=datetime.datetime.now())
+        issueform = IssueForm(instance=obj)
+        content = Template(templ).render(RequestContext(request, {'issueform':issueform}))
 		
         grids.append(dict(title="",
                           content=content,
@@ -172,58 +198,59 @@ def addcomment(request):
                           )
 
 @login_required
-def editcomment(request, pk):
+def addissuecomment(request):
     if request.method == 'POST':
-        obj = get_object_or_404(Comment, pk=pk)
+        data = request.POST
+        issue = get_object_or_404(Issue, pk=data['issue'][0])
+        obj = IssueComment(user=request.user.username, issue=issue,
+                            added=datetime.datetime.now(),
+                              text=data['text'])
+        obj.save()
+        print 'issue comment added'
+        return redirect('/viewissue/%s' % issue.pk )
 
-        comments = Comment.objects.filter(title=obj.title, country=obj.country, changeid=obj.changeid, status="Active").order_by("added")
+@login_required
+def editissue(request, pk):
+    if request.method == 'POST':
+        obj = get_object_or_404(Issue, pk=pk)
         
-        fields = [f.name for f in Comment._meta.get_fields()]
+        fields = [f.name for f in Issue._meta.get_fields()]
         formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
         formfieldvalues['changeid'] = int(formfieldvalues['changeid']) if formfieldvalues['changeid'] else None
         print formfieldvalues
         for k,v in formfieldvalues.items():
             setattr(obj, k, v)
         obj.save()
-
-        for c in comments:
-            c.title = obj.title
-            c.country = obj.country
-            c.changeid = obj.changeid
-            c.save()
         
-        params = dict(title=obj.title, country=obj.country)
-        if obj.changeid:
-            params['changeid'] = obj.changeid
-        return redirect("/viewcomment?" + urlencode(params) )
+        return redirect("/viewissue/%s" % pk )
         
     elif request.method == 'GET':
         grids = []
 
         templ = '''
-        	<h4 style="clear:both; margin-left:20px">Edit Topic:</h4>
+        	<h4 style="clear:both; margin-left:20px">Edit Issue:</h4>
 		<div style="margin-left:60px">
-                    <form action="/editcomment/{{ pk }}/" method="post">
+                    <form action="/editissue/{{ pk }}/" method="post">
                     {% csrf_token %}
 
                     <p>
-                    {{ edit_comment.country.label }}
-                    {{ edit_comment.country }}
+                    {{ issueform.country.label }}
+                    {{ issueform.country }}
                     </p>
 
                     <p>
-                    {{ edit_comment.changeid.label }}
-                    {{ edit_comment.changeid }}
+                    {{ issueform.changeid.label }}
+                    {{ issueform.changeid }}
                     </p>
 
                     <p>
-                    {{ edit_comment.title.label }}
-                    {{ edit_comment.title }}
+                    {{ issueform.title.label }}
+                    {{ issueform.title }}
                     </p>
                     
                     <p>
-                    {{ edit_comment.text.label }}
-                    {{ edit_comment.text }}
+                    {{ issueform.text.label }}
+                    {{ issueform.text }}
                     </p>
                     
                     <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
@@ -234,9 +261,9 @@ def editcomment(request, pk):
         # new comm
         # SHOW EXTRA STUFF FOR COUNTRY AND CHANGE SPECIFIC
         # MAKE SURE IS SENT TO POST
-        comment = get_object_or_404(Comment, pk=pk)
-        edit_comment = CommentForm(instance=comment)
-        content = Template(templ).render(RequestContext(request, {'edit_comment':edit_comment, 'pk':pk}))
+        obj = get_object_or_404(Issue, pk=pk)
+        issueform = IssueForm(instance=obj)
+        content = Template(templ).render(RequestContext(request, {'issueform':issueform, 'pk':pk}))
 		
         grids.append(dict(title="",
                           content=content,
@@ -248,37 +275,42 @@ def editcomment(request, pk):
                                                         "nomainbanner":True}
                           )
 
-def viewcomment(request):
-    title = request.GET['title']
-    country = request.GET.get('country','')
-    changeid = request.GET.get('changeid',None)
+def viewissue(request, pk):
     commentheadercolor = 'rgb(27,138,204)'
-    
-    topics = []
-    comments = Comment.objects.filter(title=title, country=country, changeid=changeid, status="Active").order_by("added")
-    print title
+
+    issue = get_object_or_404(Issue, pk=pk)
+    comments = IssueComment.objects.filter(issue=issue, status="Active").order_by("added")
     fields = ["added","user","text","withdraw","status"]
     rows = []
-    for c in comments:
+    for c in [issue] + list(comments):
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
         rowdict['pk'] = c.pk
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         rows.append(rowdict)
-    addreplyobj = Comment(user=request.user.username, country=country, changeid=changeid,
-                            added=datetime.datetime.now(), title=title)
+    addreplyobj = IssueComment(user=request.user.username, issue=issue,
+                            added=datetime.datetime.now())
     replyform = ReplyForm(instance=addreplyobj).as_p()
-    rendered = render(request, 'provchanges/viewdiscussion.html', {'title':title, 'comments':rows, 'replyform':replyform, 'commentheadercolor':commentheadercolor, 'country':country, 'changeid':changeid})
+    rendered = render(request, 'provchanges/viewissue.html', {'issue':issue, 'comments':rows, 'replyform':replyform, 'commentheadercolor':commentheadercolor})
     return rendered
 
 
+@login_required
+def dropissue(request, pk):
+    issue = get_object_or_404(Issue, pk=pk)
+    if request.user.username == issue.user:
+        issue.status = 'Withdrawn'
+        issue.save()
+        print 'issue dropped'
+    return redirect(request.META['HTTP_REFERER'])
+
 
 @login_required
-def dropcomment(request, pk):
-    comment = get_object_or_404(Comment, pk=pk)
+def dropissuecomment(request, pk):
+    comment = get_object_or_404(IssueComment, pk=pk)
     if request.user.username == comment.user:
         comment.status = 'Withdrawn'
         comment.save()
-        print 'comment dropped'
+        print 'issue comment dropped'
     return redirect(request.META['HTTP_REFERER'])
 
 
@@ -1350,7 +1382,7 @@ def allcountries(request):
     changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
     edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
     countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
-    comments = Comment.objects.filter(status="Active").count()
+    issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
     vouches = Vouch.objects.filter(status="Active").count()
     users = User.objects.all().count()
 
@@ -1518,8 +1550,8 @@ def allcountries(request):
                             </td>
                             
                             <td>
-                            <h1>{comments}</h1>
-                            Comments
+                            <h1>{issues}</h1>
+                            Issues
                             </td>
                         </tr>
                         </table>
@@ -1529,7 +1561,7 @@ def allcountries(request):
                                    users=users,
                                    changes=changes,
                                    avgedits=format(edits/float(changes), '.1f'),
-                                   comments=comments,
+                                   issues=issues,
                                    vouches=vouches,
                                    countrycount=countrycount,
                                    )
@@ -1590,7 +1622,7 @@ def allcountries(request):
     from django.db.models import Count,Max,Min
 
     # already coded
-    fields = ["country","entries","mindate","maxdate"]
+    fields = ["country","entries","discussions","mindate","maxdate"]
     lists = []
     rowdicts = dict() #dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
     for rowdict in ProvChange.objects.values("fromcountry").exclude(status="NonActive").annotate(entries=Count('pk'),
@@ -1612,12 +1644,13 @@ def allcountries(request):
 
     for country in sorted(rowdicts.keys()):
         rowdict = rowdicts[country]
+        rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
         row = [rowdict[f] for f in fields]
         url = "/contribute/view/%s" % urlquote(rowdict["country"])
         lists.append((url,row))
     
     countriestable = lists2table(request, lists=lists,
-                                  fields=["Country","Entries","First Change","Last Change"])
+                                  fields=["Country","Entries","Discussions","First Change","Last Change"])
     content = """
                 {countriestable}
                 <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
@@ -1629,15 +1662,15 @@ def allcountries(request):
                       ))
 
     # comments
-    allcomments = Comment.objects.filter(country='', changeid=None, status="Active")
+    issues = Issue.objects.filter(country='', changeid=None, status="Active")
     
-    topicstable = topics2html(request, allcomments, '', None, 'rgb(27,138,204)')
+    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
 
     content = """
                 <br><br><hr><h4 id="comments">General Discussion:</h4>
-                {topicstable}
-                <br><div width="100%" style="text-align:center"><a href="/addcomment" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(topicstable=topicstable)
+                {issuetable}
+                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(issuetable=issuetable)
 
     grids.append(dict(title="",
                       content=content,
@@ -1978,16 +2011,16 @@ def viewcountry(request, country):
 
             changeids = [c.changeid for c in items]
 
-            comments=len(list(Comment.objects.filter(changeid__in=changeids, status='Active')))
-            if comments:
-                commentitem = '''
+            issues = Issue.objects.filter(changeid__in=changeids, status='Active').count()
+            if issues:
+                issueitem = '''
                             <div style="display:inline; border-radius:10px; ">
-                            <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="/static/comment.png" height=25px/>
+                            <a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                            <img src="/static/issue.png" height=25px/>
                             </div>
-                            '''.format(comments=comments)
+                            '''.format(issues=issues)
             else:
-                commentitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
+                issueitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
             
             vouches=len(list(Vouch.objects.filter(changeid__in=changeids, status='Active')))
             if vouches:
@@ -1999,9 +2032,9 @@ def viewcountry(request, country):
                             '''.format(vouches=vouches)
             else:
                 vouchitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
-            return link,(typ,prov,'<b>%s</b>'%len(items),vouchitem,commentitem)
+            return link,(typ,prov,'<b>%s</b>'%len(items),vouchitem,issueitem)
         events = [getlinkrow(date,prov,typ,fromcountry,tocountry,items) for (date,(prov,typ,fromcountry,tocountry)),items in events]
-        eventstable = lists2table(request, events, ["EventType", "Province", "Changes", "Vouches", "Comments"])
+        eventstable = lists2table(request, events, ["EventType", "Province", "Changes", "Vouches", "Issues"])
 
         content = eventstable
         
@@ -2238,10 +2271,10 @@ def viewcountry(request, country):
                           ))
 
         # comments
-        allcomments = Comment.objects.filter(country=country, changeid=None, status="Active")
-        content = '<br><br><hr><h3 id="comments"><img src="/static/comment.png" style="padding-right:5px" height="40px">Questions & Comments:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % topics2html(request, allcomments, country, None, 'rgb(27,138,204)')
-        content += '<br><div width="100%" style="text-align:center"><a href="/addcomment?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=country)
+        issues = Issue.objects.filter(country=country, changeid=None, status="Active")
+        content = '<br><br><hr><h3 id="comments"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
+        content += '<br><div width="100%" style="text-align:center"><a href="/addissue?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=urlquote(country))
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -2364,10 +2397,9 @@ def viewcountry(request, country):
             left = """	
                             <h3 style="clear:both">{countrytext}</h3>
                             
-                            <div style="text-align:center; margin-left:5%">
-                            <br>
+                            <div>
 
-                            <p>The historical boundaries for this country have not yet been reconstructed.
+                            <p style="text-align:center; margin-left:10%; width:80%;">The historical boundaries for this country have not yet been reconstructed.
                             Just start adding events on the timeline below, and once they have been reviewed
                             and accepted by an administrator, you will see your changes visualized on a map here.</p>
 
@@ -2402,7 +2434,7 @@ def viewcountry(request, country):
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#comments" style="text-decoration:none; color:inherit">
                                 <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Comments ({comments})</h3>
+                                <h4 style="margin-left:20px; display:inline">Discussions ({issues})</h3>
                                 </a>
                             </div>
                             
@@ -2414,7 +2446,7 @@ def viewcountry(request, country):
                            daterange='%s - %s' % (dates[0].split('-')[0],dates[-1].split('-')[0]) if dates else '-',
                            sources=len(sources),
                            maps=len(maps),
-                           comments=allcomments.count(),
+                           issues=issues.count(),
                            )
 
 ##        bottom = """	
@@ -2727,11 +2759,11 @@ def viewevent(request, country, province, editmode=False):
                         </div>
 
                         <div style="display:inline; border-radius:10px; ">
-                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                        <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                        <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                         </div>
 				
-                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active'))))
             if change.fromalterns != change.toalterns: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             if change.fromiso != change.toiso: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             if change.fromfips != change.tofips: newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -2906,11 +2938,11 @@ def viewevent(request, country, province, editmode=False):
 				</div>
 
                                 <div style="display:inline; border-radius:10px; ">
-                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                                <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                                <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                                 </div>
 				
-                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
+                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active'))))
                                  for change in changes))
         splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         right = """
@@ -3017,11 +3049,11 @@ def viewevent(request, country, province, editmode=False):
 				</div>
 
                                 <div style="display:inline; border-radius:10px; ">
-                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                                <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                                <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                                <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                                 </div>
 				
-                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
+                                </li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active'))))
                                  for change in changes))
         splitlist += '<li style="padding:10px 0px; list-style:none">' + '&nbsp;&nbsp;&nbsp;<a style="{plusbutstyle}" href="/contribute/add/{country}/{province}?{params}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         right = """
@@ -3107,11 +3139,11 @@ def viewevent(request, country, province, editmode=False):
                             </div>
 
                             <div style="display:inline; border-radius:10px; ">
-                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                            <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                             </div>
 
-                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -3209,11 +3241,11 @@ def viewevent(request, country, province, editmode=False):
                             </div>
 
                             <div style="display:inline; border-radius:10px; ">
-                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                            <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                            <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                            <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                             </div>
 
-                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
+                            &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
         top = """
                         <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -3327,11 +3359,11 @@ def viewevent(request, country, province, editmode=False):
                         </div>
 
                         <div style="display:inline; border-radius:10px; ">
-                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{comments}</a>
-                        <img src="/static/comment.png" height=25px style="filter:invert(100%)"/>
+                        <a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">{issues}</a>
+                        <img src="/static/issue.png" height=25px style="filter:invert(100%)"/>
                         </div>
 
-                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), comments=len(list(Comment.objects.filter(changeid=change.changeid, status='Active'))))
+                        <br><br></li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.toname, change.tocountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active'))))
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Alternate names: '+change.toalterns.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; ISO: '+change.toiso.encode("utf8")+"</li>"
             newinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; FIPS: '+change.tofips.encode("utf8")+"</li>"
@@ -3993,7 +4025,7 @@ def viewchange(request, pk):
                 field.widget.attrs['readonly'] = "readonly"
 
     # comments by topic
-    allcomments = Comment.objects.filter(changeid=change.changeid, status="Active")
+    issues = Issue.objects.filter(changeid=change.changeid, status="Active")
 ##    topics = []
 ##    for c in allcomments.distinct('title'):
 ##        title = c.title
@@ -4021,8 +4053,8 @@ def viewchange(request, pk):
 ##    print topics
 
     #topics = [(title,comm) for title,comm in sorted(topics.items(), key=lambda t,c: c[0]['added'])]
-    args['topics'] = topics2html(request, allcomments, change.fromcountry, change.changeid, "rgb(27,138,204)")
-    args['topics'] += '<br><div width="100%" style="text-align:center"><a href="/addcomment?country={country}&changeid={changeid}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=change.fromcountry, changeid=change.changeid)
+    args['topics'] = issues2html(request, issues, "rgb(27,138,204)")
+    args['topics'] += '<br><div width="100%" style="text-align:center"><a href="/addissue?country={country}&changeid={changeid}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=urlquote(change.fromcountry), changeid=change.changeid)
 
     # try to emulate https://cloud.netlifyusercontent.com/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b549e4a7-f9d9-4f64-b597-21c7d8f2a166/facebook-comments.png
     # user icon: "https://cdn4.iconfinder.com/data/icons/gray-user-management/512/rounded-512.png"
@@ -4033,8 +4065,7 @@ def viewchange(request, pk):
     
 
     # count of all comm
-    comments = allcomments.count()
-    args['comments'] = comments
+    args['issues'] = issues.count()
                 
     html = render(request, 'provchanges/viewchange.html', args)
         
@@ -4356,18 +4387,28 @@ def account(request):
                       ))
 
     # comments
-    fields = ["added","country","title","text"]
+    issues = Issue.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    comments = IssueComment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    objects = sorted(list(issues[:10]) + list(comments[:10]),
+                     key=lambda d: d.added, reverse=True)
+    fields = ["added","country","title","user","text"]
     lists = []
-    for c in comments[:10]:
-        rowdict = dict([(f,getattr(c, f, "")) for f in fields])
+    for o in objects[:10]:
+        if isinstance(o, Issue):
+            pk = o.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.country, title=o.title)
+        elif isinstance(o, IssueComment):
+            pk = o.issue.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         row = [rowdict[f] for f in fields]
-        link = "/viewcomment?title=%s&country=%s" % (c.title,c.country)
-        if c.changeid:
-            link += '&changeid=%s' % c.changeid
+        link = "/viewissue/%s" % pk
         lists.append((link,row))
+        
     content = lists2table(request, lists=lists,
-                                        fields=["Added","Country","Title","Comment"])
+                                        fields=["Added","Country","Title","User","Comment"])
 
     grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
                       content=content,

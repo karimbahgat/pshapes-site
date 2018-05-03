@@ -58,10 +58,12 @@ urlpatterns = [
     url(r'^provchange/(?P<pk>[0-9]+)/addvouch/$', "provchanges.views.addvouch"),
     url(r'^provchange/(?P<pk>[0-9]+)/withdrawvouch/$', "provchanges.views.withdrawvouch"),
 
-    url(r'^addcomment/$', "provchanges.views.addcomment"),
-    url(r'^editcomment/(?P<pk>[0-9]+)/$', "provchanges.views.editcomment"),
-    url(r'^viewcomment/$', "provchanges.views.viewcomment"),
-    url(r'^dropcomment/(?P<pk>[0-9]+)/$', "provchanges.views.dropcomment"),
+    url(r'^addissue/$', "provchanges.views.addissue"),
+    url(r'^addissuecomment/$', "provchanges.views.addissuecomment"),
+    url(r'^editissue/(?P<pk>[0-9]+)/$', "provchanges.views.editissue"),
+    url(r'^viewissue/(?P<pk>[0-9]+)/$', "provchanges.views.viewissue"),
+    url(r'^dropissue/(?P<pk>[0-9]+)/$', "provchanges.views.dropissue"),
+    url(r'^dropissuecomment/(?P<pk>[0-9]+)/$', "provchanges.views.dropissuecomment"),
     
     url(r'^addsource/$', "provchanges.views.addsource"),
     url(r'^viewsource/(?P<pk>[0-9]+)/$', "provchanges.views.viewsource"),
@@ -114,6 +116,10 @@ urlpatterns = [
     url('^api/$', "provshapes.views.apiview"),
     
     url(r'^admin/', include(admin.site.urls)),
+
+
+
+    url('^migratecomments/$', "provchanges.views.migrate_comments"),
 
 
     

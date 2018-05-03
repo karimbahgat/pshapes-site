@@ -20,6 +20,35 @@ class Vouch(models.Model):
                               max_length=40)
 
 
+class Issue(models.Model):
+    "A user can raise issues, which can be general, country-specific, or related to a provchange id."
+    user = models.CharField(max_length=200)
+    country = models.CharField(max_length=200, blank=True)
+    changeid = models.IntegerField(null=True)
+    added = models.DateTimeField()
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Resolved","Resolved"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+    title = models.CharField(max_length=100)
+    text = models.CharField(max_length=2000)
+
+
+class IssueComment(models.Model):
+    "An issuecomment can be added to an issue."
+    user = models.CharField(max_length=200)
+    issue = models.ForeignKey(Issue, blank=True, null=True)
+    added = models.DateTimeField()
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+    text = models.CharField(max_length=2000)
+
+
 class Comment(models.Model):
     "A note is assigned to a country, and optionally a prov changeid."
     user = models.CharField(max_length=200)
