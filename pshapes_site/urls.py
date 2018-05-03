@@ -81,6 +81,7 @@ urlpatterns = [
     # DATA
     url('^download/$', "pshapes_site.views.download"),
     url('^download/final/$', "pshapes_site.views.download_final"),
+    url('^download/countries/$', "pshapes_site.views.download_countries"),
     url('^download/raw/$', "pshapes_site.views.download_raw"),
     
 

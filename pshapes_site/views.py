@@ -806,10 +806,11 @@ def about_tutorial(request):
                                 <h4>How To Define a Country</h4>
                                 <p>
                                 It might not always be clear what constitutes a country. At all times follow what seems to have been the most
-                                internationally recognized country-units and names. 
+                                widely used country-units and names. For instance, overseas territories and dependencies which have their own
+                                ISO country codes should be considered as separate countries. 
                                 </p>
                                 <p>
-                                For territories under foreign colonial rule, these should be
+                                For historical territories under foreign colonial rule, these should be
                                 coded as separate from the ruling power. For countries simply achieving independence or countries with only minor
                                 changes in their official name, avoid changing the country name.
                                 </p>
@@ -875,7 +876,7 @@ def download(request):
                     <div style="text-align:left">
                         <p>Version: Alpha ({versiondate})</p>
                         <p>
-                        License: Free for non-commercial use and attribution (CC3). 
+                        License: Non-commercial use and attribution (<a target="_blank" style="color:white;" href="https://creativecommons.org/licenses/by-nc/3.0/">CC BY-NC 3.0</a>). 
                         </p>
                         <p>Citation: If you use these data, please cite:
                             <ul>
@@ -920,16 +921,10 @@ def download(request):
                      '<a href="/download/final/">Download</a>',
                      ],
                     [
-                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
-                     'Provinces (Codebook)',
-                     'Codebook describing the main historical province data.',
-                     '<a href="/">Download</a>',
-                     ],
-                    [
                      '<img height=25px src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQebLjy1yWNmGNbtjqdSUHM6m33dl1Rl0aacL0nYcJ-oBJi5mSf">',
                      'Countries',
                      'Country boundaries derived from historical provinces',
-                     '<a href="/">Download</a>',
+                     '<a href="/download/countries/">Download</a>',
                      ],
                     [
                      '<img height="25px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">',
@@ -939,9 +934,15 @@ def download(request):
                      ],
                     [
                      '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
+                     'Provinces (Codebook)',
+                     'Codebook describing the main historical province data.',
+                     'TBA',
+                     ],
+                    [
+                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
                      'Raw Change Data (Codebook)',
                      'Codebook describing the latest data dump of the user contributions data.',
-                     '<a href="/">Download</a>',
+                     'TBA',
                      ],
                     [
                      '<img height="20px" src="https://image.flaticon.com/icons/svg/25/25231.svg">',
@@ -995,6 +996,15 @@ def download_final(request):
 ##    raw = json.dumps(geoj)
     # return
     
+    return response
+
+def download_countries(request):
+    from provshapes.views import apiview
+    request.GET = request.GET.copy()
+    request.GET['getlevel'] = 0
+    response = apiview(request)
+    print type(response)
+    response['Content-Disposition'] = 'attachment; filename="pshapes_natearth_countries.json"'    
     return response
 
 def download_raw(request):
