@@ -284,9 +284,13 @@
                     // add to layer
                     var feats = [];
                     for (f of document.countryBorders) {
-                        var bounds = f.geometry.getBounds();
                         var cntr = f.attributes.name;
-                        var feat = new OpenLayers.Feature.Vector(bounds.toGeometry(),
+                        if (f.geometry.components.length == 1) {
+                            var labpoint = f.geometry.getCentroid();
+                        } else {
+                            var labpoint = getMaxPoly(f.geometry.components).getCentroid();
+                        };
+                        var feat = new OpenLayers.Feature.Vector(labpoint,
                                                              {country:cntr});
                         feats.push(feat);
                     };

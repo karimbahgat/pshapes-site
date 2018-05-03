@@ -35,8 +35,8 @@ def update_dataset(request):
                     print 'missing start date, not adding:', props
                     continue
 
-##                if props['country'] not in 'Cameroon Nigeria':
-##                    continue # temp dropping
+                #if props['country'] not in 'Egypt':
+                #    continue # temp dropping
                 
                 values = dict(name=props['name'],
                               alterns='|'.join(props['alterns']),
@@ -83,32 +83,53 @@ def update_dataset(request):
                 print 'country:', cntr
                 feats = ProvShape.objects.filter(country=cntr, simplify=0)
                 dates = sorted(set( [f.start for f in feats] + [f.end for f in feats] ))
-                prevarea = None
-                for start,end in zip(dates[:-1], dates[1:]):
-                    print start,end
-                    datefeats = feats.filter(start__lte=start, end__gt=start)
+                prevdate = dates[0]
+                prevunion = None
+                for date in dates[:-1]:
+                    print prevdate,date
+                    datefeats = feats.filter(start__lte=date, end__gt=date)
                     print len(list(datefeats))
                     geoms = (f.geom for f in datefeats)
                     first = next(geoms)
                     union = reduce(lambda prev,nxt: prev.union(nxt), geoms, first)
                     union = union.buffer(0.001).buffer(-0.001)
-                    area = union.area
-                    if area != prevarea:
-                        prevarea = area
-                        print 'bbox',union.extent
-                        for tolerance in [0.2,0.1,0]:
-                            geom = union.simplify(tolerance, preserve_topology=True)
-                            if geom.geom_type == 'Polygon':
-                                geom = MultiPolygon([geom])
-                            cntrshape = CntrShape(name=cntr,
-                                              start=start,
-                                              end=end,
-                                              simplify=tolerance,
-                                              geom=geom,
-                                              geoj=geom.geojson,)
-                            cntrshape.save()
-                    else:
-                        print 'no geo change'
+                    
+                    if prevunion:
+                        #print 'areadiff', prevunion.area, union.area, prevunion.area - union.area
+                        if abs(prevunion.area - union.area) > 0.01:
+                            print 'bbox',prevunion.extent
+                            for tolerance in [0.2,0.1,0]:
+                                geom = prevunion.simplify(tolerance, preserve_topology=True)
+                                if geom.geom_type == 'Polygon':
+                                    geom = MultiPolygon([geom])
+                                cntrshape = CntrShape(name=cntr,
+                                                  start=prevdate,
+                                                  end=date,
+                                                  simplify=tolerance,
+                                                  geom=geom,
+                                                  geoj=geom.geojson,)
+                                cntrshape.save()
+                            prevdate = date
+                        else:
+                            print 'no geo change'
+
+                    prevunion = union
+
+                # add last one
+                date = dates[-1]
+                print prevdate,date
+                print 'bbox',prevunion.extent
+                for tolerance in [0.2,0.1,0]:
+                    geom = prevunion.simplify(tolerance, preserve_topology=True)
+                    if geom.geom_type == 'Polygon':
+                        geom = MultiPolygon([geom])
+                    cntrshape = CntrShape(name=cntr,
+                                      start=prevdate,
+                                      end=date,
+                                      simplify=tolerance,
+                                      geom=geom,
+                                      geoj=geom.geojson,)
+                    cntrshape.save()
 
             print 'countries updated!'
             
