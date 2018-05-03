@@ -307,7 +307,7 @@
 
 
                 // empty province layer
-                var style = new OpenLayers.Style({fillOpacity:1, fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:"rgb(200,200,200)"});
+                var style = new OpenLayers.Style({fillOpacity:1, fillColor:"rgb(62,95,146)", strokeWidth:0.5, strokeColor:"rgb(200,200,200)"});
                 var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 
                 // province centers
@@ -413,8 +413,8 @@
 
 
 
-                map.addLayers([countryBorderLayer]);
                 map.addLayers([provLayer]);
+                map.addLayers([countryBorderLayer]);
                 map.addLayers([provLabelLayer]);
                 map.addLayers([countryLabelLayer]);
 
@@ -427,7 +427,7 @@
                 // initiate map
                 onstartup = function(data) {
                     renderCountries(data);
-                    //map.zoomToExtent(countryBorderLayer.getDataExtent());
+                    map.zoomToExtent(countryBorderLayer.getDataExtent());
                     }
                 var date = document.getElementById('datetext').value;
                 var year = date.split("-")[0]

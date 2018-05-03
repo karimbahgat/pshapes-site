@@ -129,12 +129,7 @@ def apiview(request):
     params = dict(((k,v) for k,v in request.query_params.items() if v))
 
     getlvl = int(float(params.pop('getlevel', 1)))
-    if getlvl == 1:
-        queryset = ProvShape.objects.all()
-    elif getlvl == 0:
-        queryset = CntrShape.objects.all()
-    else:
-        raise Exception('getlevel must be 0 (countries) or 1 (provinces)')
+    queryset = ProvShape.objects.all()
 
     frmt = params.pop('format', None)
 
@@ -207,6 +202,35 @@ def apiview(request):
         print time.time()-t
 
     elif getlvl == 0:
+        # attribute filtering
+        print 'apiparams',params
+        # special name search
+        if 'name' in params:
+            queryset = queryset.filter(name__icontains=params['name']) | queryset.filter(alterns__icontains=params['name'])
+        # add remaining conditions
+        restdict = dict(((k,v) for k,v in params.items() if k!='name'))
+        if restdict:
+            queryset = queryset.filter(**restdict)
+
+        # get countries from results
+        countries = [row['country'] for row in queryset.distinct('country').values('country')]
+        print countries
+
+
+
+
+        # now get the country objects
+        queryset = CntrShape.objects.all()
+        queryset = queryset.filter(simplify=tolerance)
+        queryset = queryset.filter(name__in=countries)
+
+        if all((yr,mn,dy)):
+            print 'filtering date'
+            date = datetime.date(int(yr),int(mn),int(dy))
+            queryset = queryset.filter(start__lte=date).filter(end__gte=date)
+
+
+
 
         import time
         t=time.time()
@@ -237,6 +261,9 @@ def apiview(request):
     ##                         )
             
         print time.time()-t
+
+    else:
+        raise Exception('getlevel must be 0 (countries) or 1 (provinces)')
 
 
 
