@@ -22,18 +22,20 @@
             </a>
         </div>
 
-        {% if sourceform.status.value == "Active" %}
-            <div style="float:right;">
-                <a href="/dropsource/{{ pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                Drop?
-                </a>
-            </div>
-        {% else %}
-            <div style="float:right;">
-                <a href="/notimplementedyet/{{ pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                Resubmit?
-                </a>
-            </div>
+        {% if request.user.username == sourceform.user.value or request.user.is_staff %}
+            {% if sourceform.status.value == "Active" %}
+                <div style="float:right;">
+                    <a href="/dropsource/{{ pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    Drop?
+                    </a>
+                </div>
+            {% else %}
+                <div style="float:right;">
+                    <a href="/notimplementedyet/{{ pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    Resubmit?
+                    </a>
+                </div>
+            {% endif %}
         {% endif %}
 
     </div>

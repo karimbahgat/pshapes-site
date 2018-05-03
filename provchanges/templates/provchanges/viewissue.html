@@ -13,22 +13,26 @@
 
         <div style="padding-left:20px;">
 
-            <a href="/editissue/{{ comments.0.pk }}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-            Edit
-            </a>
+            {% if request.user.username == comments.0.user or request.user.is_staff %}
 
-            {% if comments.0.status == "Active" and comments.0.user == request.user.username %}
-                <div style="float:right;">
-                    <a href="/dropcomment/{{ comments.0.pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                    Drop?
-                    </a>
-                </div>
-            {% else %}
-                <div style="float:right;">
-                    <a href="/notimplementedyet/{{ comments.0.pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
-                    Resubmit?
-                    </a>
-                </div>
+                <a href="/editissue/{{ comments.0.pk }}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                Edit
+                </a>
+
+                {% if comments.0.status == "Active" %}
+                    <div style="float:right;">
+                        <a href="/dropcomment/{{ comments.0.pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                        Drop?
+                        </a>
+                    </div>
+                {% else %}
+                    <div style="float:right;">
+                        <a href="/notimplementedyet/{{ comments.0.pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                        Resubmit?
+                        </a>
+                    </div>
+                {% endif %}
+
             {% endif %}
 
         </div>

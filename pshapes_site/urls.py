@@ -107,10 +107,9 @@ urlpatterns = [
 
     # -------
     # (TESTING)
-    url('^testgrid/$', "pshapes_site.views.testgrid"),
-    url('^timetest/$', "cshapes.views.mapview"),
-
-    url('^advanced/$', "provchanges.views.advancedchanges"),
+    #url('^testgrid/$', "pshapes_site.views.testgrid"),
+    #url('^timetest/$', "cshapes.views.mapview"),
+    #url('^advanced/$', "provchanges.views.advancedchanges"),
     
     url('^update/$', "provshapes.views.update_dataset"),
     url('^api/$', "provshapes.views.apiview"),

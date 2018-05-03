@@ -201,7 +201,8 @@ def addissue(request):
 def addissuecomment(request):
     if request.method == 'POST':
         data = request.POST
-        issue = get_object_or_404(Issue, pk=data['issue'][0])
+        print int(data['issue'])
+        issue = get_object_or_404(Issue, pk=int(data['issue']))
         obj = IssueComment(user=request.user.username, issue=issue,
                             added=datetime.datetime.now(),
                               text=data['text'])
