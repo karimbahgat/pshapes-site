@@ -83,7 +83,7 @@
                 </p>
                 <p>{{ comment.user }}</p>
             </div>
-            <p style="float:left; margin-left:5px">{{ comment.text }}</p>
+            <p style="float:left; margin-left:5px; white-space:pre-line">{{ comment.text | safe }}</p>
             <br style="clear:both">
             </div>
         {% endfor %}

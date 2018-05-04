@@ -7,11 +7,9 @@
 	</head>
 	<div class="header" style="text-align:left; margin-top: 0; padding: 0 4% 0 4%;">
 		<div>
-    	<h3 style="color:black">
+    	<h2 style="color:black">
 		Province Change
-		</h3>
-		
-		<br>
+		</h2>
 		
 		{% if eventlink %}
 			<a href="{{eventlink}}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
@@ -75,8 +73,19 @@
 		{% endif %}
 		
 		</div>
-		
-		<br><br>
+
+		<br>
+
+                <h2 style="text-align:center; margin-top:0">
+                    <img height="30px" src="/static/typechange.png">
+                    {{ pk }}
+                </h2>
+
+                <h2 style="text-align:center">{{ summary }}</h2>
+                
+
+
+                <br>        
 
 		{% for note in notes %}
                     {{ note|safe }}

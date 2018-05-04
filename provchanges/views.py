@@ -78,6 +78,7 @@ def issues2html(request, issues, commentheadercolor="orange"):
         print title
         rowdict = dict([(f,getattr(i, f, "")) for f in fields])
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['title'] = rowdict['title'].encode('utf8')
         row = [rowdict[f] for f in fields]
         replies = IssueComment.objects.filter(issue=i, status='Active').count()
         row += [replies]
@@ -90,52 +91,66 @@ def issues2html(request, issues, commentheadercolor="orange"):
     
     return html
 
-@login_required
-def migrate_comments(request):
-    # clear
-    Issue.objects.all().delete()
-    IssueComment.objects.all().delete()
+def text_formatted(text):
+    import re
+    val = text
     
-    # general
-    titles = [c.title for c in Comment.objects.filter(country=None, changeid=None).distinct('title')]
-    for title in titles:
-        comments = Comment.objects.filter(title=title, country=None, changeid=None)
-        first = comments[0]
-        issue = Issue(user=first.user.username, added=datetime.datetime.now(),
-                      status=first.status, title=title, text=first.text)
-        issue.save()
-        for c in comments[1:]:
-            comment = Comment(user=first.user.username, added=datetime.datetime.now(),
-                              status=c.status, issue=issue, text=c.text)
-            comment.save()
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(map)([1-9]*)', repl, val)
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(source)([1-9]*)', repl, val)
+    return val.encode('utf8')
 
-    # country comments
-    groups = [(c.country,c.title) for c in Comment.objects.filter(country__isnull=False, changeid=None).distinct('country','title')]
-    for country,title in groups:
-        comments = Comment.objects.filter(title=title, country=country, changeid=None)
-        first = comments[0]
-        issue = Issue(user=first.user, added=first.added, status=first.status, 
-                      country=country, title=title, text=first.text)
-        issue.save()
-        for c in comments[1:]:
-            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
-                                  issue=issue, text=c.text)
-            comment.save()
-
-    # change comments
-    groups = [(c.country,c.title,c.changeid) for c in Comment.objects.filter(country__isnull=False, changeid__isnull=False).distinct('country','title','changeid')]
-    for country,title,changeid in groups:
-        comments = Comment.objects.filter(title=title, country=country, changeid=changeid)
-        first = comments[0]
-        issue = Issue(user=first.user, added=first.added, status=first.status, 
-                      country=first.country, changeid=changeid, title=title, text=first.text)
-        issue.save()
-        for c in comments[1:]:
-            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
-                                  issue=issue, text=c.text)
-            comment.save()
-
-    print 'done!'
+##@login_required
+##def migrate_comments(request):
+##    # clear
+##    Issue.objects.all().delete()
+##    IssueComment.objects.all().delete()
+##    
+##    # general
+##    titles = [c.title for c in Comment.objects.filter(country=None, changeid=None).distinct('title')]
+##    for title in titles:
+##        comments = Comment.objects.filter(title=title, country=None, changeid=None)
+##        first = comments[0]
+##        issue = Issue(user=first.user.username, added=datetime.datetime.now(),
+##                      status=first.status, title=title, text=first.text)
+##        issue.save()
+##        for c in comments[1:]:
+##            comment = Comment(user=first.user.username, added=datetime.datetime.now(),
+##                              status=c.status, issue=issue, text=c.text)
+##            comment.save()
+##
+##    # country comments
+##    groups = [(c.country,c.title) for c in Comment.objects.filter(country__isnull=False, changeid=None).distinct('country','title')]
+##    for country,title in groups:
+##        comments = Comment.objects.filter(title=title, country=country, changeid=None)
+##        first = comments[0]
+##        issue = Issue(user=first.user, added=first.added, status=first.status, 
+##                      country=country, title=title, text=first.text)
+##        issue.save()
+##        for c in comments[1:]:
+##            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
+##                                  issue=issue, text=c.text)
+##            comment.save()
+##
+##    # change comments
+##    groups = [(c.country,c.title,c.changeid) for c in Comment.objects.filter(country__isnull=False, changeid__isnull=False).distinct('country','title','changeid')]
+##    for country,title,changeid in groups:
+##        comments = Comment.objects.filter(title=title, country=country, changeid=changeid)
+##        first = comments[0]
+##        issue = Issue(user=first.user, added=first.added, status=first.status, 
+##                      country=first.country, changeid=changeid, title=title, text=first.text)
+##        issue.save()
+##        for c in comments[1:]:
+##            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
+##                                  issue=issue, text=c.text)
+##            comment.save()
+##
+##    print 'done!'
 
 @login_required
 def addissue(request):
@@ -234,25 +249,27 @@ def editissue(request, pk):
                     <form action="/editissue/{{ pk }}/" method="post">
                     {% csrf_token %}
 
-                    <p>
-                    {{ issueform.country.label }}
-                    {{ issueform.country }}
-                    </p>
+                    <table style="border-spacing:0 10px">
+                    <tr>
+                    <td style="text-align:right; vertical-align:top">{{ issueform.country.label }}</td>
+                    <td>{{ issueform.country }}</td>
+                    </tr>
 
-                    <p>
-                    {{ issueform.changeid.label }}
-                    {{ issueform.changeid }}
-                    </p>
+                    <tr>
+                    <td style="text-align:right; vertical-align:top">{{ issueform.changeid.label }}</td>
+                    <td>{{ issueform.changeid }}</td>
+                    </tr>
 
-                    <p>
-                    {{ issueform.title.label }}
-                    {{ issueform.title }}
-                    </p>
+                    <tr>
+                    <td style="text-align:right; vertical-align:top">{{ issueform.title.label }}</td>
+                    <td>{{ issueform.title }}</td>
+                    </tr>
                     
-                    <p>
-                    {{ issueform.text.label }}
-                    {{ issueform.text }}
-                    </p>
+                    <tr>
+                    <td style="text-align:right; vertical-align:top">{{ issueform.text.label }}</td>
+                    <td>{{ issueform.text }}</td>
+                    </tr>
+                    </table>
                     
                     <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
                     </form>
@@ -287,6 +304,7 @@ def viewissue(request, pk):
         rowdict = dict([(f,getattr(c, f, "")) for f in fields])
         rowdict['pk'] = c.pk
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['text'] = text_formatted(rowdict['text'])
         rows.append(rowdict)
     addreplyobj = IssueComment(user=request.user.username, issue=issue,
                             added=datetime.datetime.now())
@@ -411,7 +429,6 @@ def addsource(request):
         # TODO: find way to refer back to referrer, http_refererer doesnt work...
         return redirect("/viewsource/%s" % src.pk)
 
-@login_required
 def viewsource(request, pk):
     obj = get_object_or_404(Source, pk=pk)
     sourceform = SourceForm(instance=obj)
@@ -459,7 +476,7 @@ def get_country_maps(country):
         for m in maps:
             if not m.country:
                 # only non-country-specific
-                yield s
+                yield m
     else:
         countries = [cn.strip().lower() for cn in country.split('|') if cn.strip()]
         for m in maps:
@@ -594,7 +611,6 @@ def addmap(request):
         # TODO: find way to refer back to referrer, http_refererer doesnt work...
         return redirect("/viewmap/%s" % obj.pk)
 
-@login_required
 def viewmap(request, pk):
     obj = get_object_or_404(Map, pk=pk)
     mapform = MapForm(instance=obj)
@@ -3829,14 +3845,14 @@ def lists2table(request, lists, fields, classname="listtable", color='orange'):
 			
 			{% for url,row in lists %}
 				<tr class="{{ classname }}">
-					<td class="{{ classname }}">
+					<td style="vertical-align:top;" class="{{ classname }}">
 					{% if url %}
                                             <a href="{{ url }}">View</a>
                                         {% endif %}
 					</td>
 					
                                         {% for value in row %}
-                                            <td class="{{ classname }}">{{ value | safe}}</td>
+                                            <td style="vertical-align:top" class="{{ classname }}">{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
@@ -4002,7 +4018,61 @@ def viewchange(request, pk):
     canvouch = request.user.username != change.user
     hasvouched = bool(vouches)
 
+
+
+
+    obj = change
+    country = obj.fromcountry
+    if obj.fromcountry != obj.tocountry:
+        tocountry = ' (%s)' % obj.tocountry
+    else:
+        tocountry = ''
+    # override special for begin
+    if obj.type == 'Begin':
+        country = obj.tocountry
+        tocountry = ''
+    # texts
+    if obj.type == 'NewInfo':
+        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webnewinfo.png'
+    elif obj.type == 'Breakaway':
+        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
+        #icon = 'webbreakaway.png'
+    elif obj.type == 'SplitPart':
+        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
+        #icon = 'websplitpart.png'
+    elif obj.type == 'TransferNew':
+        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webtransfernew.png'
+    elif obj.type == 'MergeNew':
+        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webmergenew.png'
+    elif obj.type == 'TransferExisting':
+        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webtransferexisting.png'
+    elif obj.type == 'MergeExisting':
+        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webmergeexisting.png'
+    elif obj.type == 'Begin':
+        changetext = "'%s' was created" % obj.toname
+        #icon = 'webbegin.png'
+    # OLD, to be deprecated
+    elif obj.type == 'PartTransfer':
+        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webtransferexisting.png'
+    elif obj.type == 'FullTransfer':
+        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+        #icon = 'webmergeexisting.png'
+        
+
+
+
+
+    
+
     args = {'pk': pk,
+            'summary':changetext.encode('utf8'),
+            #'icon':icon,
             'notes': notes,
             'canvouch': canvouch,
             'hasvouched': hasvouched,
@@ -4404,6 +4474,9 @@ def account(request):
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['text'] = text_formatted(rowdict['text'])
+        rowdict['title'] = rowdict['title'].encode('utf8')
+        rowdict['country'] = rowdict['country'].encode('utf8')
         row = [rowdict[f] for f in fields]
         link = "/viewissue/%s" % pk
         lists.append((link,row))

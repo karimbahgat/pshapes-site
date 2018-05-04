@@ -19,6 +19,20 @@ Most of the information is already available from
 our list of online sources, making it easy to jump straight into it with little or no background-knowledge.
 """
 
+def text_formatted(text):
+    import re
+    val = text
+    
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(map)([1-9]*)', repl, val)
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(source)([1-9]*)', repl, val)
+    return val.encode('utf8')
+
 def lists2table(request, lists, fields):
     html = """
 		<table style="font-size:small"> 
@@ -57,14 +71,14 @@ def lists2table(request, lists, fields):
 			
 			{% for url,row in lists %}
 				<tr>
-					<td>
+					<td style="vertical-align:top;" >
 					{% if url %}
                                             <a href="{{ url }}">View</a>
                                         {% endif %}
 					</td>
 					
                                         {% for value in row %}
-                                            <td>{{ value | safe}}</td>
+                                            <td style="vertical-align:top;">{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
@@ -341,7 +355,7 @@ def home(request):
                 <div style="">{vouchicon}{issueicon}</div>
                 </div>
                 """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
-                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=obj.source.encode("utf8"))
+                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=text_formatted(obj.source))
 
     grids.append(dict(title="Quality Check:",
                       content=content,
@@ -372,6 +386,8 @@ def home(request):
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['text'] = text_formatted(rowdict['text'])
+        rowdict['country'] = rowdict['country'].encode('utf8')
         row = [rowdict[f] for f in fields]
         link = "/viewissue/%s" % pk
         lists.append((link,row))

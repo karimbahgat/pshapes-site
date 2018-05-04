@@ -119,9 +119,6 @@ urlpatterns = [
 
 
 
-    url('^migratecomments/$', "provchanges.views.migrate_comments"),
-
-
     
 ]
 
