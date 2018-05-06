@@ -419,7 +419,7 @@ about_menu = """
 
                         <img src="/static/pshapes pen2 transp.png" width="100%">
 
-                        <h4>Introduction</h4>
+                        <h4>Pshapes</h4>
 
                         <style>
                             .blackbackground a { color:white }
@@ -430,6 +430,7 @@ about_menu = """
                         <li><a href="/about/motivation/">Motivation and Background</a></li>
                         <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
                         <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
+                        <li><a href="/about/nextsteps/">Next Steps</a></li>
                         </ul>
 
                         <h4 class="blackbackground"><a href="/about/tutorial/">Tutorial</a></h4>
@@ -445,8 +446,6 @@ about_menu = """
                         <li><a href="/about/tutorial/">Finishing up</a></li>
                         </ul>
 
-                        <h4 class="blackbackground"><a href="/about/contact/">Contact</a><h4>
-
                     </div>
             """
 
@@ -454,11 +453,11 @@ about_banner = """
                         <table width="99%" style="clear:both; padding:0px; margin:0px">
                         <tr>
                         
-                        <td style="width:30%; padding:1%; text-align:center; padding:10px; margin:0px; vertical-align:top">
+                        <td style="width:45%; padding:1%; text-align:center; padding:10px; margin:0px; vertical-align:top">
                         {left}
                         </td>
                         
-                        <td style="width:65%; padding:1%; padding:0px; padding-bottom:30px; margin:0px; vertical-align:top; text-align:center">
+                        <td style="width:45%; padding:1%; padding:0px; padding-bottom:30px; margin:0px; vertical-align:top; text-align:center">
                         {right}
                         </td>
 
@@ -528,8 +527,8 @@ def about_motivation(request):
                         </p>
 
                         <p>
-                        The Pshapes concept, website, and database is the work of <a href="https://github.com/karimbahgat">Karim Bahgat</a> and started development in 2016,
-                        but was not finalized for alpha release until late 2017. 
+                        The Pshapes concept, website, and database is the work of <a href="https://github.com/karimbahgat">Karim Bahgat</a> and started as an idea in 2016,
+                        but after much testing was not finalized for alpha release until early 2018. 
                         </p>
 
                         <br>
@@ -858,22 +857,34 @@ def about_tutorial(request):
                   )
 
 
-def about_contact(request):
+def about_nextsteps(request):
     grids = []
     bannertitle = ""
     bannerright = """
                     <br><br><br>
-                    <h3 style="text-align:left">Contact</h3>
+                    <h3 style="text-align:left">Next Steps</h3>
                     <div style="text-align:left">
                                 <p>
                                 The Pshapes framework is still in early alpha version and continually evolving.
-                                As a community platform the main goal is to make it as easy and user-friendly as
-                                possible. 
                                 </p>
                                 <p>
-                                For any questions, issues, or feature requests,
-                                please contact Karim Bahgat (karim.bahgat.norway@gmail.com). 
-                                </p>                                
+                                The current stage will focus on piloting the data collection effort,
+                                getting feedback from users, and establishing proof-of-concept.
+                                Sources for funding are also currently being sought, to help maintain
+                                improve, and add new features to the platform. 
+                                </p>
+                                <p>
+                                As a community platform the main goal is to make it as easy and user-friendly as
+                                possible. It is therefore dependent on the questions, issues, and feature requests of
+                                the contributors, so please do not hesitate to contact.
+                                </p>
+                                <br>
+                                <p>
+                                Karim Bahgat
+                                </p>
+                                <p>
+                                karim.bahgat.norway@gmail.com
+                                </p>
 
                         </div>
                             """
@@ -887,22 +898,48 @@ def download(request):
     grids = []
     bannertitle = ""
     versiondate = ProvShape.objects.first().added
-    bannerright = """
-                    <br><br><br>
-                    <div style="text-align:left">
-                        <p>Version: Alpha ({versiondate})</p>
-                        <p>
-                        License: Non-commercial use and attribution (<a target="_blank" style="color:white;" href="https://creativecommons.org/licenses/by-nc/3.0/">CC BY-NC 3.0</a>). 
-                        </p>
-                        <p>Citation: If you use these data, please cite:
-                            <ul>
-                                <li><em>
-                                Bahgat, Karim (YEAR). Pshapes Database of Historical Province Boundaries, version [VERSION]. Available at www.pshapes.org. Accessed [DATE ACCESSED]. 
-                                </em></li>
-                            </ul>
-                        </p>
-                    </div>
-                    """.format(versiondate=versiondate)
+
+    downloadlist = [
+                    [
+                     '''<img height=50px src="http://www.seismicportal.eu/images/json_file.png">''',
+                     '<a style="color:white" class="blackbackground" href="/download/final/">Provinces</a>',
+                     'The main dataset of historical province boundaries',
+                     ],
+                    [
+                     '''
+                     <img height=50px src="http://www.seismicportal.eu/images/json_file.png">''',
+                     '<a style="color:white" href="/download/countries/">Countries</a>',
+                     'Country boundaries derived from historical provinces',
+                     ],
+                    [
+                     '''<img height="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">''',
+                     '<a style="color:white" href="/download/raw/">Raw Change Data</a>',
+                     'The latest data dump of the user contributions data is always available on-demand. This is the raw data used to replicate or rebuild the pshapes dataset.',
+                     ],
+                    [
+                     '''<img height="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">''',
+                     'Provinces (Codebook)',
+                     'Codebook describing the main historical province data.',
+                     ],
+                    [
+                     '''<img height="50px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">''',
+                     'Raw Change Data (Codebook)',
+                     'Codebook describing the latest data dump of the user contributions data.',
+                     ],
+                    [
+                     '''<img style="filter:invert(100)" height="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg">''',
+                     '<a style="color:white" href="https://github.com/karimbahgat/pshapes">Replication Code</a>',
+                     '''            The Pshapes framework uses reverse polygon geocoding to interpret
+                                    the user-contributed data and create the final historical boundary dataset.
+                                    This tool is open-source and freely available to programmers,
+                                    allowing users to create their own historical versions of any input province dataset.
+                                    ''',
+                     ],
+                    ]
+
+    bannerright = '<br><br><br><h3 style="text-align:left">Download options</h3><table style="border-spacing:10px">%s</table>' \
+                  % ''.join(['<tr>%s</tr>' % ''.join(['<td style="text-align:left; vertical-align:top">%s</td>' % v for v in row])
+                             for row in downloadlist])
 ##    bannerleft = """
 ##                    <div style="text-align:center; padding:20px">
 ##                        <img style="width:100%" src="/static/webdownloadimg.png">
@@ -920,67 +957,21 @@ def download(request):
                         as the starting-point. 
                         </p>
                     </div>
-                """
+                    <div style="text-align:left; margin-left:10px">
+                        <p>Version: Alpha ({versiondate})</p>
+                        <p>
+                        License: Non-commercial use and attribution (<a target="_blank" style="color:white;" href="https://creativecommons.org/licenses/by-nc/3.0/">CC BY-NC 3.0</a>). 
+                        </p>
+                        <p>Citation: If you use these data, please cite:
+                            <ul>
+                                <li><em>
+                                Bahgat, Karim (YEAR). Pshapes Database of Historical Province Boundaries, version [VERSION]. Available at www.pshapes.org. Accessed [DATE ACCESSED]. 
+                                </em></li>
+                            </ul>
+                        </p>
+                    </div>
+                """.format(versiondate=versiondate)
 
-
-##                                The Pshapes framework uses reverse polygon geocoding to interpret
-##                                the user-contributed data and create the final historical boundary dataset.
-##                                This tool is open-source and freely available to programmers,
-##                                allowing users to create their own historical versions of any input province dataset.
-
-    fields = ['','file','description','link']
-    downloadlist = [
-                    [
-                     '<img height=25px src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQebLjy1yWNmGNbtjqdSUHM6m33dl1Rl0aacL0nYcJ-oBJi5mSf">',
-                     'Provinces',
-                     'The main dataset of historical province boundaries',
-                     '<a href="/download/final/">Download</a>',
-                     ],
-                    [
-                     '<img height=25px src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQebLjy1yWNmGNbtjqdSUHM6m33dl1Rl0aacL0nYcJ-oBJi5mSf">',
-                     'Countries',
-                     'Country boundaries derived from historical provinces',
-                     '<a href="/download/countries/">Download</a>',
-                     ],
-                    [
-                     '<img height="25px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">',
-                     'Raw Change Data',
-                     'The latest data dump of the user contributions data is always available on-demand. This is the raw data used to replicate or rebuild the pshapes dataset.',
-                     '<a href="/download/raw/">Download</a>',
-                     ],
-                    [
-                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
-                     'Provinces (Codebook)',
-                     'Codebook describing the main historical province data.',
-                     'TBA',
-                     ],
-                    [
-                     '<img height="20px" src="http://icons.iconarchive.com/icons/hopstarter/soft-scraps/256/Adobe-PDF-Document-icon.png">',
-                     'Raw Change Data (Codebook)',
-                     'Codebook describing the latest data dump of the user contributions data.',
-                     'TBA',
-                     ],
-                    [
-                     '<img height="20px" src="https://image.flaticon.com/icons/svg/25/25231.svg">',
-                     'Replication Code',
-                     '''            The Pshapes framework uses reverse polygon geocoding to interpret
-                                    the user-contributed data and create the final historical boundary dataset.
-                                    This tool is open-source and freely available to programmers,
-                                    allowing users to create their own historical versions of any input province dataset.
-                                    ''',
-                     '<a href="https://github.com/karimbahgat/pshapes">Download</a>',
-                     ],
-                    ]
-    downloadlist = [('',row) for row in downloadlist]
-
-    downloadtable = lists2table(request, downloadlist, fields)
-
-    grids.append(dict(title="File Downloads", # <img width="100%" border="2" src="http://images.wisegeek.com/physical-data.jpg">
-                      content=downloadtable,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="95%",
-                      ))
-    
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
 

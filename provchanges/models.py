@@ -33,7 +33,7 @@ class Issue(models.Model):
                               default="Active",
                               max_length=40)
     title = models.CharField(max_length=100)
-    text = models.CharField(max_length=2000)
+    text = models.CharField(max_length=10000)
 
 
 class IssueComment(models.Model):
@@ -46,7 +46,7 @@ class IssueComment(models.Model):
                                         ],
                               default="Active",
                               max_length=40)
-    text = models.CharField(max_length=2000)
+    text = models.CharField(max_length=10000)
 
 
 class Comment(models.Model):
@@ -160,7 +160,7 @@ class ProvChange(models.Model):
     transfer_reference = models.CharField(max_length=400, blank=True, verbose_name=u"Map description")
 
     # new meta
-    source = models.CharField(max_length=400, verbose_name=u"Source of information")
+    source = models.CharField(max_length=10000, verbose_name=u"Source of information")
     transfer_map = models.ForeignKey(Map, # A ProvChange geometry is drawn after a single map.
                                      on_delete=models.PROTECT,
                                      blank=True, null=True, default=None,

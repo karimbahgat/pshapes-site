@@ -93,7 +93,7 @@ urlpatterns = [
     url('^about/otherdata/$', "pshapes_site.views.about_otherdata"),
     url('^about/whycrowdsourcing/$', "pshapes_site.views.about_whycrowdsourcing"),
     url('^about/tutorial/$', "pshapes_site.views.about_tutorial"),
-    url('^about/contact/$', "pshapes_site.views.about_contact"),
+    url('^about/nextsteps/$', "pshapes_site.views.about_nextsteps"),
 
 
 

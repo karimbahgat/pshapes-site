@@ -54,7 +54,8 @@ class IssueForm(forms.ModelForm):
     class Meta:
         model = Issue
         fields = 'user country changeid added status title text'.split()
-        widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
+        widgets = {"text":forms.Textarea(attrs=dict(style="width:90%; font-family:inherit")),
+                   "title":forms.TextInput(attrs=dict(style='width:80%; font:inherit')),
                    }
 
 class ReplyForm(forms.ModelForm):
@@ -62,7 +63,7 @@ class ReplyForm(forms.ModelForm):
     class Meta:
         model = IssueComment
         fields = 'user issue added status text'.split()
-        widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit",cols=90,rows=5)),
+        widgets = {"text":forms.Textarea(attrs=dict(style="font-family:inherit; width:90%")),
                    'user':forms.HiddenInput(),
                    'added':forms.HiddenInput(),
                    'status':forms.HiddenInput(),
@@ -75,7 +76,7 @@ def issues2html(request, issues, commentheadercolor="orange"):
     lists = []
     for i in issues:
         title = i.title
-        print title
+        #print title
         rowdict = dict([(f,getattr(i, f, "")) for f in fields])
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
         rowdict['title'] = rowdict['title'].encode('utf8')
@@ -85,7 +86,7 @@ def issues2html(request, issues, commentheadercolor="orange"):
         link = "/viewissue/%s" % i.pk
         lists.append((link,row))  
 
-    print lists
+    #print lists
     
     html = lists2table(request, lists, fields + ['replies'], classname="topicstable", color=commentheadercolor)
     
@@ -320,7 +321,7 @@ def dropissue(request, pk):
         issue.status = 'Withdrawn'
         issue.save()
         print 'issue dropped'
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect('/viewissue/%s' % pk)
 
 
 @login_required
@@ -330,7 +331,7 @@ def dropissuecomment(request, pk):
         comment.status = 'Withdrawn'
         comment.save()
         print 'issue comment dropped'
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect('/viewissue/%s' % comment.issue.pk)
 
 
 # Vouches
@@ -1399,6 +1400,7 @@ def allcountries(request):
     changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
     edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
     countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
+    discussions = Issue.objects.filter(changeid__isnull=True, status="Active").count()
     issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
     vouches = Vouch.objects.filter(status="Active").count()
     users = User.objects.all().count()
@@ -1570,6 +1572,11 @@ def allcountries(request):
                             <h1>{issues}</h1>
                             Issues
                             </td>
+
+                            <td>
+                            <h1>{discussions}</h1>
+                            Discussions
+                            </td>
                         </tr>
                         </table>
                         </b>
@@ -1579,6 +1586,7 @@ def allcountries(request):
                                    changes=changes,
                                    avgedits=format(edits/float(changes), '.1f'),
                                    issues=issues,
+                                   discussions=discussions,
                                    vouches=vouches,
                                    countrycount=countrycount,
                                    )
@@ -1639,7 +1647,7 @@ def allcountries(request):
     from django.db.models import Count,Max,Min
 
     # already coded
-    fields = ["country","entries","discussions","mindate","maxdate"]
+    fields = ["country","entries","issues","discussions","mindate","maxdate"]
     lists = []
     rowdicts = dict() #dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid,countryname in countries])
     for rowdict in ProvChange.objects.values("fromcountry").exclude(status="NonActive").annotate(entries=Count('pk'),
@@ -1662,12 +1670,13 @@ def allcountries(request):
     for country in sorted(rowdicts.keys()):
         rowdict = rowdicts[country]
         rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+        rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
         row = [rowdict[f] for f in fields]
         url = "/contribute/view/%s" % urlquote(rowdict["country"])
         lists.append((url,row))
     
     countriestable = lists2table(request, lists=lists,
-                                  fields=["Country","Entries","Discussions","First Change","Last Change"])
+                                  fields=["Country","Entries","Issues","Discussions","First Change","Last Change"])
     content = """
                 {countriestable}
                 <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
@@ -2288,10 +2297,19 @@ def viewcountry(request, country):
                           ))
 
         # comments
-        issues = Issue.objects.filter(country=country, changeid=None, status="Active")
-        content = '<br><br><hr><h3 id="comments"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
+        discussions = Issue.objects.filter(country=country, changeid=None, status="Active")
+        content = '<br><br><hr><h3 id="discussions"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, discussions, 'rgb(27,138,204)')
         content += '<br><div width="100%" style="text-align:center"><a href="/addissue?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=urlquote(country))
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+
+        issues = Issue.objects.filter(country=country, changeid__isnull=False, status="Active")
+        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -2388,7 +2406,7 @@ def viewcountry(request, country):
                 };
 
                 var latest = '%s'.split('-');
-                $.getJSON('/api', {simplify:0.05, year:latest[0], month:latest[1], day:latest[2], country:'%s'}, renderprovs);
+                $.getJSON('/api', {simplify:0.025, year:latest[0], month:latest[1], day:latest[2], country:'%s'}, renderprovs);
                 
                 </script>
                 """ % (latest_date.end, country.encode("utf8"))
@@ -2424,7 +2442,7 @@ def viewcountry(request, country):
             """.format(countrytext=country.encode("utf8"))
 
 
-        right = """<br><br><br>
+        right = """<br><br>
                         <div style="text-align:center; margin-left:5%">
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
@@ -2449,9 +2467,16 @@ def viewcountry(request, country):
                             </div>
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#comments" style="text-decoration:none; color:inherit">
+                                <a href="#discussions" style="text-decoration:none; color:inherit">
                                 <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Discussions ({issues})</h3>
+                                <h4 style="margin-left:20px; display:inline">Discussions ({discussions})</h3>
+                                </a>
+                            </div>
+
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#issues" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/issue.png" style="padding-right:5px" height="30px">
+                                <h4 style="margin-left:20px; display:inline">Issues ({issues})</h3>
                                 </a>
                             </div>
                             
@@ -2463,6 +2488,7 @@ def viewcountry(request, country):
                            daterange='%s - %s' % (dates[0].split('-')[0],dates[-1].split('-')[0]) if dates else '-',
                            sources=len(sources),
                            maps=len(maps),
+                           discussions=discussions.count(),
                            issues=issues.count(),
                            )
 
@@ -4795,7 +4821,7 @@ class DateForm(forms.Form):
     step_descr = """
                     On what date did the changes occur? 
                    """
-    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(1800, 2016+1)], initial=1950)
+    year = forms.ChoiceField(choices=[(yr,yr) for yr in range(0, 2016+1)], initial=1950)
     month = forms.ChoiceField(choices=[(mn,mn) for mn in range(1, 12+1)])
     day = forms.ChoiceField(choices=[(dy,dy) for dy in range(1, 31+1)])
 
