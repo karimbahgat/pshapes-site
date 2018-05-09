@@ -54,8 +54,9 @@ class IssueForm(forms.ModelForm):
     class Meta:
         model = Issue
         fields = 'user country changeid added status title text'.split()
-        widgets = {"text":forms.Textarea(attrs=dict(style="width:90%; font-family:inherit")),
+        widgets = {"text":forms.Textarea(attrs=dict(style="width:90%; font:inherit")),
                    "title":forms.TextInput(attrs=dict(style='width:80%; font:inherit')),
+                   "country":forms.TextInput(attrs=dict(style='width:80%; font:inherit')),
                    }
 
 class ReplyForm(forms.ModelForm):
@@ -99,11 +100,11 @@ def text_formatted(text):
     def repl(matchobj):
         id = matchobj.group(2)
         return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(map)([1-9]*)', repl, val)
+    val,n = re.subn('#(map)([0-9]*)', repl, val)
     def repl(matchobj):
         id = matchobj.group(2)
         return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(source)([1-9]*)', repl, val)
+    val,n = re.subn('#(source)([0-9]*)', repl, val)
     return val.encode('utf8')
 
 ##@login_required
@@ -187,9 +188,33 @@ def addissue(request):
 
                     {{ issueform.country.as_hidden }}
                     {{ issueform.changeid.as_hidden }}
+
+                        <p>
+					<div style="width:45%; margin-left:20px; display:inline-block"><em>Suggested Sources:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in suggested_sources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/source.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+					<div style="width:45%; display:inline-block"><em>Suggested Maps:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in suggested_mapsources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/map.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+			</p>
                     
                     <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
                     </form>
+
 		</div>
 		'''
 
@@ -201,7 +226,15 @@ def addissue(request):
         obj = Issue(user=request.user.username, country=country, changeid=changeid,
                     added=datetime.datetime.now())
         issueform = IssueForm(instance=obj)
-        content = Template(templ).render(RequestContext(request, {'issueform':issueform}))
+
+        sources = get_country_sources(country)
+        suggested_sources = sorted([(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
+        maps = get_country_maps(country)
+        suggested_mapsources = sorted([(m.pk, "{title} ({yr})".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
+        
+        content = Template(templ).render(RequestContext(request, {'issueform':issueform,
+                                                                  'suggested_sources':suggested_sources,
+                                                                  'suggested_mapsources':suggested_mapsources}))
 		
         grids.append(dict(title="",
                           content=content,
@@ -250,27 +283,52 @@ def editissue(request, pk):
                     <form action="/editissue/{{ pk }}/" method="post">
                     {% csrf_token %}
 
-                    <table style="border-spacing:0 10px">
-                    <tr>
-                    <td style="text-align:right; vertical-align:top">{{ issueform.country.label }}</td>
-                    <td>{{ issueform.country }}</td>
-                    </tr>
+                    <table style="border-spacing:0 10px; width:100%">
 
-                    <tr>
-                    <td style="text-align:right; vertical-align:top">{{ issueform.changeid.label }}</td>
-                    <td>{{ issueform.changeid }}</td>
-                    </tr>
+                        <tr>
+                        <td style="width:5%; text-align:right; vertical-align:top">{{ issueform.country.label }}</td>
+                        <td>{{ issueform.country }}</td>
+                        </tr>
+                        
+                        <tr>
+                        <td style="text-align:right; vertical-align:top">{{ issueform.changeid.label }}</td>
+                        <td>{{ issueform.changeid }}</td>
+                        </tr>
 
-                    <tr>
-                    <td style="text-align:right; vertical-align:top">{{ issueform.title.label }}</td>
-                    <td>{{ issueform.title }}</td>
-                    </tr>
+                        <tr>
+                        <td style="text-align:right; vertical-align:top">{{ issueform.title.label }}</td>
+                        <td>{{ issueform.title }}</td>
+                        </tr>
+
+                        <tr>
+                        <td style="text-align:right; vertical-align:top">{{ issueform.text.label }}</td>
+                        <td>{{ issueform.text }}</td>
+                        </tr>
                     
-                    <tr>
-                    <td style="text-align:right; vertical-align:top">{{ issueform.text.label }}</td>
-                    <td>{{ issueform.text }}</td>
-                    </tr>
                     </table>
+
+                        <p>
+					<div style="width:45%; margin-left:20px; display:inline-block"><em>Suggested Sources:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in suggested_sources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/source.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewsource/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+					<div style="width:45%; display:inline-block"><em>Suggested Maps:</em>
+                                            <table style="margin-left:20px">
+                                            {% for id,lab in suggested_mapsources %}
+                                                <tr>
+                                                <td style="width:60px; vertical-align:top"><img height="20px" src="/static/map.png"><div style="display:inline-block; vertical-align:top">{{ id }}</div></td>
+                                                <td style="padding-left:5px; vertical-align:top"><a target="_blank" href="/viewmap/{{ id }}/">{{ lab }}</a></td>
+                                                </tr>
+                                            {% endfor %}
+                                            </table>
+					</div>
+			</p>
                     
                     <input type="submit" value="Submit" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
                     </form>
@@ -282,8 +340,17 @@ def editissue(request, pk):
         # MAKE SURE IS SENT TO POST
         obj = get_object_or_404(Issue, pk=pk)
         issueform = IssueForm(instance=obj)
-        content = Template(templ).render(RequestContext(request, {'issueform':issueform, 'pk':pk}))
-		
+        
+        sources = get_country_sources(obj.country)
+        suggested_sources = sorted([(s.pk, "{title} - {citation}".format(title=s.title.encode('utf8'), citation=s.citation.encode('utf8'))) for s in sources])
+        maps = get_country_maps(obj.country)
+        suggested_mapsources = sorted([(m.pk, "{title} ({yr})".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps])
+        
+        content = Template(templ).render(RequestContext(request, {'pk':pk,
+                                                                  'issueform':issueform,
+                                                                  'suggested_sources':suggested_sources,
+                                                                  'suggested_mapsources':suggested_mapsources}))
+	
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
@@ -2166,6 +2233,16 @@ def viewcountry(request, country):
                           width="95%",
                           ))
 
+        # issues
+        issues = Issue.objects.filter(country=country, changeid__isnull=False, status="Active")
+        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
+        grids.append(dict(title="",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
+
         # sources
         color = "rgb(60,60,60)"
 
@@ -2200,12 +2277,12 @@ def viewcountry(request, country):
 ##                    """.format(griditem=griditem)
 ##            content += html
 
-        fields = ['title', 'citation', 'external link']
+        fields = ['title', 'note', 'external link']
         lists = []
         for source in sources:
             link = '/viewsource/{pk}/'.format(pk=source.pk)
             urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url.encode('utf8'), urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
-            row = [source.title, source.citation, urllink]
+            row = [source.title, source.note, urllink]
             lists.append((link,row))
 
         table = lists2table(request, lists, fields, 'sourcetable', color)
@@ -2296,7 +2373,7 @@ def viewcountry(request, country):
                           width="95%",
                           ))
 
-        # comments
+        # discussions
         discussions = Issue.objects.filter(country=country, changeid=None, status="Active")
         content = '<br><br><hr><h3 id="discussions"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
         content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, discussions, 'rgb(27,138,204)')
@@ -2307,46 +2384,7 @@ def viewcountry(request, country):
                           width="99%",
                           ))
 
-        issues = Issue.objects.filter(country=country, changeid__isnull=False, status="Active")
-        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
-        grids.append(dict(title="",
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="99%",
-                          ))
-
-##                        <div style="text-align:center; margin-left:30%">
-##
-##                            <div style="background-color:orange; width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#timeline" style="text-decoration:none; color:inherit">
-##                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-##                                <h3 style="display:inline">Timeline</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="background-color:rgb(122,122,122); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#sources" style="text-decoration:none; color:inherit">
-##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-##                                <h3 style="display:inline">Sources</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="background-color:rgb(58,177,73); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#maps" style="text-decoration:none; color:inherit">
-##                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
-##                                <h3 style="display:inline">Maps</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="background-color:rgb(27,138,204); width:50%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#comments" style="text-decoration:none; color:inherit">
-##                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
-##                                <h3 style="display:inline">Comments</h3>
-##                                </a>
-##                            </div>
-##                            
-##                        </div>
+        # the country map
 
         mapdata = ProvShape.objects.filter(country=country)
         if mapdata:
@@ -2448,35 +2486,35 @@ def viewcountry(request, country):
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#timeline" style="text-decoration:none; color:inherit">
                                 <img style="filter:invert(100)" src="/static/time.svg" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Timeline ({daterange})</h3>
-                                </a>
-                            </div>
-
-                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#sources" style="text-decoration:none; color:inherit">
-                                <img style="filter:invert(100)" src="/static/source.png" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Sources ({sources})</h3>
-                                </a>
-                            </div>
-
-                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#maps" style="text-decoration:none; color:inherit">
-                                <img style="filter:invert(100)" src="/static/map.png" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Maps ({maps})</h3>
-                                </a>
-                            </div>
-
-                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#discussions" style="text-decoration:none; color:inherit">
-                                <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Discussions ({discussions})</h3>
+                                <h3 style="margin-left:20px; display:inline">{daterange}</h3>
                                 </a>
                             </div>
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#issues" style="text-decoration:none; color:inherit">
                                 <img style="filter:invert(100)" src="/static/issue.png" style="padding-right:5px" height="30px">
-                                <h4 style="margin-left:20px; display:inline">Issues ({issues})</h3>
+                                <h3 style="margin-left:20px; display:inline">{issues} Issues</h3>
+                                </a>
+                            </div>
+
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#sources" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/source.png" height="30px">
+                                <h3 style="margin-left:20px; display:inline">{sources} Sources</h3>
+                                </a>
+                            </div>
+
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#maps" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/map.png" height="30px">
+                                <h3 style="margin-left:20px; display:inline">{maps} Maps</h3>
+                                </a>
+                            </div>
+
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#discussions" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
+                                <h3 style="margin-left:20px; display:inline">{discussions} Discussions</h3>
                                 </a>
                             </div>
                             
@@ -4089,6 +4127,12 @@ def viewchange(request, pk):
     elif obj.type == 'FullTransfer':
         changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
         #icon = 'webmergeexisting.png'
+
+
+
+
+
+    changetext = '%04d-%02d-%02d: ' % (change.date.year, change.date.month, change.date.day) + changetext
         
 
 
@@ -4500,7 +4544,7 @@ def account(request):
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
-        rowdict['text'] = text_formatted(rowdict['text'])
+        rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
         rowdict['title'] = rowdict['title'].encode('utf8')
         rowdict['country'] = rowdict['country'].encode('utf8')
         row = [rowdict[f] for f in fields]
@@ -5397,17 +5441,18 @@ class GeneralChangeForm(SourceEventForm):
         return rendered
 
     def get_source_formatted(self):
+        # should outsourcec the job to "text_formatted"
         import re
         val = self['source'].value()
         
         def repl(matchobj):
             id = matchobj.group(2)
             return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
-        val,n = re.subn('#(map)([1-9]*)', repl, val)
+        val,n = re.subn('#(map)([0-9]*)', repl, val)
         def repl(matchobj):
             id = matchobj.group(2)
             return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
-        val,n = re.subn('#(source)([1-9]*)', repl, val)
+        val,n = re.subn('#(source)([0-9]*)', repl, val)
         return val
 
 class FromChangeForm(forms.ModelForm):

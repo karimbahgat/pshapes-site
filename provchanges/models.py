@@ -51,6 +51,7 @@ class IssueComment(models.Model):
 
 class Comment(models.Model):
     "A note is assigned to a country, and optionally a prov changeid."
+    # OLD, no longer used, to be deleted
     user = models.CharField(max_length=200)
     country = models.CharField(max_length=200)
     changeid = models.IntegerField(null=True)
@@ -190,6 +191,7 @@ class ProvChange(models.Model):
                                          ("Circumscription","Circumscription"),
                                          ("Cercle","Cercle"),
                                          ("Division","Division"),
+                                         ("Fiefdom","Fiefdom"),
                                          ("Other...","Other..."),
                                          ],
                                 verbose_name=u"From province type",
@@ -218,6 +220,7 @@ class ProvChange(models.Model):
                                          ("Circumscription","Circumscription"),
                                          ("Cercle","Cercle"),
                                          ("Division","Division"),
+                                         ("Fiefdom","Fiefdom"),
                                          ("Other...","Other...")
                                          ],
                                 verbose_name=u"To province type",

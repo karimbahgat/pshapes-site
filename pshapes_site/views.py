@@ -26,11 +26,11 @@ def text_formatted(text):
     def repl(matchobj):
         id = matchobj.group(2)
         return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(map)([1-9]*)', repl, val)
+    val,n = re.subn('#(map)([0-9]*)', repl, val)
     def repl(matchobj):
         id = matchobj.group(2)
         return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(source)([1-9]*)', repl, val)
+    val,n = re.subn('#(source)([0-9]*)', repl, val)
     return val.encode('utf8')
 
 def lists2table(request, lists, fields):
@@ -386,7 +386,7 @@ def home(request):
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
         rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
-        rowdict['text'] = text_formatted(rowdict['text'])
+        rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
         rowdict['country'] = rowdict['country'].encode('utf8')
         row = [rowdict[f] for f in fields]
         link = "/viewissue/%s" % pk
