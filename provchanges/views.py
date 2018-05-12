@@ -190,6 +190,7 @@ def addissue(request):
                     {{ issueform.changeid.as_hidden }}
 
                         <p>
+                        Link to sources and maps by referencing their id number (e.g. #source12, #map9).
 					<div style="width:45%; margin-left:20px; display:inline-block"><em>Suggested Sources:</em>
                                             <table style="margin-left:20px">
                                             {% for id,lab in suggested_sources %}
@@ -308,6 +309,7 @@ def editissue(request, pk):
                     </table>
 
                         <p>
+                        Link to sources and maps by referencing their id number (e.g. #source12, #map9).
 					<div style="width:45%; margin-left:20px; display:inline-block"><em>Suggested Sources:</em>
                                             <table style="margin-left:20px">
                                             {% for id,lab in suggested_sources %}
@@ -2816,12 +2818,15 @@ def viewevent(request, country, province, editmode=False):
             if change.fromcapitalname != change.tocapitalname: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+change.fromcapitalname.encode("utf8")+"</li>"
             if change.fromcapital != change.tocapital: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+change.fromcapital.encode("utf8")+"</li>"
             if change.fromtype != change.totype: oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+change.fromtype.encode("utf8")+"</li>"
-            top = """
-                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                            Back to {countrytext}
+            top = """<div style="position:relative">
+                            <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to Country Overview
                             </a>
-                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
-            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+
+                            <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                    </div><br><br><br><br><br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
             left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
@@ -2921,12 +2926,15 @@ def viewevent(request, country, province, editmode=False):
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital: '+request.GET["fromcapitalname"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Capital moved: '+request.GET["fromcapital"].encode("utf8")+"</li>"
             oldinfo += '<li style="font-size:smaller; list-style:none">&nbsp;&nbsp; Type: '+request.GET["fromtype"].encode("utf8")+"</li>"
-            top = """
-                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                            Back to {countrytext}
+            top = """<div style="position:relative">
+                            <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to Country Overview
                             </a>
-                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
-            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+
+                            <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                    </div><br><br><br><br><br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
             left = """
                             <div style="clear:both; text-align: left">
                             <h2 style="float:left">{oldinfo}</h2>
@@ -2991,12 +2999,15 @@ def viewevent(request, country, province, editmode=False):
         GET["type"] = "NewInfo"
         newinfobut = '<a href="/contribute/view/{country}/{province}?{params}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Info</a>'.format(country=urlquote(country), province=urlquote(prov), params=GET.urlencode())
 
-        top = """
-                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Back to {countrytext}
-			</a>
-			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
-        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        top = """<div style="position:relative">
+                        <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Back to Country Overview
+                        </a>
+
+                        <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                </div><br><br><br><br><br>
+                        """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
         
         left = """
                         <div style="clear:both; text-align: left">
@@ -3102,12 +3113,15 @@ def viewevent(request, country, province, editmode=False):
         GET["type"] = "NewInfo"
         newinfobut = '<a href="/contribute/view/{country}/{province}?{params}" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:small; font-weight:bold; text-decoration:underline; margin:10px;">Info</a>'.format(country=urlquote(country), province=urlquote(prov), params=GET.urlencode())
 
-        top = """
-                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Back to {countrytext}
-			</a>
-			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
-        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        top = """<div style="position:relative">
+                        <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Back to Country Overview
+                        </a>
+
+                        <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                </div><br><br><br><br><br>
+                        """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
         
         left = """
                         <div style="clear:both; text-align: left">
@@ -3226,12 +3240,15 @@ def viewevent(request, country, province, editmode=False):
 
                             &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
-        top = """
-                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Back to {countrytext}
-			</a>
-			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
-        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        top = """<div style="position:relative">
+                        <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Back to Country Overview
+                        </a>
+
+                        <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                </div><br><br><br><br><br>
+                        """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
         
         left = """			
                         <style>
@@ -3328,12 +3345,15 @@ def viewevent(request, country, province, editmode=False):
 
                             &rarr;</li>'''.format(pk=change.pk, provtext=markcountrychange(country, change.fromname, change.fromcountry).encode("utf8"), vouches=len(list(Vouch.objects.filter(changeid=change.changeid, status='Active'))), issues=len(list(Issue.objects.filter(changeid=change.changeid, status='Active')))) for change in changes))
         givelist += '<li style="padding:10px 0px; list-style:none">' + '<a href="/contribute/add/{country}/{province}?{params}" style="{plusbutstyle}">&nbsp;Add New&nbsp;</a>'.format(country=urlquote(country), province=urlquote(prov), params=request.GET.urlencode(), plusbutstyle=plusbutstyle) + "</li>"
-        top = """
-                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Back to {countrytext}
-			</a>
-			""".format(country=urlquote(country), countrytext=country.encode("utf8"))
-        top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+        top = """<div style="position:relative">
+                        <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Back to Country Overview
+                        </a>
+
+                        <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                </div><br><br><br><br><br>
+                        """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
         
         left = """			
                         <style>
@@ -3415,12 +3435,15 @@ def viewevent(request, country, province, editmode=False):
         change = next((c for c in changes.order_by("-added")), None)
 
         if change:
-            top = """
-                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                            Back to {countrytext}
+            top = """<div style="position:relative">
+                            <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to Country Overview
                             </a>
-                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
-            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+
+                            <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                    </div><br><br><br><br><br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
             
             left = """
                             <div style="clear:both; text-align: left">
@@ -3509,12 +3532,15 @@ def viewevent(request, country, province, editmode=False):
 
         else:
             # begin event just added, so no change objects yet
-            top = """
-                            <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                            Back to {countrytext}
+            top = """<div style="position:relative">
+                            <a href="/contribute/view/{country}" style="z-index:100; position:absolute; left:0px; top:15px; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Back to Country Overview
                             </a>
-                            """.format(country=urlquote(country), countrytext=country.encode("utf8"))
-            top += '<h2 style="padding-left:37%%; padding-top:15px; margin:15px;">%s</h2>' % date.isoformat()
+
+                            <h2 style="position:absolute; width:90%; text-align:center; padding-top:15px; margin:15px;"><span style="font-size:large">{countrytext}</span><br>{date}</h2>
+
+                    </div><br><br><br><br><br>
+                            """.format(country=urlquote(country), countrytext=country.encode("utf8"), date=date.isoformat())
             
             left = """
                             <div style="clear:both; text-align: left">
@@ -4141,6 +4167,7 @@ def viewchange(request, pk):
     
 
     args = {'pk': pk,
+            'country':country.encode('utf8'),
             'summary':changetext.encode('utf8'),
             #'icon':icon,
             'notes': notes,
@@ -5367,6 +5394,7 @@ class GeneralChangeForm(SourceEventForm):
                         </div>
 
                         <p>
+                        Link to sources and maps by referencing their id number (e.g. #source12, #map9).
 					<div style="margin-left:20px; width:45%; display:inline-block"><em>Suggested Sources:</em>
                                             <table style="margin-left:20px">
                                             {% for id,lab in form.suggested_sources %}

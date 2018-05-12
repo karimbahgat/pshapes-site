@@ -81,6 +81,7 @@
                     {{ pk }}
                 </h2>
 
+                <h2 style="text-align:center">{{ country }}</h2>
                 <h2 style="text-align:center">{{ summary }}</h2>
                 
 
@@ -157,7 +158,7 @@
                                                         <div style="padding:10px 0 20px 0">Map Overlay:
                                                             {% if geochange.transfer_map.value %}
                                                                 <a href="/viewmap/{{ geochange.transfer_map.value }}" target="_blank">
-                                                                    <img height="20px" src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png">{{ geochange.transfer_map.value }}
+                                                                    <img height="20px" src="/static/map.png">{{ geochange.transfer_map.value }}
                                                                 </a>
                                                             {% endif %}
                                                         </div>

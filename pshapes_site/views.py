@@ -436,14 +436,14 @@ about_menu = """
                         <h4 class="blackbackground"><a href="/about/tutorial/">Tutorial</a></h4>
 
                         <ul class="blackbackground">
-                        <li><a href="/about/tutorial/">Sources of information</a></li>
-                        <li><a href="/about/tutorial/">Administrative levels</a></li>
-                        <li><a href="/about/tutorial/">Adding events</a></li>
-                        <li><a href="/about/tutorial/">Georeferencing maps</a></li>
-                        <li><a href="/about/tutorial/">What to include or exclude</a></li>
-                        <li><a href="/about/tutorial/">Changes between countries</a></li>
-                        <li><a href="/about/tutorial/">How to define a country</a></li>
-                        <li><a href="/about/tutorial/">Finishing up</a></li>
+                        <li><a href="/about/tutorial/#sources">Sources of information</a></li>
+                        <li><a href="/about/tutorial/#levels">Administrative levels</a></li>
+                        <li><a href="/about/tutorial/#events">Adding events</a></li>
+                        <li><a href="/about/tutorial/#georeferencing">Georeferencing maps</a></li>
+                        <li><a href="/about/tutorial/#exclude">What to include or exclude</a></li>
+                        <li><a href="/about/tutorial/#betweencountries">Changes between countries</a></li>
+                        <li><a href="/about/tutorial/#definecountry">How to define a country</a></li>
+                        <li><a href="/about/tutorial/#finishing">Finishing up</a></li>
                         </ul>
 
                     </div>
@@ -699,7 +699,7 @@ def about_tutorial(request):
                                 If you are looking to contribute to Pshapes, this page will walk you through the process on how to get started. 
                                 </p>
 
-                                <h4>Sources of Information</h4>
+                                <h4 id="sources">Sources of Information</h4>
                                 <p>
                                 There are several resources available detailing the administrative history of the country.
                                 Start in the present time and work yourself backwards.
@@ -739,7 +739,7 @@ def about_tutorial(request):
                                 </ul>
                                 </p>
                                 
-                                <h4>Administrative Levels</h4>
+                                <h4 id="levels">Administrative Levels</h4>
                                 <p>
                                 For each date, look for changes to the the first-level administrative areas,
                                 the highest level in a country.
@@ -755,7 +755,7 @@ def about_tutorial(request):
                                 If unsure about the correct level, leave a comment.
                                 </p>
                                 
-                                <h4>Adding Events</h4>
+                                <h4 id="events">Adding Events</h4>
                                 <p>
                                 On any given date, a province may experience one or more of the four basic event types:
                                 new information, mergers, transfers, and splits. An event may involve multiple individual
@@ -773,7 +773,7 @@ def about_tutorial(request):
                                 individually. 
                                 </p>
                                 
-                                <h4>Georeferencing Maps</h4>
+                                <h4 id="georeferencing">Georeferencing Maps</h4>
                                 <p>
                                 For the vast majority of province changes we do not
                                 need to consult historical maps or use valuable time on geocoding.
@@ -791,7 +791,7 @@ def about_tutorial(request):
                                 </ul>
                                 </p>
                                 
-                                <h4>What to do Include or Exclude</h4>
+                                <h4 id="exclude">What to do Include or Exclude</h4>
                                 <p>
                                 In some cases, transfers of territory may be listed with the names of lower-level areas, and these should just be
                                 listed as partial territorial transfers and drawn roughly by hand.
@@ -802,7 +802,7 @@ def about_tutorial(request):
                                 the big changes.
                                 </p>
                                 
-                                <h4>Changes Between Countries</h4>
+                                <h4 id="betweencountries">Changes Between Countries</h4>
                                 <p>
                                 Sometimes you will come across cases where territory might be
                                 transferred to or change ownership from one country to another.
@@ -818,7 +818,7 @@ def about_tutorial(request):
                                 as you have written it will appear in the list of countries, so you can keep tracking it further back in time.
                                 </p>
                                 
-                                <h4>How To Define a Country</h4>
+                                <h4 id="definecountry">How To Define a Country</h4>
                                 <p>
                                 It might not always be clear what constitutes a country. At all times follow what seems to have been the most
                                 widely used country-units and names. For instance, overseas territories and dependencies which have their own
@@ -830,7 +830,7 @@ def about_tutorial(request):
                                 changes in their official name, avoid changing the country name.
                                 </p>
                                 
-                                <h4>Finishing Up</h4>
+                                <h4 id="finishing">Finishing Up</h4>
                                 <p>
                                 If you are finished coding a country or believe it's not possible to code further
                                 back in time, then indicate this by adding the special "Begin" event.
@@ -870,7 +870,7 @@ def about_nextsteps(request):
                                 <p>
                                 The current stage will focus on piloting the data collection effort,
                                 getting feedback from users, and establishing proof-of-concept.
-                                Sources for funding are also currently being sought, to help maintain
+                                Sources for funding are also currently being sought, to help maintain, 
                                 improve, and add new features to the platform. 
                                 </p>
                                 <p>
