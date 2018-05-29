@@ -179,7 +179,7 @@
                                                 lab.innerHTML = yr
                                                 lab.style.position = "absolute";
                                                 lab.style.color = "gray"
-                                                lab.style.marginLeft = fraction * 100 + "%";
+                                                lab.style.marginLeft = (fraction * 100 - 2) + "%";
                                                 labels.appendChild(lab);
                                             }
                                         };
@@ -198,8 +198,17 @@
                                     datetext.value = newdate.toISOString().slice(0,10);
                                     datetext.style.left = "-" + datetext.offsetWidth * 1.1 + "px"
                                     datetext.style.top = datetext.offsetHeight / 4 + "px"
+                                    // search form date
+                                    //searchdate = document.getElementById("searchformdate");
+                                    //searchdate.value = newdate.toISOString().slice(0,10);
                             };
-                            updatedate(1); // max at default
+
+                            // set starting position of slider and date
+                            initdate = new Date('{{initdate}}');
+                            var fraction = (initdate.getTime() - mindate.getTime()) / daterange;
+                            updatedate(fraction);
+                            slider = document.getElementById('dateslider');
+                            slider.value = fraction;
                             </script>
                                 
         </div>
@@ -232,14 +241,14 @@
                         for (feat of countries) {
                                 feats.push(feat);
                         };
-                        map.zoomToExtent([-170,70,180,-40]);
+                        //map.zoomToExtent([-170,70,180,-40]);
                         //map.zoomToExtent([-150,70,150,-70]);
                         //map.zoomToExtent([-80,30,80,-30]);
                         countryLayer.addFeatures(feats);
                 };
                 $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
 
-                map.zoomToMaxExtent();
+                //map.zoomToMaxExtent();
                 </script>
 
 
@@ -255,7 +264,7 @@
                 var countryBorderLayer = new OpenLayers.Layer.Vector("CountryBorders", {styleMap:countryBorderStyle});
                 
                 var countryLabelStyle = new OpenLayers.Style({fillOpacity:0, strokeWidth:0,
-                                                       fontColor:'white', labelOutlineColor:'black', labelOutlineWidth:2,
+                                                       fontColor:'white', 
                                                        fontSize:"${getFontSize}", label:"${getLabel}"}, 
                                                         {context: {
                                                                         getLabel: function(feature) {
@@ -311,17 +320,19 @@
 
 
                 // empty province layer
-                var style = new OpenLayers.Style({fillOpacity:1, fillColor:"rgb(62,95,146)", strokeWidth:0.5, strokeColor:"rgb(200,200,200)"});
+                var style = new OpenLayers.Style({fillOpacity:1, fillColor:"rgb(62,95,146)", strokeWidth:1, strokeColor:"rgb(255,255,255)"});
                 var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 
                 // province centers
-                var provLabelStyle = new OpenLayers.Style({fillColor:"rgb(62,95,146)", fontSize:"${getFontSize}", label:"${getLabel}"},
+                var provLabelStyle = new OpenLayers.Style({fillColor:"rgb(62,95,146)", fontSize:"${getFontSize}", label:"${getLabel}",
+                                                           fontColor:'white', 
+                                                           },
                                                                                         {context: {
                                                                                                         getLabel: function(feature) {
                                                                                                                 if (map.resolution < 0.04) {
-                                                                                                                        return feature.attributes.name.toUpperCase();
+                                                                                                                        return feature.attributes.name;
                                                                                                                 } else if (map.resolution < 0.08) {
-                                                                                                                        return feature.attributes.name.substring(0,4).toUpperCase();
+                                                                                                                        return feature.attributes.name.substring(0,4);
                                                                                                                 } else {
                                                                                                                         return '';
                                                                                                                 }},
@@ -417,12 +428,134 @@
 
 
 
+
+
+                var wms = new OpenLayers.Layer.WMS(
+                    "OpenLayers WMS",
+                    "http://labs.metacarta.com/wms/vmap0",
+                        {layers: 'basic'}
+                    );
+                //var wms = new OpenLayers.Layer.Stamen("toner");
+                //var wms = new OpenLayers.Layer.XYZ('Name', ['http://tile.stamen.com/terrain/${z}/${x}/${y}.jpg'], {sphericalMercator:false});
+                //map.addLayers([wms]);
+
                 map.addLayers([provLayer]);
                 map.addLayers([countryBorderLayer]);
                 map.addLayers([provLabelLayer]);
                 map.addLayers([countryLabelLayer]);
 
 
+
+
+
+
+
+                /*
+                function selectfunc(feature) {
+                    var name = feature.attributes.name;
+                    var country = feature.attributes.country;
+                    var date = document.getElementById("datetext").value;
+                    window.location.href = "/viewprov?country="+country+"&name="+name+"&date="+date;
+                };
+                selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc,
+                                                                                } );
+                map.addControl(selectControl);
+                selectControl.activate();
+                */
+
+
+
+
+
+                /*
+                var popup;
+                var selectedFeature;
+
+                function onPopupClose(evt) {
+                    selectControl.unselect(selectedFeature);
+                };
+
+                function onFeatureSelect(feature) {
+                    selectedFeature = feature;
+                    popup = new OpenLayers.Popup.FramedCloud("featinfo", 
+                                             feature.geometry.getBounds().getCenterLonLat(),
+                                             null,
+                                             "<p style='z-index:0; font-size:20'>Name: " + feature.name +"<br>Area: " + feature.geometry.getArea()+"</p>",
+                                             null, true, onPopupClose);
+                    map.addPopup(popup);
+                    return true;
+                };
+
+                function onFeatureUnselect(feature) {
+                    map.removePopup(popup);
+                    popup.destroy();
+                };
+
+                // enable popup (currently only works if disabling the transfer_geom layer)
+                selectControl = new OpenLayers.Control.SelectFeature([provLayer,countryBorderLayer,provLabelLayer,countryLabelLayer],
+                                                                     {onSelect: onFeatureSelect,
+                                                                      onUnselect: onFeatureUnselect,
+                                                                      clickout: true,
+                                                                      multiple: false,
+                                                                      });
+                selectControl.handlers.feature.stopDown = false;
+                map.addControl(selectControl);
+                selectControl.activate();
+                */
+
+
+
+                
+
+                //Set up a click handler
+                OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+                    defaultHandlerOptions: {
+                        'single': true,
+                        'double': false,
+                        'pixelTolerance': 0,
+                        'stopSingle': false,
+                        'stopDouble': false
+                    },
+
+                    initialize: function(options) {
+                        this.handlerOptions = OpenLayers.Util.extend(
+                            {}, this.defaultHandlerOptions
+                        );
+                        OpenLayers.Control.prototype.initialize.apply(
+                            this, arguments
+                        ); 
+                        this.handler = new OpenLayers.Handler.Click(
+                            this, {
+                                'click': this.trigger
+                            }, this.handlerOptions
+                        );
+                    }, 
+
+                    trigger: function(e) {
+                        //A click happened!
+                        var lonlat = map.getLonLatFromViewPortPx(e.xy)
+
+                        //alert("You clicked near " + lonlat.lat + ", " + lonlat.lon);
+
+                        var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lat);
+                        for (feat of provLayer.features) {
+                            if (point.intersects(feat.geometry)) {
+                                //alert('match');
+                                //alert(feat.attributes.name);
+                                var name = feat.attributes.name;
+                                var country = feat.attributes.country;
+                                var date = feat.attributes.start;
+                                window.location.href = "/viewprov?country="+country+"&name="+name+"&date="+date;
+                                return true;
+                                };
+                        };
+                    }
+
+                });
+
+                var click = new OpenLayers.Control.Click();
+                map.addControl(click);
+                click.activate();
 
 
 
@@ -500,6 +633,7 @@
             <form style="font-weight:bold;" action="/explore/" method="get">
 
             <div>
+            <input id="searchformdate" name="date" type="hidden" value="{{initdate}}">
             <table align="center" style="background-color:red; width:auto">
                 <tr style="background-color:black">
                 <td>{{ searchform.country.label }}</td>

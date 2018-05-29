@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django.template import Template,Context
 from django.contrib.auth.decorators import login_required
 
-from provchanges.models import ProvChange, Comment, Vouch, Issue, IssueComment
+from provchanges.models import ProvChange, Comment, Vouch, Issue, IssueComment, Map
 from provshapes.models import ProvShape
 
 shortdescr = """
@@ -33,35 +33,37 @@ def text_formatted(text):
     val,n = re.subn('#(source)([0-9]*)', repl, val)
     return val.encode('utf8')
 
-def lists2table(request, lists, fields):
+def lists2table(request, lists, fields, classname="listtable", color='orange'):
     html = """
-		<table style="font-size:small"> 
+		<table class="{{ classname }}"> 
 		
 			<style>
-			table {
+			table.{{ classname }} {
 				border-collapse: collapse;
 				width: 100%;
 			}
 
-			th, td {
+			th.{{ classname }}, td.{{ classname }} {
 				text-align: left;
 				padding: 8px;
 			}
 
-			tr:nth-child(even){background-color: #f2f2f2}
+			tr.{{ classname }}:nth-child(even){background-color: #f2f2f2}
 
-			th {
-				background-color: orange;
+			tr.{{ classname }}:nth-child(odd){background-color: white}
+
+			th.{{ classname }} {
+				background-color: {{ color }};
 				color: white;
 			}
 			</style>
 		
-			<tr>
-				<th> 
+			<tr class="{{ classname }}">
+				<th class="{{ classname }}"> 
 				</th>
 
 				{% for field in fields %}
-                                    <th>
+                                    <th class="{{ classname }}">
                                         <b>{{ field }}</b>
                                     </th>
                                 {% endfor %}
@@ -70,34 +72,30 @@ def lists2table(request, lists, fields):
 			</a>
 			
 			{% for url,row in lists %}
-				<tr>
-					<td style="vertical-align:top;" >
+				<tr class="{{ classname }}">
+					<td style="vertical-align:top;" class="{{ classname }}">
 					{% if url %}
                                             <a href="{{ url }}">View</a>
                                         {% endif %}
 					</td>
 					
                                         {% for value in row %}
-                                            <td style="vertical-align:top;">{{ value | safe}}</td>
+                                            <td style="vertical-align:top" class="{{ classname }}">{{ value | safe}}</td>
                                         {% endfor %}
 					
 				</tr>
 			{% endfor %}
 		</table>
                 """
-    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists}))
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists, "classname":classname, "color":color}))
     return rendered
 
-def recentadds(request, num=5):
+def recentadds(request, num=3):
     html = """
 		<table style="font-size:small"> 
 
 			<tr>
 				<th> 
-				</th>
-				
-				<th>
-                <b>User</b>
 				</th>
 
 				<th>
@@ -122,15 +120,13 @@ def recentadds(request, num=5):
 			{% for change in changelist %}
 				<tr>
 					<td>
-					<a href="{% url 'viewchange' pk=change.pk %}">View</a>
-					</td>
-					
-					<td>
-					{{ change.user }}
+					<a href="{% url 'viewchange' pk=change.pk %}">
+					<img height="30px" src="/static/typechange.png">
+					</a>
 					</td>
 
 					<td>
-					{{ change.added }}
+					{{ change.added | date:"M d, Y" }}
 					</td>
 
                             {% if "Transfer" in change.type %}
@@ -199,22 +195,12 @@ def home(request):
 ##			</style>
 ##			<div class="shadow"></div>
 ##    """
-    if not request.user.is_authenticated():
-        quickstartbut = """
-			<a href="/registration" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Sign Up
-			</a>
-			or
-			<a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Login
-			</a>
-			"""
-    else:
-        quickstartbut = """
-			<a href="/contribute/countries" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-			Get Started
-			</a>
-			"""
+
+    quickstartbut = """
+                    <a href="/about" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                    Read More
+                    </a>
+                    """
     bannerright = """
                     <br><br>
                     <h3 style="text-align:left">Crowdsourcing Historical Province Boundaries</h3>
@@ -234,11 +220,168 @@ def home(request):
                     <br>
                     """.format(shortdescr=shortdescr, quickstartbut=quickstartbut)
     #<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
+##    bannerleft = """
+##                    <img src="/static/pshapes pen2 transp.png" width="40%">
+##                    <img src="/static/webfrontimg.png" width="60%%" style="border-radius:5px">
+##                    <br><br><br>
+##                    """
+
+
+
+    from provchanges.models import User
+    from django.db.models import Count
+    changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
+    edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
+    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
+    discussions = Issue.objects.filter(changeid__isnull=True, status="Active").count()
+    issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
+    vouches = Vouch.objects.filter(status="Active").count()
+    users = User.objects.all().count()
+
+    mapp = """
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+            <div style="width:95%; height:44vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            </div>
+	
+	<script defer="defer">
+	var map = new OpenLayers.Map('map', {allOverlays: true,
+                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            controls: [],
+                                            });
+	</script>
+
+        <script>
+	// empty country layer
+	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+        
+	// empty province layer
+	var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
+					);
+	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([provLayer]);
+
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		feats = [];
+		for (feat of countries) {
+                        feats.push(feat);
+		};
+		map.zoomToExtent([-170,70,180,-40]);
+		//map.zoomToExtent([-150,70,150,-70]);
+		//map.zoomToExtent([-80,30,80,-30]);
+		countryLayer.addFeatures(feats);
+	};
+
+        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+
+        renderprovs = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		allProvs = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		dateFeats = [];
+		for (feat of allProvs) {
+                        dateFeats.push(feat);
+		};
+		provLayer.addFeatures(dateFeats);
+	};
+
+
+
+
+
+
+        function selectfunc(feature) {
+            var name = feature.attributes.name;
+            window.location.href = "/contribute/view/"+name;
+        };
+        function highlightfunc(feature) {
+            //alert('hover');
+            feature.style = {fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:'white'}
+            provLayer.redraw();
+        };
+        function unhighlightfunc(feature) {
+            //alert('unhover');
+            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'}
+            provLayer.redraw();
+        };
+        selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc,
+                                                                        callbacks: {over:highlightfunc,
+                                                                                    out:unhighlightfunc}
+                                                                        } );
+        map.addControl(selectControl);
+        selectControl.activate();
+
+        $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1, getlevel:0}, renderprovs);
+        
+        </script>
+        """
+    
     bannerleft = """
-                    <img src="/static/pshapes pen2 transp.png" width="40%">
-                    <img src="/static/webfrontimg.png" width="60%%" style="border-radius:5px">
-                    <br><br><br>
-                    """
+                <div style="margin-top:30px">
+                        
+                        <h2 style="text-align:center">Welcome to Pshapes</h2>
+                
+                        <div style="text-align:center">
+                            {mapp}
+                        </div>
+		    
+                        <b>
+                        <table>
+                        <tr style="vertical-align:text-top">
+                            <td>
+                            <h1>{countrycount}</h1>
+                            Countries coded
+                            </td>
+                            
+                            <td>
+                            <h1>{changes}</h1>
+                            Historical changes
+                            </td>
+
+                            <td>
+                            <h1>{avgedits}</h1>
+                            Edits per Change
+                            </td>
+
+                            <td>
+                            <h1>{vouches}</h1>
+                            Vouches
+                            </td>
+                            
+                            <td>
+                            <h1>{issues}</h1>
+                            Issues
+                            </td>
+
+                            <td>
+                            <h1>{discussions}</h1>
+                            Discussions
+                            </td>
+                        </tr>
+                        </table>
+                        </b>
+                </div>
+                <br>
+                        """.format(mapp=mapp,
+                                   users=users,
+                                   changes=changes,
+                                   avgedits=format(edits/float(changes), '.1f'),
+                                   issues=issues,
+                                   discussions=discussions,
+                                   vouches=vouches,
+                                   countrycount=countrycount,
+                                   )
+
+
+    
 ##    if request.user.is_authenticated():
 ##        bannerright = """
 ##                        <br>
@@ -288,83 +431,149 @@ def home(request):
 ##                style="padding:0% 0%; background-size:100% 100%; background-image:url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxvPpRIf5PnwOmOqIz47XUiU99_7XhcfelMm5iiTrKbYiIoSXi)",
 ##                  ))
 
-    # random check
-    obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
-    country = obj.fromcountry
-    if obj.fromcountry != obj.tocountry:
-        tocountry = ' (%s)' % obj.tocountry
+##    # random check
+##    obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
+##    country = obj.fromcountry
+##    if obj.fromcountry != obj.tocountry:
+##        tocountry = ' (%s)' % obj.tocountry
+##    else:
+##        tocountry = ''
+##    # override special for begin
+##    if obj.type == 'Begin':
+##        country = obj.tocountry
+##        tocountry = ''
+##    # texts
+##    if obj.type == 'NewInfo':
+##        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'Breakaway':
+##        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
+##    elif obj.type == 'SplitPart':
+##        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
+##    elif obj.type == 'TransferNew':
+##        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'MergeNew':
+##        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'TransferExisting':
+##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'MergeExisting':
+##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'Begin':
+##        changetext = "'%s' was created" % obj.toname
+##
+##    # OLD, to be deprecated
+##    elif obj.type == 'PartTransfer':
+##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'FullTransfer':
+##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##
+##    
+##    vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
+##    vouchicon = """
+##    				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+##				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+##				%s
+##				</a>
+##				<img src="/static/vouch.png" height=30px />
+##				</div>
+##				""" % len(vouches)
+##    issues = Issue.objects.filter(changeid=obj.changeid, status='Active').count()
+##    issueicon = """
+##		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+##		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
+##		%s
+##		</a>
+##		<img src="/static/issue.png" height=25px />
+##		</div>
+##				""" % issues
+##    content = """
+##                <h3>{country}</h3>
+##                <div style="font-size:small">
+##                <p><b>{date}:</b> {changetext}</p>
+##                <p><em>(Source: {source})</em></p> 
+##
+##                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
+##                Check Now
+##                </a>
+##                
+##                <div style="">{vouchicon}{issueicon}</div>
+##                </div>
+##                """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
+##                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=text_formatted(obj.source))
+##
+##    grids.append(dict(title="Quality Check:",
+##                      content=content,
+##                      style="background-color:orange; border-radius:0",
+##                      #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="30%",
+##                      ))
+
+
+
+    # random prov
+    query = ProvShape.objects.raw('''SELECT id, ST_AsSVG(geom) as svg, name, country, start, "end"
+                                    FROM provshapes_provshape
+                                    WHERE simplify=0.025
+                                    ORDER BY random()
+                                    ''')
+    obj = next(iter(query), None)
+    if obj:
+        # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+        svg = obj.svg
+        multis = svg.replace(' Z', '').split('M ')
+        flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+        xs,ys = flat[0::2],flat[1::2]
+        bbox = min(xs),min(ys),max(xs),max(ys)
+        xmin,ymin,xmax,ymax = bbox
+        w,h = xmax-xmin,ymax-ymin
+        viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+        #print obj.country,obj.name,bbox,viewbox
+        icon = '<svg height="100px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
     else:
-        tocountry = ''
-    # override special for begin
-    if obj.type == 'Begin':
-        country = obj.tocountry
-        tocountry = ''
-    # texts
-    if obj.type == 'NewInfo':
-        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'Breakaway':
-        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
-    elif obj.type == 'SplitPart':
-        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
-    elif obj.type == 'TransferNew':
-        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'MergeNew':
-        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'TransferExisting':
-        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'MergeExisting':
-        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'Begin':
-        changetext = "'%s' was created" % obj.toname
+        icon = ""
 
-    # OLD, to be deprecated
-    elif obj.type == 'PartTransfer':
-        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-    elif obj.type == 'FullTransfer':
-        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
-
-    
-    vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
-    vouchicon = """
-    				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
-				<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-				%s
-				</a>
-				<img src="/static/vouch.png" height=30px />
-				</div>
-				""" % len(vouches)
-    issues = Issue.objects.filter(changeid=obj.changeid, status='Active').count()
-    issueicon = """
-		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
-		<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">
-		%s
-		</a>
-		<img src="/static/issue.png" height=25px />
-		</div>
-				""" % issues
     content = """
-                <h3>{country}</h3>
-                <div style="font-size:small">
-                <p><b>{date}:</b> {changetext}</p>
-                <p><em>(Source: {source})</em></p> 
-
-                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
-                Check Now
-                </a>
-                
-                <div style="">{vouchicon}{issueicon}</div>
+                <h3>{name}, {country}</h3>
+                <div style="text-align:center">
+                    <a href="/viewprov?country={country}&name={name}&date={date}">
+                    {icon}
+                    </a>
                 </div>
-                """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
-                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=text_formatted(obj.source))
+                
+                <div style="font-size:small; margin-bottom:10px">
+                    <p><b>{name}</b> was a province that existed in <b>{country}</b>
+                    from <b>{start}</b> to <b>{end}</b>
+                    </p>
 
-    grids.append(dict(title="Quality Check:",
+                    <a href="/viewprov?country={country}&name={name}&date={date}" style="background-color:rgb(7,118,183); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px">
+                    View
+                    </a>
+                </div>
+                """.format(country=obj.country.encode("utf8"), name=obj.name.encode("utf8"),
+                           icon=icon, date=obj.start,
+                           start=obj.start.year, end=obj.end.year)
+
+    grids.append(dict(title="Featured Province:",
                       content=content,
+                      style="background-color:orange; border-radius:0",
                       #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="30%",
                       ))
 
+
+    # recent changes
+    changelist = ProvChange.objects.all().order_by("-added")   # the dash reverses the order
+    fields = ["","Added","Country","Name","Type"]
+    lists = []
+    for o in changelist[:6]:
+        link = "/provchange/%s/view" % o.pk
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/typechange.png" height="25px"></a>' % link
+        row = [linkimg, o.added.strftime('%b %#d, %Y'), o.fromcountry.encode('utf8'), o.fromname.encode('utf8'), o.type]
+        lists.append((None,row))
+        
+    content = lists2table(request, lists=lists, fields=fields,
+                          classname="recentadds", color='orange')
     grids.append(dict(title="Recent Additions:",
-                      content=recentadds(request),
+                      content='<div style="font-size:small">%s</div>' % content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="63%",
                       ))
@@ -374,7 +583,7 @@ def home(request):
     comments = IssueComment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
     objects = sorted(list(issues[:3]) + list(comments[:3]),
                      key=lambda d: d.added, reverse=True)
-    fields = ["added","country","title","user","text"]
+    fields = ["added","country","title","text"]
     lists = []
     for o in objects[:3]:
         if isinstance(o, Issue):
@@ -385,18 +594,45 @@ def home(request):
             pk = o.issue.pk
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
-        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y')
         rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
         rowdict['country'] = rowdict['country'].encode('utf8')
-        row = [rowdict[f] for f in fields]
         link = "/viewissue/%s" % pk
-        lists.append((link,row))
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/comment.png" height="30px"></a>' % link
+        row = [linkimg] + [rowdict[f] for f in fields]
+        lists.append((None,row))
         
-    content = lists2table(request, lists=lists,
-                                        fields=["Added","Country","Title","User","Comment"])
+    content = lists2table(request, lists=lists, fields=["","Added","Country","Title","Comment"],
+                          classname="recentcomments", color='rgb(27,138,204)')
 
-    grids.append(dict(title="Recent Discussions",
-                      content=content,
+    grids.append(dict(title="Recent Discussions:",
+                      content='<div style="font-size:small">%s</div>' % content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="93%",
+                      ))
+
+    # maps
+    maps = Map.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    objects = maps
+    fields = ["added","country","title","note"]
+    lists = []
+    for o in objects[:3]:
+        pk = o.pk
+        rowdict = dict([(f,getattr(o, f)) for f in fields])
+        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y')
+        rowdict['note'] = text_formatted(rowdict['note'][:300]+'...' if len(rowdict['note']) > 300 else rowdict['note'])
+        rowdict['country'] = '; '.join(rowdict['country'].encode('utf8').split('|'))[:40]
+        if len(rowdict['country']) >= 40: rowdict['country'] += '...'
+        link = "/viewmap/%s" % pk
+        linkimg = '<a href="%s"><img style="opacity:0.8" src="/static/map.png" height="30px"></a>' % link
+        row = [linkimg] + [rowdict[f] for f in fields]
+        lists.append((None,row))
+        
+    content = lists2table(request, lists=lists, fields=["","Added","Country","Title","Note"],
+                          classname="recentmaps", color='rgb(58,177,73)')
+
+    grids.append(dict(title="<br>Recent Maps:",
+                      content='<div style="font-size:small">%s</div>' % content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="93%",
                       ))
@@ -409,42 +645,46 @@ def home(request):
 ##    return render(request, 'pshapes_site/about.html')
 
 about_menu = """
-                    <br>
-
                     <style>
                     li {padding-bottom:5px}
                     </style>
                     
-                    <div style="text-align:left">
+                    <div style="text-align:left; padding-top:10px">
 
-                        <img src="/static/pshapes pen2 transp.png" width="100%">
+                        <h2>About the Pshapes Project</h2>
 
-                        <h4>Pshapes</h4>
+                        <div style="width:100%; text-align:left">
+                            <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
+                        </div>
 
-                        <style>
-                            .blackbackground a { color:white }
-                            .blackbackground a:visited { color:white }
-                        </style>
+                        <div style="padding-left:20px">
+                            <h4>Introduction</h4>
 
-                        <ul class="blackbackground">
-                        <li><a href="/about/motivation/">Motivation and Background</a></li>
-                        <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
-                        <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
-                        <li><a href="/about/nextsteps/">Next Steps</a></li>
-                        </ul>
+                            <style>
+                                .blackbackground a { color:white }
+                                .blackbackground a:visited { color:white }
+                            </style>
 
-                        <h4 class="blackbackground"><a href="/about/tutorial/">Tutorial</a></h4>
+                            <ul class="blackbackground">
+                            <li><a href="/about/motivation/">Motivation and Background</a></li>
+                            <li><a href="/about/otherdata/">Aren't There Other Datasets?</a></li>
+                            <li><a href="/about/whycrowdsourcing/">Why Crowdsourcing?</a></li>
+                            <li><a href="/about/nextsteps/">Next Steps</a></li>
+                            </ul>
 
-                        <ul class="blackbackground">
-                        <li><a href="/about/tutorial/#sources">Sources of information</a></li>
-                        <li><a href="/about/tutorial/#levels">Administrative levels</a></li>
-                        <li><a href="/about/tutorial/#events">Adding events</a></li>
-                        <li><a href="/about/tutorial/#georeferencing">Georeferencing maps</a></li>
-                        <li><a href="/about/tutorial/#exclude">What to include or exclude</a></li>
-                        <li><a href="/about/tutorial/#betweencountries">Changes between countries</a></li>
-                        <li><a href="/about/tutorial/#definecountry">How to define a country</a></li>
-                        <li><a href="/about/tutorial/#finishing">Finishing up</a></li>
-                        </ul>
+                            <h4 class="blackbackground"><a href="/about/tutorial/">Coding Historical Changes</a></h4>
+
+                            <ul class="blackbackground">
+                            <li><a href="/about/tutorial/#sources">Sources of information</a></li>
+                            <li><a href="/about/tutorial/#levels">Administrative levels</a></li>
+                            <li><a href="/about/tutorial/#events">Adding events</a></li>
+                            <li><a href="/about/tutorial/#georeferencing">Georeferencing maps</a></li>
+                            <li><a href="/about/tutorial/#exclude">What to include or exclude</a></li>
+                            <li><a href="/about/tutorial/#betweencountries">Changes between countries</a></li>
+                            <li><a href="/about/tutorial/#definecountry">How to define a country</a></li>
+                            <li><a href="/about/tutorial/#finishing">Finishing up</a></li>
+                            </ul>
+                        </div>
 
                     </div>
             """
@@ -458,6 +698,7 @@ about_banner = """
                         </td>
                         
                         <td style="width:45%; padding:1%; padding:0px; padding-bottom:30px; margin:0px; vertical-align:top; text-align:center">
+                        <br>
                         {right}
                         </td>
 
@@ -692,11 +933,11 @@ def about_tutorial(request):
     bannertitle = ""
     bannerright = """
                     <br><br><br>
-                    <h3 style="text-align:left">Tutorial</h3>
+                    <h3 style="text-align:left">Coding Historical Changes</h3>
                     <div class="blackbackground" style="text-align:left">
 
                                 <p>
-                                If you are looking to contribute to Pshapes, this page will walk you through the process on how to get started. 
+                                If you are looking to code new countries and historical changes to Pshapes, this page will walk you through the process on how to get started. 
                                 </p>
 
                                 <h4 id="sources">Sources of Information</h4>
@@ -946,9 +1187,11 @@ def download(request):
 ##		    </div>
 ##		    """
     bannerleft = """
-                <br>
-                <h3 style="text-align:left">The Pshapes-Natural Earth Dataset</h3>
-                    <img src="/static/earth silhouette.jpg" width="80%">
+                
+                <h2 style="padding-top:10px; text-align:left">The Pshapes-Natural Earth Dataset</h2>
+                    <div style="width:100%; text-align:left">
+                        <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
+                    </div>
                     <div style="text-align:left; clear:both">
                         <p>
                         Here we provide the latest historical boundary dataset that has been reverse-engineered

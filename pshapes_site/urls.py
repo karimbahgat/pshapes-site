@@ -28,6 +28,7 @@ urlpatterns = [
     # ------------
     # INTERACTIVE
     url('^explore/$', "provshapes.views.explore"),
+    url(r'^viewprov/$', "provshapes.views.viewprov"),
 
 
     # -----------

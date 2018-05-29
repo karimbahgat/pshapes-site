@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view
 from formtools.wizard.views import SessionWizardView
 
 from .models import ProvChange, Comment, Vouch, Issue, IssueComment, Source, Map
-from provshapes.models import ProvShape
+from provshapes.models import ProvShape, CntrShape
 
 from django.db.models import Count
 from django.db import transaction
@@ -72,24 +72,25 @@ class ReplyForm(forms.ModelForm):
                    }
 
 def issues2html(request, issues, commentheadercolor="orange"):
-    fields = ["title","user","added"]
+    fields = ["title","added"] #,"user"]
     
     lists = []
     for i in issues:
         title = i.title
         #print title
         rowdict = dict([(f,getattr(i, f, "")) for f in fields])
-        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
-        rowdict['title'] = rowdict['title'].encode('utf8')
-        row = [rowdict[f] for f in fields]
+        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y')
+        rowdict['title'] = '<div style="width:300px">%s</div>' % rowdict['title'].encode('utf8')
+        link = "/viewissue/%s" % i.pk
+        row = ['<a href="%s"><img src="/static/comment.png" style="opacity:0.2" height="45px"></a>' % link]
+        row += [rowdict[f] for f in fields]
         replies = IssueComment.objects.filter(issue=i, status='Active').count()
         row += [replies]
-        link = "/viewissue/%s" % i.pk
-        lists.append((link,row))  
+        lists.append((None,row))  
 
     #print lists
     
-    html = lists2table(request, lists, fields + ['replies'], classname="topicstable", color=commentheadercolor)
+    html = lists2table(request, lists, [''] + fields + ['replies'], classname="topicstable", color=commentheadercolor)
     
     return html
 
@@ -1452,7 +1453,7 @@ map_resources = """
                                     <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
                                     <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
                                     <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                                    <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
+                                    <li><a target="_blank" href="https://legacy.lib.utexas.edu/maps/map_sites/country_sites.html">The Perry-Castaneda Library Map Collection</a></li>
                                     <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
                                     <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
                                     <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
@@ -1463,38 +1464,38 @@ map_resources = """
 
 
 def allcountries(request):
-    bannertitle = "Contributions:"
+    bannertitle = "Contribute"
 
-    from django.db.models import Count
-    changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
-    edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
-    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
-    discussions = Issue.objects.filter(changeid__isnull=True, status="Active").count()
-    issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
-    vouches = Vouch.objects.filter(status="Active").count()
-    users = User.objects.all().count()
-
-    #<img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
-    #bars = [dict(value=ch) for ch in ProvChange.objects.filter(status="Pending")]
-    bars = [dict(value=v, label=v) for v in range(0,100+1,10)] # just for testing
-    # TODO: group by year and month, sort by 10 most recent
-    curdate = datetime.datetime.now()
-##    aggs = ProvChange.objects.\
-##                            extra(select={'month': "EXTRACT(month FROM date)"}).\
-##                            values('month').\
-##                            annotate(count_items=Count('date'))
-##    bars = [dict(value=a['count_items'], label=a['month']) for a in aggs]
-
+##    from django.db.models import Count
+##    changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
+##    edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
+##    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
+##    discussions = Issue.objects.filter(changeid__isnull=True, status="Active").count()
+##    issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
+##    vouches = Vouch.objects.filter(status="Active").count()
+##    users = User.objects.all().count()
+##
+##    #<img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
+##    #bars = [dict(value=ch) for ch in ProvChange.objects.filter(status="Pending")]
+##    bars = [dict(value=v, label=v) for v in range(0,100+1,10)] # just for testing
+##    # TODO: group by year and month, sort by 10 most recent
+##    curdate = datetime.datetime.now()
+####    aggs = ProvChange.objects.\
+####                            extra(select={'month': "EXTRACT(month FROM date)"}).\
+####                            values('month').\
+####                            annotate(count_items=Count('date'))
+####    bars = [dict(value=a['count_items'], label=a['month']) for a in aggs]
+##
 ##    bars = []
 ##    graphchanges = ProvChange.objects.all()
 ##    for w in range(10):
-##        d2 = curdate - datetime.timedelta(7*w)
-##        d1 = curdate - datetime.timedelta(7*(w+1))
+##        d2 = curdate - datetime.timedelta(30*w)
+##        d1 = curdate - datetime.timedelta(30*(w+1))
 ##        c = graphchanges.filter(added__gt=d1, added__lte=d2).count()
 ##        bars.append(dict(value=c, label=""))
-##    bars[2]['label'] = d1.strftime("%Y-%m-%d")
-##    bars[-1]['label'] = curdate.strftime("%Y-%m-%d")
-    
+##    bars[2]['label'] = d1.strftime("%b, %Y")
+##    bars[-1]['label'] = curdate.strftime("%b, %Y")
+##    
 ##    contribcharttemplate = """
 ##                        <style>
 ##                        .chart rect {
@@ -1521,171 +1522,164 @@ def allcountries(request):
 ##                    """
 ##    
 ##    contribchart = Template(contribcharttemplate).render(Context({"request":request, 'bars':bars}))
-
-    mapp = """
-	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
-
-            <div style="width:90%; height:40vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
-            </div>
-	
-	<script defer="defer">
-	var map = new OpenLayers.Map('map', {allOverlays: true,
-                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
-                                            controls: [],
-                                            });
-	</script>
-
-        <script>
-	// empty country layer
-	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.2, strokeColor:'white'},
-					);
-	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([countryLayer]);
-        
-	// empty province layer
-	var style = new OpenLayers.Style({fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'},
-					);
-	var provLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
-	map.addLayers([provLayer]);
-
-        rendercountries = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		countries = geojson_format.read(geoj_str, "FeatureCollection");
-		
-		feats = [];
-		for (feat of countries) {
-                        feats.push(feat);
-		};
-		map.zoomToExtent([-170,70,180,-40]);
-		//map.zoomToExtent([-150,70,150,-70]);
-		//map.zoomToExtent([-80,30,80,-30]);
-		countryLayer.addFeatures(feats);
-	};
-
-        $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
-
-        renderprovs = function(data) {
-		var geojson_format = new OpenLayers.Format.GeoJSON();
-		var geoj_str = JSON.stringify(data);
-		allProvs = geojson_format.read(geoj_str, "FeatureCollection");
-		
-		dateFeats = [];
-		for (feat of allProvs) {
-                        dateFeats.push(feat);
-		};
-		provLayer.addFeatures(dateFeats);
-	};
+##
+##    bannerleft = contribchart
 
 
 
+##    # random check
+##    obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
+##    country = obj.fromcountry
+##    if obj.fromcountry != obj.tocountry:
+##        tocountry = ' (%s)' % obj.tocountry
+##    else:
+##        tocountry = ''
+##    # override special for begin
+##    if obj.type == 'Begin':
+##        country = obj.tocountry
+##        tocountry = ''
+##    # texts
+##    if obj.type == 'NewInfo':
+##        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'Breakaway':
+##        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
+##    elif obj.type == 'SplitPart':
+##        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
+##    elif obj.type == 'TransferNew':
+##        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'MergeNew':
+##        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'TransferExisting':
+##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'MergeExisting':
+##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'Begin':
+##        changetext = "'%s' was created" % obj.toname
+##
+##    # OLD, to be deprecated
+##    elif obj.type == 'PartTransfer':
+##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##    elif obj.type == 'FullTransfer':
+##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
+##
+##    
+##    vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
+##    vouchicon = """
+##    				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+##				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">
+##				%s
+##				</a>
+##				<img src="/static/vouch.png" height=30px style="filter:invert(100)" />
+##				</div>
+##				""" % len(vouches)
+##    issues = Issue.objects.filter(changeid=obj.changeid, status='Active').count()
+##    issueicon = """
+##		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
+##		<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">
+##		%s
+##		</a>
+##		<img src="/static/issue.png" height=25px style="filter:invert(100)" />
+##		</div>
+##				""" % issues
+##    content = """
+##            <div style="text-align:left; padding-left:20px; padding-right:20px; padding-bottom:10px; margin-bottom:10px; border-color:white; border-style:solid">
+##                <h3>Country: {country}</h3>
+##                <div style="font-size:small">
+##                <p><b>{date}:</b> {changetext}</p>
+##                <p><em>(Source: {source})</em></p> 
+##
+##                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
+##                Check Now
+##                </a>
+##                
+##                <div style="">{vouchicon}{issueicon}</div>
+##                </div>
+##            </div>
+##                """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
+##                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=text_formatted(obj.source))
+##
+##    bannerleft = content
 
-
-
-        function selectfunc(feature) {
-            var name = feature.attributes.name;
-            window.location.href = "/contribute/view/"+name;
-        };
-        function highlightfunc(feature) {
-            //alert('hover');
-            feature.style = {fillColor:"rgb(62,95,146)", strokeWidth:0.1, strokeColor:'white'}
-            provLayer.redraw();
-        };
-        function unhighlightfunc(feature) {
-            //alert('unhover');
-            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.1, strokeColor:'white'}
-            provLayer.redraw();
-        };
-        selectControl = new OpenLayers.Control.SelectFeature(provLayer, {onSelect: selectfunc,
-                                                                        callbacks: {over:highlightfunc,
-                                                                                    out:unhighlightfunc}
-                                                                        } );
-        map.addControl(selectControl);
-        selectControl.activate();
-
-        $.getJSON('/api', {simplify:0.2, year:2015, month:1, day:1, getlevel:0}, renderprovs);
-        
-        </script>
-        """
-    
     bannerleft = """
-                <div>
-                        <div style="text-align:center">
-                            {mapp}
+                        <div style="width:100%">
+                            <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
                         </div>
-		    
-                        <b>
-                        <table>
-                        <tr style="vertical-align:text-top">
-                            <td>
-                            <h1>{countrycount}</h1>
-                            Countries coded
-                            </td>
-                            
-                            <td>
-                            <h1>{changes}</h1>
-                            Changes registered
-                            </td>
+                        <br><br>
+                """
 
-                            <td>
-                            <h1>{avgedits}</h1>
-                            Edits per Change
-                            </td>
-
-                            <td>
-                            <h1>{vouches}</h1>
-                            Vouches
-                            </td>
-                            
-                            <td>
-                            <h1>{issues}</h1>
-                            Issues
-                            </td>
-
-                            <td>
-                            <h1>{discussions}</h1>
-                            Discussions
-                            </td>
-                        </tr>
-                        </table>
-                        </b>
-                </div>
-                        """.format(mapp=mapp,
-                                   users=users,
-                                   changes=changes,
-                                   avgedits=format(edits/float(changes), '.1f'),
-                                   issues=issues,
-                                   discussions=discussions,
-                                   vouches=vouches,
-                                   countrycount=countrycount,
-                                   )
 
     #QUOTE
     #Anyone who has an interest in coding some changes for one or more countries,
     #should have the ability to do so themselves, regardless of skills or background. 
 
-    bannerright = """
-                        <style>
-                            .blackbackground a { color:white }
-                            .blackbackground a:visited { color:grey }
-                        </style>
-                                
-                        <br><br>
-                        <div class="blackbackground" style="text-align:left">
-                                <h2>Welcome</h2>
-                                <p>
-                                If you're looking to get involved in the Pshapes project you've come to the right place!
-                                Contributing to Pshapes is both easy and fast: just register and
-                                contribute as little or as much as possible. You can add changes, quality check,
-                                vouch or edit the work of others, raise issues, or discuss difficult cases. 
-                                </p>
-                                
-                                <p>
-                                Read <a href="/about/tutorial">the tutorial</a> for a brief walkthrough of how it works,
-                                or get started right away by choosing a country from the map or list below.
-                                </p>
-                        </div>
-                        """
+    if request.user.is_authenticated():
+        bannerright = """
+                            <style>
+                                .blackbackground a { color:white }
+                                .blackbackground a:visited { color:grey }
+                            </style>
+                                    
+                            <br><br>
+                            <div class="blackbackground" style="text-align:left; width:70%%">
+                                    <h3>Welcome, <a href="/account">%s</a>!</h2>
+                                    <p>
+                                    Contributing to Pshapes is both easy and fast: just register and
+                                    contribute as little or as much as possible. You can add changes, quality check,
+                                    vouch or edit the work of others, raise issues, or discuss difficult cases. 
+                                    </p>
+
+                                    <p>
+                                    Read <a href="/about/tutorial">the tutorial</a> for a brief walkthrough of how it works,
+                                    or get started right away by choosing a country from the map or list below.
+                                    </p>
+
+                            </div>
+                            """ % request.user.username
+    else:
+        bannerright = """
+                            <style>
+                                .blackbackground a { color:white }
+                                .blackbackground a:visited { color:grey }
+                            </style>
+                                    
+                            <br><br>
+                            <div class="blackbackground" style="text-align:left">
+                                    <h3>Welcome!</h2>
+                                    <p>
+                                    If you're looking to get involved in the Pshapes project you've come to the right place!
+                                    Contributing to Pshapes is both easy and fast: just register and
+                                    contribute as little or as much as possible. You can add changes, quality check,
+                                    vouch or edit the work of others, raise issues, or discuss difficult cases. 
+                                    </p>
+
+                                    <p>
+                                    Read <a href="/about/tutorial">the tutorial</a> for a brief walkthrough of how it works,
+                                    then sign up or login to get started.
+                                    </p>
+
+                                    <br>
+                                            
+                                    <div style="text-align:right">
+                                    <a href="/registration" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                                    Sign Up
+                                    </a>
+                                    or
+                                    <a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                                    Login
+                                    </a>
+                                    </div>
+
+                            </div>
+                            """
+
+##    custombanner = """
+##                    <br>
+##                    <div style="display:inline-block; width:60%%">
+##                        <h2 style="text-align:center">%s</h2>
+##                        %s</div>
+##                    <div style="display:inline-block; width:35%%; vertical-align:top">%s</div>
+##                    <br><br><br>
+##                    """ % (bannertitle,bannerleft,bannerright)
     
     grids = []
 
@@ -1735,35 +1729,272 @@ def allcountries(request):
             cur["maxdate"] = min(cur["maxdate"], rowdict["maxdate"]) if cur["maxdate"] != "-" else rowdict["maxdate"]
         else:
             rowdicts[rowdict["country"]] = rowdict
-
-    for country in sorted(rowdicts.keys()):
-        rowdict = rowdicts[country]
-        rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
-        rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
-        row = [rowdict[f] for f in fields]
-        url = "/contribute/view/%s" % urlquote(rowdict["country"])
-        lists.append((url,row))
     
-    countriestable = lists2table(request, lists=lists,
-                                  fields=["Country","Entries","Issues","Discussions","First Change","Last Change"])
-    content = """
-                {countriestable}
-                <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(countriestable=countriestable)
-    grids.append(dict(title="Countries:",
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
+##    AS_GRID = 1
+##    if AS_GRID:
+##        content = """
+##                    <h3>Countries:</h3>
+##                    <div style="background-color:orange; width:100%; height:30px">
+##                    </div>
+##                    """
+##        grids.append(dict(title="",
+##                          content=content,
+##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                          width="100%",
+##                          ))
+##        
+##        for country in sorted(rowdicts.keys()):
+##            if not country: continue
+##            rowdict = rowdicts[country]
+##            rowdict['mindate'] = rowdict['mindate'].year
+##            rowdict['maxdate'] = rowdict['maxdate'].year
+##            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+##            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
+##            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
+##
+##            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
+##                                            FROM provshapes_cntrshape
+##                                            WHERE simplify=0.2 AND name='%s'
+##                                            ''' % country)
+##            obj = next(iter(cntr), None)
+##            if obj:
+##                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+##                svg = obj.svg
+##                multis = svg.replace(' Z', '').split('M ')
+##                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+##                xs,ys = flat[0::2],flat[1::2]
+##                bbox = min(xs),min(ys),max(xs),max(ys)
+##                xmin,ymin,xmax,ymax = bbox
+##                w,h = xmax-xmin,ymax-ymin
+##                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+##                print country,obj.name,bbox,viewbox
+##                icon = '<svg height="140px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+##            else:
+##                icon = '<img src="/static/globe.png" style="height:140px; opacity:0.2">'
+##            rowdict['icon'] = icon
+##
+##            content = """
+##                        <div style="padding:6px">
+##
+##                        <div id="countryheader" style="display:inline-block; width:70%; text-align:left;">
+##                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{country}</h3>
+##                        </div>
+##                        <div id="countryheader" style="display:inline-block; vertical-align:top; width:28%; text-align:right;">
+##                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{mindate} &rarr; {maxdate}</h3>
+##                        </div>
+##
+##                        <div id="countryshape" style="display:inline-block; width:28%">
+##                            <a href="{url}">
+##                            {icon}
+##                            </a>
+##                        </div>
+##
+##                        <div id="countrydetails" style="display:inline-block; text-align:right; vertical-align:bottom; width:70%; height:auto; border:1px">
+##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
+##                                <h3 style="text-align:center; margin:5px">{entries}</h3>
+##                                <img src="/static/typechange.png" style="height:30px">
+##                            </div>
+##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
+##                                <h3 style="text-align:center; margin:5px">{discussions}</h3>
+##                                <img src="/static/comment.png" style="height:30px">
+##                            </div>
+##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
+##                                <h3 style="text-align:center; margin:5px">{issues}</h3>
+##                                <img src="/static/issue.png" style="height:30px">
+##                            </div>
+##                        </div>
+##
+##                        </div>
+##
+##                        <hr>
+##                        """.format(**rowdict)
+##            grids.append(dict(title="",
+##                              content=content,
+##                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                              width="47%",
+##                              ))
+##
+##        # and finally, the new country button
+##        content = '''
+##                    <a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+##                    '''
+##        grids.append(dict(title="",
+##                          content=content,
+##                          style="background-color:white; margins:0 0; padding: 40px; border-style:none; text-align:center",
+##                          width="98%",
+##                          ))
+
+    AS_ICONS = 0
+    if AS_ICONS:
+        for country in sorted(rowdicts.keys()):
+            if not country: continue
+            rowdict = rowdicts[country]
+            rowdict['mindate'] = rowdict['mindate'].year
+            rowdict['maxdate'] = rowdict['maxdate'].year
+            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
+            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
+
+            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
+                                            FROM provshapes_cntrshape
+                                            WHERE simplify=0.2 AND name='%s'
+                                            ''' % country)
+            obj = next(iter(cntr), None)
+            if obj:
+                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+                svg = obj.svg
+                multis = svg.replace(' Z', '').split('M ')
+                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+                xs,ys = flat[0::2],flat[1::2]
+                bbox = min(xs),min(ys),max(xs),max(ys)
+                xmin,ymin,xmax,ymax = bbox
+                w,h = xmax-xmin,ymax-ymin
+                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+                #print country,obj.name,bbox,viewbox
+                icon = '<svg height="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+            else:
+                icon = '<img src="/static/globe.png" style="height:80px; opacity:0.2">'
+            rowdict['icon'] = icon
+
+            countrycell = """
+                        <div id="countryheader" style="display:inline-block; width:70%; text-align:left;">
+                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{country}</h3>
+                        </div>
+
+                        <div id="countryshape" style="display:inline-block; width:30%">
+                            <a href="{url}">
+                            {icon}
+                            </a>
+                        </div>
+                        """.format(**rowdict)
+##            countrycell = """
+##                        <div id="countryshape" style="display:inline-block; width:100%">
+##                            <a href="{url}">
+##                            {icon}
+##                            </a>
+##                            <p style="color:black; margin:5px 0px 5px 0px; padding:0px"><b>{country}</b></p>
+##                        </div>
+##                        """.format(**rowdict)
+            yearcell = """
+                        <div id="countryheader" style="display:inline-block; vertical-align:top; text-align:right;">
+                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{mindate} &rarr; {maxdate}</h3>
+                        </div>
+                        """.format(**rowdict)
+
+            entrycell = """
+                            <div style="display:inline-block; padding:0px 5% 0px 5%">
+                                <img src="/static/typechange.png" style="height:20px">
+                                <b style="text-align:center; vertical-align:top; margin:5px">{entries} Historical Changes</b>
+                            </div>
+                            """.format(**rowdict)
+
+            if rowdict['discussions']:
+                discusscell = """
+                                <div style="display:inline-block; padding:0px 5% 0px 5%">
+                                    <img src="/static/comment.png" style="height:20px">
+                                    <b style="text-align:center; vertical-align:top; margin:5px">{discussions} Discussions</b>
+                                </div>
+                                """.format(**rowdict)
+            else:
+                discusscell = """
+                                <div style="display:inline-block; padding:0px 5% 0px 5%; opacity:0.2">
+                                    <img src="/static/comment.png" style="height:20px">
+                                    <b style="text-align:center; vertical-align:top; margin:5px">{discussions} Discussions</b>
+                                </div>
+                                """.format(**rowdict)
+
+            if rowdict['issues']:
+                issuecell = """
+                                <div style="display:inline-block; padding:0px 5% 0px 5%">
+                                    <img src="/static/issue.png" style="height:20px">
+                                    <b style="text-align:center; vertical-align:top; margin:5px">{issues} Issues</b>
+                                </div>
+                            """.format(**rowdict)
+            else:
+                issuecell = """
+                                <div style="display:inline-block; padding:0px 5% 0px 5%; opacity:0.2">
+                                    <img src="/static/issue.png" style="height:20px">
+                                    <b style="text-align:center; vertical-align:top; margin:5px">{issues} Issues</b>
+                                </div>
+                            """.format(**rowdict)
+
+
+            detailcell = """
+                        <h3>{entr}</h3>
+                        <h3>{disc}</h3>
+                        <h3>{iss}</h3>
+                        """.format(entr=entrycell, disc=discusscell, iss=issuecell)
+
+            row = [countrycell,detailcell,yearcell]
+            lists.append((None,row))
+            
+        countriestable = lists2table(request, lists=lists,
+                                      fields=["Country","Details","Years"])
+        content = """
+                    <div style="margin-left:20px">{countriestable}</div>
+                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                    """.format(countriestable=countriestable)
+
+        grids.append(dict(title="<h3>Countries:</h3>",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none; text-align:center",
+                          width="99%",
+                          ))
+
+    else:
+        for country in sorted(rowdicts.keys()):
+            if not country: continue
+            rowdict = rowdicts[country]
+            rowdict['mindate'] = rowdict['mindate'].year
+            rowdict['maxdate'] = rowdict['maxdate'].year
+            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
+            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
+
+            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
+                                            FROM provshapes_cntrshape
+                                            WHERE simplify=0.2 AND name='%s'
+                                            ''' % country)
+            obj = next(iter(cntr), None)
+            if obj:
+                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+                svg = obj.svg
+                multis = svg.replace(' Z', '').split('M ')
+                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+                xs,ys = flat[0::2],flat[1::2]
+                bbox = min(xs),min(ys),max(xs),max(ys)
+                xmin,ymin,xmax,ymax = bbox
+                w,h = xmax-xmin,ymax-ymin
+                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+                #print country,obj.name,bbox,viewbox
+                icon = '<svg height="60px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+            else:
+                icon = '<img src="/static/globe.png" style="height:60px; opacity:0.2">'
+            url = "/contribute/view/%s" % urlquote(rowdict["country"])
+            linkimg = '<a href="%s">%s</a>' % (url,icon)
+            row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s -> %s' % (rowdict['mindate'],rowdict['maxdate'])]
+            lists.append((None,row))
+            
+        countriestable = lists2table(request, lists=lists,
+                                      fields=["","Country","Changes","Discussions","Issues","Years"])
+        content = """
+                    {countriestable}
+                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                    """.format(countriestable=countriestable)
+        grids.append(dict(title="Countries:",
+                          content=content,
+                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                          width="99%",
+                          ))
 
     # comments
-    issues = Issue.objects.filter(country='', changeid=None, status="Active")
+    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
     
     issuetable = issues2html(request, issues, 'rgb(27,138,204)')
 
     content = """
-                <br><br><hr><h4 id="comments">General Discussion:</h4>
-                {issuetable}
+                <hr><h3 id="comments">General Discussion:</h3>
+                <div style="margin-left:20px">{issuetable}</div>
                 <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 """.format(issuetable=issuetable)
 
@@ -1773,8 +2004,10 @@ def allcountries(request):
                       width="99%",
                       ))
     
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           #'custombanner':custombanner,
+                                                           "bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
                   )
 
 
@@ -2061,7 +2294,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="NewInfo"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type=NewInfo'
+                img = 'webnewinfo.png'
                 prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Breakaway":
                 fields = ["fromcountry","tocountry","source","sources","mapsources","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
@@ -2069,7 +2303,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(firstitem.fromname)) + params + '&type="Breakaway"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(firstitem.fromname)) + params + '&type=Breakaway'
+                img = 'webbreakaway.png'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Split":
                 fields = ["fromcountry","tocountry","source","sources","mapsources","date","fromname","fromalterns","fromtype","fromhasc","fromiso","fromfips","fromcapital","fromcapitalname"]
@@ -2077,7 +2312,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Split"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type=Split'
+                img = 'websplit.png'
                 prov = markcountrychange(country, firstitem.fromname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Form":
                 fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
@@ -2085,7 +2321,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Form"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type=Form'
+                img = 'webform.png'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Expand":
                 fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
@@ -2093,7 +2330,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Expand"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type=Expand'
+                img = 'webexpand.png'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
             elif typ == "Begin":
                 fields = ["fromcountry","tocountry","source","sources","mapsources","date","toname","toalterns","totype","tohasc","toiso","tofips","tocapital","tocapitalname"]
@@ -2101,7 +2339,8 @@ def viewcountry(request, country):
                 params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
                 params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
                 params = urlencode(params)
-                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type="Begin"'
+                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(linkcountry), prov=urlquote(prov)) + params + '&type=Begin'
+                img = 'webbegin.png'
                 prov = markcountrychange(country, firstitem.toname, [firstitem.fromcountry,firstitem.tocountry])
 
             changeids = [c.changeid for c in items]
@@ -2127,9 +2366,10 @@ def viewcountry(request, country):
                             '''.format(vouches=vouches)
             else:
                 vouchitem = '<a style="color:black; font-family:inherit; font-size:inherit; font-weight:bold;">0</a>'
-            return link,(typ,prov,'<b>%s</b>'%len(items),vouchitem,issueitem)
+            imglink = '<div style="width:50px; text-align:center"><a href="%s"><img height="30px" style="opacity:0.7" src="/static/%s"></a></div>' % (link,img)
+            return None,(imglink,typ,prov,'<b>%s</b>'%len(items),vouchitem,issueitem)
         events = [getlinkrow(date,prov,typ,fromcountry,tocountry,items) for (date,(prov,typ,fromcountry,tocountry)),items in events]
-        eventstable = lists2table(request, events, ["EventType", "Province", "Changes", "Vouches", "Issues"])
+        eventstable = lists2table(request, events, ["", "EventType", "Province", "Changes", "Vouches", "Issues"])
 
         content = eventstable
         
@@ -2237,74 +2477,23 @@ def viewcountry(request, country):
 
         # issues
         issues = Issue.objects.filter(country=country, changeid__isnull=False, status="Active")
-        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
+##        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
+##        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
+##        grids.append(dict(title="",
+##                          content=content,
+##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                          width="99%",
+##                          ))
+
+        # discussions
+        discussions = Issue.objects.filter(country=country, changeid=None, status="Active").order_by('-added')
+        content = '<br><br><hr><h3 id="discussions"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
+        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, discussions, 'rgb(27,138,204)')
+        content += '<br><div width="100%" style="text-align:center"><a href="/addissue?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=urlquote(country))
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                           width="99%",
-                          ))
-
-        # sources
-        color = "rgb(60,60,60)"
-
-        sources = list(get_country_sources(country))
-
-##        content = '''<hr>
-##                     <h3>
-##                         Sources:
-##                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
-##                    </h3>
-##                    '''.format(color=color)
-##        
-##        for source in sources:
-##            griditem = """
-##                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
-##                        <div class="griditem" style="float:left; width:200px; margin:10px">
-##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
-##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-##                                <h4 style="display:inline-block">{title}</h4>
-##                            </div>
-##                            
-##                            <div class="gridcontent">
-##                                <p>{citation}</p>
-##                            </div>
-##                        </div>
-##                    </a>
-##                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
-##            html = """
-##                    <div style="margin-left:2%">
-##                    {griditem}
-##                    </div>
-##                    """.format(griditem=griditem)
-##            content += html
-
-        fields = ['title', 'note', 'external link']
-        lists = []
-        for source in sources:
-            link = '/viewsource/{pk}/'.format(pk=source.pk)
-            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url.encode('utf8'), urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
-            row = [source.title, source.note, urllink]
-            lists.append((link,row))
-
-        table = lists2table(request, lists, fields, 'sourcetable', color)
-
-        content = '''<br><br>
-                    <hr>
-                     <h3 id="sources">
-                         <img src="/static/source.png" height="40px">
-                         Sources:
-                    </h3>
-                    <div style="margin-left:2%">
-                        {table}
-                        <br><div width="100%" style="text-align:center"><a href="/addsource/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                    </div>
-                    '''.format(table=table.encode('utf8'), color=color, country=urlquote(country))
-            
-        grids.append(dict(title="",
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="95%",
                           ))
 
         # maps
@@ -2347,10 +2536,10 @@ def viewcountry(request, country):
                     imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
                 except:
                     wmslink = "/static/map.png"
-                    imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+                    imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             else:
                 wmslink = "/static/map.png"
-                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.1"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
             urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
             row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
             lists.append((None,row))
@@ -2375,15 +2564,67 @@ def viewcountry(request, country):
                           width="95%",
                           ))
 
-        # discussions
-        discussions = Issue.objects.filter(country=country, changeid=None, status="Active")
-        content = '<br><br><hr><h3 id="discussions"><img src="/static/comment.png" style="padding-right:5px" height="40px">Discussions:</h3>'
-        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, discussions, 'rgb(27,138,204)')
-        content += '<br><div width="100%" style="text-align:center"><a href="/addissue?country={country}" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>'.format(country=urlquote(country))
+        # sources
+        color = "rgb(60,60,60)"
+
+        sources = list(get_country_sources(country))
+
+##        content = '''<hr>
+##                     <h3>
+##                         Sources:
+##                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
+##                    </h3>
+##                    '''.format(color=color)
+##        
+##        for source in sources:
+##            griditem = """
+##                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
+##                        <div class="griditem" style="float:left; width:200px; margin:10px">
+##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
+##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
+##                                <h4 style="display:inline-block">{title}</h4>
+##                            </div>
+##                            
+##                            <div class="gridcontent">
+##                                <p>{citation}</p>
+##                            </div>
+##                        </div>
+##                    </a>
+##                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
+##            html = """
+##                    <div style="margin-left:2%">
+##                    {griditem}
+##                    </div>
+##                    """.format(griditem=griditem)
+##            content += html
+
+        fields = ['', 'title', 'note', 'external link']
+        lists = []
+        for source in sources:
+            link = '/viewsource/{pk}/'.format(pk=source.pk)
+            urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=source.url.encode('utf8'), urlshort=source.url.replace('http://','').replace('https://','').split('/')[0])
+            imglink = '<a href="{link}"><img height="45px" src="/static/source.png" style="opacity:0.25"></a>'.format(link=link)
+            row = [imglink, source.title, source.note, urllink]
+            lists.append((None,row))
+
+        table = lists2table(request, lists, fields, 'sourcetable', color)
+
+        content = '''<br><br>
+                    <hr>
+                     <h3 id="sources">
+                         <img src="/static/source.png" height="40px">
+                         Sources:
+                    </h3>
+                    <div style="margin-left:2%">
+                        {table}
+                        <br><div width="100%" style="text-align:center"><a href="/addsource/?country={country}" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                    </div>
+                    '''.format(table=table.encode('utf8'), color=color, country=urlquote(country))
+            
         grids.append(dict(title="",
                           content=content,
                           style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="99%",
+                          width="95%",
                           ))
 
         # the country map
@@ -2493,18 +2734,20 @@ def viewcountry(request, country):
                             </div>
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
+                                <a href="#discussions" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
+                                <h3 style="margin-left:20px; display:inline">{discussions} Discussions</h3>
+                                </a>
+                            </div>
+
+                            <!-- COMMENTED OUT !!!!!!!!!!
+                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#issues" style="text-decoration:none; color:inherit">
                                 <img style="filter:invert(100)" src="/static/issue.png" style="padding-right:5px" height="30px">
                                 <h3 style="margin-left:20px; display:inline">{issues} Issues</h3>
                                 </a>
                             </div>
-
-                            <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#sources" style="text-decoration:none; color:inherit">
-                                <img style="filter:invert(100)" src="/static/source.png" height="30px">
-                                <h3 style="margin-left:20px; display:inline">{sources} Sources</h3>
-                                </a>
-                            </div>
+                            -->
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
                                 <a href="#maps" style="text-decoration:none; color:inherit">
@@ -2514,9 +2757,9 @@ def viewcountry(request, country):
                             </div>
 
                             <div style="width:95%; border-radius:5px; text-align:left; padding:5px; margin:5px">
-                                <a href="#discussions" style="text-decoration:none; color:inherit">
-                                <img style="filter:invert(100)" src="/static/comment.png" style="padding-right:5px" height="30px">
-                                <h3 style="margin-left:20px; display:inline">{discussions} Discussions</h3>
+                                <a href="#sources" style="text-decoration:none; color:inherit">
+                                <img style="filter:invert(100)" src="/static/source.png" height="30px">
+                                <h3 style="margin-left:20px; display:inline">{sources} Sources</h3>
                                 </a>
                             </div>
                             
@@ -2638,6 +2881,8 @@ def addcountry(request):
                                                     "nomainbanner":True}
                       )
 
+
+# TODO: RENAME THESE TO 'event'
 
 def viewprov(request, country, province):
     if all((k in request.GET for k in "date type".split())):
@@ -4495,6 +4740,7 @@ def account(request):
                         """
 
     custombanner = """
+                    <div style="padding-top:20px">
                     <h2>{bannertitle}</h2>
                     
                         <table width="99%" style="clear:both; padding:0px; margin:0px">
@@ -4514,6 +4760,9 @@ def account(request):
 
                         </tr>
                         </table>
+
+                    <br><br>
+                    </div>
                         """.format(left=bannerleft, right=bannerright, bannertitle=bannertitle)
 
     # stats
@@ -4570,7 +4819,7 @@ def account(request):
             pk = o.issue.pk
             rowdict = dict(added=o.added, user=o.user, text=o.text,
                            country=o.issue.country, title=o.issue.title)
-        rowdict['added'] = rowdict['added'].strftime('%Y-%m-%d %H:%M')
+        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y, %H:%M')
         rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
         rowdict['title'] = rowdict['title'].encode('utf8')
         rowdict['country'] = rowdict['country'].encode('utf8')
@@ -4578,8 +4827,8 @@ def account(request):
         link = "/viewissue/%s" % pk
         lists.append((link,row))
         
-    content = lists2table(request, lists=lists,
-                                        fields=["Added","Country","Title","User","Comment"])
+    content = lists2table(request, lists=lists, fields=["Added","Country","Title","User","Comment"],
+                          classname='yourcomments', color='rgb(27,138,204)')
 
     grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
                       content=content,
@@ -4783,14 +5032,14 @@ EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
                               "img": '<img style="width:100px" src="/static/websplit.png"/>',
                               },
              "Form": {"label": "Form",
-                              "short": "Multiple provinces merged or transferred territory to a new province.",
+                              "short": "One or more provinces merged or transferred territory to a new province.",
                               "descr": """
                                         
                                         """,
                               "img": '<img style="width:100px" src="/static/webform.png"/>',
                               },
              "Expand": {"label": "Form",
-                              "short": "Multiple provinces merged or transferred territory to an existing province.",
+                              "short": "One or more provinces merged or transferred territory to an existing province.",
                               "descr": """
                                         
                                         """,
