@@ -1147,12 +1147,6 @@ def download(request):
                      'The main dataset of historical province boundaries',
                      ],
                     [
-                     '''
-                     <img height=50px src="http://www.seismicportal.eu/images/json_file.png">''',
-                     '<a style="color:white" href="/download/countries/">Countries</a>',
-                     'Country boundaries derived from historical provinces',
-                     ],
-                    [
                      '''<img height="50px" src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">''',
                      '<a style="color:white" href="/download/raw/">Raw Change Data</a>',
                      'The latest data dump of the user contributions data is always available on-demand. This is the raw data used to replicate or rebuild the pshapes dataset.',
@@ -1170,7 +1164,7 @@ def download(request):
                     [
                      '''<img style="filter:invert(100)" height="50px" src="https://image.flaticon.com/icons/svg/25/25231.svg">''',
                      '<a style="color:white" href="https://github.com/karimbahgat/pshapes">Replication Code</a>',
-                     '''            The Pshapes framework uses reverse polygon geocoding to interpret
+                     '''            The Pshapes framework uses reverse polygon change-tracking to interpret
                                     the user-contributed data and create the final historical boundary dataset.
                                     This tool is open-source and freely available to programmers,
                                     allowing users to create their own historical versions of any input province dataset.
@@ -1178,7 +1172,7 @@ def download(request):
                      ],
                     ]
 
-    bannerright = '<br><br><br><h3 style="text-align:left">Download options</h3><table style="border-spacing:10px">%s</table>' \
+    bannerright = '<br><br><br><h3 style="text-align:left">Main data downloads:</h3><table style="border-spacing:10px">%s</table>' \
                   % ''.join(['<tr>%s</tr>' % ''.join(['<td style="text-align:left; vertical-align:top">%s</td>' % v for v in row])
                              for row in downloadlist])
 ##    bannerleft = """
@@ -1205,7 +1199,7 @@ def download(request):
                         <p>
                         License: Non-commercial use and attribution (<a target="_blank" style="color:white;" href="https://creativecommons.org/licenses/by-nc/3.0/">CC BY-NC 3.0</a>). 
                         </p>
-                        <p>Citation: If you use these data, please cite:
+                        <p>If you use these data, please cite:
                             <ul>
                                 <li><em>
                                 Bahgat, Karim (YEAR). Pshapes Database of Historical Province Boundaries, version [VERSION]. Available at www.pshapes.org. Accessed [DATE ACCESSED]. 
@@ -1214,6 +1208,34 @@ def download(request):
                         </p>
                     </div>
                 """.format(versiondate=versiondate)
+
+    grids = []
+    lists = [       ['''<a href="/download/countries/">
+                            <img height=50px src="http://www.seismicportal.eu/images/json_file.png">
+                        </a>''',
+                     'Countries',
+                     '''Historical country boundaries derived from the Pshapes-Natural Earth province data.
+                        For now, boundaries only, no country metadata.''',
+                     ],
+                    ['''<a>
+                            <img height=50px src="http://downloadicons.net/sites/default/files/csv-file-icon-32586.png">
+                        </a>''',
+                     'Historical Gazetteer (TBA)',
+                     """Gazetteer of worldwide place names from the GeoNames dataset, where the
+                         administrative unit of each place is historically correct based on the Pshapes boundaries.
+                         Useful for historical placename geocoding, since duplicate placenames often requires matching both the name
+                         of the place and the name of the administrative division (which can change over time).
+                         [To be added in the future / Not yet available].""",
+                     ],
+            ]
+    lists = [(None,r) for r in lists]
+                    
+    content = lists2table(request, lists, ['', 'File', 'Description'])
+    grids.append(dict(title="Additional Data Products:",
+                      content=content,
+                      width="96%",
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      ))
 
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannerleft":bannerleft,"bannerright":bannerright,"bannertitle":bannertitle}
                   )
