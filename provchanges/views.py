@@ -1601,8 +1601,8 @@ def allcountries(request):
 ##    bannerleft = content
 
     bannerleft = """
-                        <div style="width:100%">
-                            <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
+                        <div style="width:100%; height:240px; overflow: hidden; text-align:left">
+                            <img src="/static/webfrontimg.png" width="95%">
                         </div>
                         <br><br>
                 """
@@ -1967,12 +1967,12 @@ def allcountries(request):
                 w,h = xmax-xmin,ymax-ymin
                 viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
                 #print country,obj.name,bbox,viewbox
-                icon = '<svg height="60px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+                icon = '<svg height="60px" width="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
             else:
                 icon = '<img src="/static/globe.png" style="height:60px; opacity:0.2">'
             url = "/contribute/view/%s" % urlquote(rowdict["country"])
             linkimg = '<a href="%s">%s</a>' % (url,icon)
-            row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s -> %s' % (rowdict['mindate'],rowdict['maxdate'])]
+            row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s &rarr; %s' % (rowdict['mindate'],rowdict['maxdate'])]
             lists.append((None,row))
             
         countriestable = lists2table(request, lists=lists,
@@ -4795,10 +4795,22 @@ def account(request):
 ##                      ))    
 
     # user contribs
-    rendered = model2table(request, '', changes[:50], ['user','added','fromcountry','fromname','type','status'])
+    #rendered = model2table(request, '', changes[:50], ['user','added','fromcountry','fromname','type','status'])
+
+    fields = ['','user','added','fromcountry','fromname','type','status']
+    lists = []
+    for o in changes[:50]:
+        link = "/provchange/%s/view" % o.pk
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/typechange.png" height="25px"></a>' % link
+        row = [linkimg, o.user, o.added.strftime('%b %#d, %Y, %H:%M'), o.fromcountry.encode('utf8'), o.fromname.encode('utf8'), o.type, o.status]
+        lists.append((None,row))
+        
+    content = lists2table(request, lists=lists, fields=fields,
+                          classname="recentadds", color='orange')
+
 
     grids.append(dict(title="Your Contributions (last 50 only):", #most recent, 1-%s of %s):" % (min(changes.count(),50), changes.count()),
-                      content=rendered,
+                      content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="100%",
                       ))
@@ -4823,11 +4835,12 @@ def account(request):
         rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
         rowdict['title'] = rowdict['title'].encode('utf8')
         rowdict['country'] = rowdict['country'].encode('utf8')
-        row = [rowdict[f] for f in fields]
         link = "/viewissue/%s" % pk
-        lists.append((link,row))
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/comment.png" height="25px"></a>' % link
+        row = [linkimg] + [rowdict[f] for f in fields]
+        lists.append((None,row))
         
-    content = lists2table(request, lists=lists, fields=["Added","Country","Title","User","Comment"],
+    content = lists2table(request, lists=lists, fields=["","Added","Country","Title","User","Comment"],
                           classname='yourcomments', color='rgb(27,138,204)')
 
     grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),

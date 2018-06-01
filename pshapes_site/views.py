@@ -348,7 +348,7 @@ def home(request):
 
                             <td>
                             <h1>{avgedits}</h1>
-                            Edits per Change
+                            Edits per change
                             </td>
 
                             <td>
@@ -651,10 +651,10 @@ about_menu = """
                     
                     <div style="text-align:left; padding-top:10px">
 
-                        <h2>About the Pshapes Project</h2>
+                        <h2 style="text-align:center">About the Pshapes Project</h2>
 
-                        <div style="width:100%; text-align:left">
-                            <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
+                        <div style="width:100%; height:240px; overflow: hidden; text-align:left">
+                            <img src="/static/webfrontimg.png" width="95%">
                         </div>
 
                         <div style="padding-left:20px">
@@ -1182,9 +1182,9 @@ def download(request):
 ##		    """
     bannerleft = """
                 
-                <h2 style="padding-top:10px; text-align:left">The Pshapes-Natural Earth Dataset</h2>
-                    <div style="width:100%; text-align:left">
-                        <img style="padding-left:20px" src="/static/webfrontimg.png" width="80%">
+                <h2 style="padding-top:10px; text-align:center">Downloading the Dataset</h2>
+                    <div style="width:100%; height:240px; overflow: hidden; text-align:left">
+                        <img src="/static/webfrontimg.png" width="95%">
                     </div>
                     <div style="text-align:left; clear:both">
                         <p>
