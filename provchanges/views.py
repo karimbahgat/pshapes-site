@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 
 from formtools.wizard.views import SessionWizardView
 
-from .models import ProvChange, Comment, Vouch, Issue, IssueComment, Source, Map
+from .models import ProvChange, Comment, Vouch, Issue, IssueComment, Source, Map, Milestone
 from provshapes.models import ProvShape, CntrShape
 
 from django.db.models import Count
@@ -724,6 +724,206 @@ def dropmap(request, pk):
     obj.modified = datetime.datetime.now()
     obj.save()
     return redirect("/viewmap/%s" % obj.pk)
+
+
+# milestones
+
+# TODO: Not sure, should it only evaluate existing cases,
+# or should it also allow more flexible queries incl nonexisting cases,
+# such as coding all modern countries from a fixed list of countrynames?
+
+class MilestoneForm(forms.ModelForm):
+
+    class Meta:
+        model = Milestone
+        fields = 'status title description model subset condition'.split()
+        widgets = {"title":forms.TextInput(attrs=dict(style="width:98%")),
+                   "description":forms.Textarea(attrs=dict(style="width:98%; font-family:inherit")),
+                   "subset":forms.Textarea(attrs=dict(style="width:98%; font-family:inherit")),
+                   "condition":forms.Textarea(attrs=dict(style="width:98%; font-family:inherit")),
+                   #"country":forms.HiddenInput(),
+                   }
+
+    def get_progress(self):
+        obj = self.instance
+        if obj.model == 'ProvChange':
+            model = ProvChange
+        elif obj.model == 'Map':
+            model = Map
+        elif obj.model == 'Source':
+            model = Source
+        elif obj.model == 'Issue':
+            model = Issue
+
+        if obj.subset:
+            subsetquery = """SELECT 1 AS id, COUNT(id) AS idcount
+                            FROM provchanges_{model}
+                            WHERE {subset}""".format(model=obj.model.lower(),
+                                                     subset=obj.subset)
+            print subsetquery
+            subsetcount = model.objects.raw(subsetquery)[0].idcount
+
+            conditionquery = """
+                            SELECT 1 AS id, COUNT(id) AS idcount
+                            FROM provchanges_{model}
+                            WHERE ({subset}) AND ({condition})
+                            """.format(model=obj.model.lower(), subset=obj.subset, condition=obj.condition)
+            print conditionquery
+            conditioncount = model.objects.raw(conditionquery)[0].idcount
+            
+        else:
+            subsetquery = """SELECT 1 AS id, COUNT(id) AS idcount
+                            FROM provchanges_{model}""".format(model=obj.model.lower())
+            print subsetquery
+            subsetcount = model.objects.raw(subsetquery)[0].idcount
+
+            conditionquery = """
+                            SELECT 1 AS id, COUNT(id) AS idcount
+                            FROM provchanges_{model}
+                            WHERE {condition}
+                            """.format(model=obj.model.lower(), subset=obj.subset, condition=obj.condition)
+            print conditionquery
+            conditioncount = model.objects.raw(conditionquery)[0].idcount
+
+        if subsetcount:
+            progress = conditioncount / float(subsetcount) * 100
+        else:
+            progress = 0
+
+        return progress
+
+    def get_unsolved(self, n=10):
+        obj = self.instance
+        if obj.model == 'ProvChange':
+            model = ProvChange
+        elif obj.model == 'Map':
+            model = Map
+        elif obj.model == 'Source':
+            model = Source
+        elif obj.model == 'Issue':
+            model = Issue
+
+        if obj.subset:
+            conditionquery = """
+                            SELECT id, *
+                            FROM provchanges_{model}
+                            WHERE ({subset}) AND ({condition})
+                            """.format(model=obj.model.lower(), subset=obj.subset, condition=obj.condition)
+            print conditionquery
+            return model.objects.raw(conditionquery)[:n]
+
+        else:
+            conditionquery = """
+                            SELECT id, *
+                            FROM provchanges_{model}
+                            WHERE {condition}
+                            """.format(model=obj.model.lower(), subset=obj.subset, condition=obj.condition)
+            print conditionquery
+            return model.objects.raw(conditionquery)[:n]
+
+@login_required
+def addmilestone(request):
+    if request.method == "GET":
+        # new empty form
+        milestoneform = MilestoneForm(initial=request.GET.dict())
+        return render(request, "provchanges/addmilestone.html", {'milestoneform':milestoneform})
+    
+    elif request.method == "POST":
+        # save submitted info
+        fields = [f.name for f in Milestone._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(added=datetime.datetime.now(),
+                               modified=datetime.datetime.now())
+        print formfieldvalues
+        assert formfieldvalues['model']
+        mls = Milestone(**formfieldvalues)
+        mls.save()
+        # TODO: find way to refer back to referrer, http_refererer doesnt work...
+        return redirect("/viewmilestone/%s" % mls.pk)
+
+def viewmilestone(request, pk):
+    obj = get_object_or_404(Milestone, pk=pk)
+    milestoneform = MilestoneForm(instance=obj)
+    for field in milestoneform.fields.values():
+        field.disabled = True
+        field.widget.disabled = True
+        field.widget.attrs['readonly'] = 'readonly'
+    try:
+        progress = milestoneform.get_progress()
+        progresstext = '%.0f%%' % progress
+    except Exception as err:
+        print err
+        progress = 0
+        progresstext = "Error: Check that subset and condition are valid SQL expressions"
+
+    # TODO: Maybe include list of cases that do not adhere to condition?
+##    fields = [f.name for f in obj._meta.get_fields()]
+##    lists = []
+##    for m in milestones:
+##        rowdict = dict([getattr(m)])
+##        
+##        # calculate progress here
+##        milestoneform = MilestoneForm(instance=m)
+##        try:
+##            progress = milestoneform.get_progress()
+##            progresstext = '%.0f%%' % progress
+##        except:
+##            progress = 0
+##            progresstext = "NA"
+##        progr = progresstext
+##        
+##        url = "/viewmilestone/%s" % m.pk
+##        icon = '<img src="/static/milestone.png" style="height:50px; opacity:0.2">'
+##        linkimg = '<a href="%s">%s</a>' % (url,icon)
+##        row = [linkimg, title, descr, progr]
+##        lists.append((None,row))
+##        
+##    fixtable = lists2table(request, lists=lists,
+##                                  fields=[""] + fields,
+##                                 classname='fixtable', color='rgb(255,108,72)')
+
+        # OR: show one by one
+##        randid = milestoneform.get_unresolved(1)[0].id
+##        typeobj = obj.instance
+##        if typeobj.model == 'ProvChange':
+##            inst = ProvChange.get(pk=randid)
+##        elif typeobj.model == 'Map':
+##            model = Map
+##        elif typeobj.model == 'Source':
+##            model = Source
+##        elif typeobj.model == 'Issue':
+##            model = Issue
+        
+    return render(request, "provchanges/viewmilestone.html", {'milestoneform':milestoneform, 'progress':progress, 'progresstext':progresstext, 'pk':obj.pk})
+
+@login_required
+def editmilestone(request, pk):
+    obj = get_object_or_404(Milestone, pk=pk)
+    if request.method == "GET":
+        milestoneform = MilestoneForm(instance=obj)
+        return render(request, "provchanges/editmilestone.html", {'milestoneform':milestoneform, 'pk':obj.pk})
+
+    elif request.method == "POST":
+        # save submitted info
+        fields = [f.name for f in Milestone._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fields))
+        formfieldvalues.update(modified=datetime.datetime.now())
+        print formfieldvalues
+        assert formfieldvalues['model']
+        for k,v in formfieldvalues.items():
+            setattr(obj, k, v)
+        obj.save()
+        return redirect("/viewmilestone/%s" % obj.pk)
+
+@login_required
+def dropmilestone(request, pk):
+    obj = get_object_or_404(Milestone, pk=pk)
+    obj.status = "Withdrawn"
+    obj.modified = datetime.datetime.now()
+    obj.save()
+    return redirect("/viewmilestone/%s" % obj.pk)
+
+
 
 
 
@@ -1680,8 +1880,6 @@ def allcountries(request):
 ##                    <div style="display:inline-block; width:35%%; vertical-align:top">%s</div>
 ##                    <br><br><br>
 ##                    """ % (bannertitle,bannerleft,bannerright)
-    
-    grids = []
 
     content = """
                     <h1>1</h1>
@@ -1701,11 +1899,12 @@ def allcountries(request):
                     </div>
             """
 
-##    grids.append(dict(title="Instructions:",
-##                      content=content,
-##                      #style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="99%",
-##                      ))
+    
+    grids = []
+
+
+
+    # countries
 
     from django.db.models import Count,Max,Min
 
@@ -1724,268 +1923,99 @@ def allcountries(request):
         rowdict["country"] = rowdict.pop("tocountry")
         if rowdict["country"] in rowdicts:
             cur = rowdicts[rowdict["country"]]
-            cur["entries"] += rowdict["entries"]
+            cur["entries"] = max(cur["entries"],rowdict["entries"]) # NOTE: by overwriting here, we are only keeping counts of tocountry (if we plus then we basically double the count)
             cur["mindate"] = min(cur["mindate"], rowdict["mindate"]) if cur["mindate"] != "-" else rowdict["mindate"]
             cur["maxdate"] = min(cur["maxdate"], rowdict["maxdate"]) if cur["maxdate"] != "-" else rowdict["maxdate"]
         else:
             rowdicts[rowdict["country"]] = rowdict
-    
-##    AS_GRID = 1
-##    if AS_GRID:
-##        content = """
-##                    <h3>Countries:</h3>
-##                    <div style="background-color:orange; width:100%; height:30px">
-##                    </div>
-##                    """
-##        grids.append(dict(title="",
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                          width="100%",
-##                          ))
-##        
-##        for country in sorted(rowdicts.keys()):
-##            if not country: continue
-##            rowdict = rowdicts[country]
-##            rowdict['mindate'] = rowdict['mindate'].year
-##            rowdict['maxdate'] = rowdict['maxdate'].year
-##            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
-##            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
-##            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
-##
-##            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
-##                                            FROM provshapes_cntrshape
-##                                            WHERE simplify=0.2 AND name='%s'
-##                                            ''' % country)
-##            obj = next(iter(cntr), None)
-##            if obj:
-##                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
-##                svg = obj.svg
-##                multis = svg.replace(' Z', '').split('M ')
-##                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
-##                xs,ys = flat[0::2],flat[1::2]
-##                bbox = min(xs),min(ys),max(xs),max(ys)
-##                xmin,ymin,xmax,ymax = bbox
-##                w,h = xmax-xmin,ymax-ymin
-##                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
-##                print country,obj.name,bbox,viewbox
-##                icon = '<svg height="140px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
-##            else:
-##                icon = '<img src="/static/globe.png" style="height:140px; opacity:0.2">'
-##            rowdict['icon'] = icon
-##
-##            content = """
-##                        <div style="padding:6px">
-##
-##                        <div id="countryheader" style="display:inline-block; width:70%; text-align:left;">
-##                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{country}</h3>
-##                        </div>
-##                        <div id="countryheader" style="display:inline-block; vertical-align:top; width:28%; text-align:right;">
-##                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{mindate} &rarr; {maxdate}</h3>
-##                        </div>
-##
-##                        <div id="countryshape" style="display:inline-block; width:28%">
-##                            <a href="{url}">
-##                            {icon}
-##                            </a>
-##                        </div>
-##
-##                        <div id="countrydetails" style="display:inline-block; text-align:right; vertical-align:bottom; width:70%; height:auto; border:1px">
-##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
-##                                <h3 style="text-align:center; margin:5px">{entries}</h3>
-##                                <img src="/static/typechange.png" style="height:30px">
-##                            </div>
-##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
-##                                <h3 style="text-align:center; margin:5px">{discussions}</h3>
-##                                <img src="/static/comment.png" style="height:30px">
-##                            </div>
-##                            <div style="display:inline-block; padding:0px 5% 0px 5%">
-##                                <h3 style="text-align:center; margin:5px">{issues}</h3>
-##                                <img src="/static/issue.png" style="height:30px">
-##                            </div>
-##                        </div>
-##
-##                        </div>
-##
-##                        <hr>
-##                        """.format(**rowdict)
-##            grids.append(dict(title="",
-##                              content=content,
-##                              style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                              width="47%",
-##                              ))
-##
-##        # and finally, the new country button
-##        content = '''
-##                    <a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-##                    '''
-##        grids.append(dict(title="",
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 40px; border-style:none; text-align:center",
-##                          width="98%",
-##                          ))
 
-    AS_ICONS = 0
-    if AS_ICONS:
-        for country in sorted(rowdicts.keys()):
-            if not country: continue
-            rowdict = rowdicts[country]
-            rowdict['mindate'] = rowdict['mindate'].year
-            rowdict['maxdate'] = rowdict['maxdate'].year
-            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
-            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
-            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
+    for country in sorted(rowdicts.keys()):
+        if not country: continue
+        rowdict = rowdicts[country]
+        rowdict['mindate'] = rowdict['mindate'].year
+        rowdict['maxdate'] = rowdict['maxdate'].year
+        rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+        rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
+        rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
 
-            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
-                                            FROM provshapes_cntrshape
-                                            WHERE simplify=0.2 AND name='%s'
-                                            ''' % country)
-            obj = next(iter(cntr), None)
-            if obj:
-                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
-                svg = obj.svg
-                multis = svg.replace(' Z', '').split('M ')
-                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
-                xs,ys = flat[0::2],flat[1::2]
-                bbox = min(xs),min(ys),max(xs),max(ys)
-                xmin,ymin,xmax,ymax = bbox
-                w,h = xmax-xmin,ymax-ymin
-                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
-                #print country,obj.name,bbox,viewbox
-                icon = '<svg height="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
-            else:
-                icon = '<img src="/static/globe.png" style="height:80px; opacity:0.2">'
-            rowdict['icon'] = icon
+        cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
+                                        FROM provshapes_cntrshape
+                                        WHERE simplify=0.2 AND name='%s'
+                                        ''' % country)
+        obj = next(iter(cntr), None)
+        if obj:
+            # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+            svg = obj.svg
+            multis = svg.replace(' Z', '').split('M ')
+            flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+            xs,ys = flat[0::2],flat[1::2]
+            bbox = min(xs),min(ys),max(xs),max(ys)
+            xmin,ymin,xmax,ymax = bbox
+            w,h = xmax-xmin,ymax-ymin
+            viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+            #print country,obj.name,bbox,viewbox
+            icon = '<svg height="60px" width="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+        else:
+            icon = '<img src="/static/globe.png" style="height:60px; opacity:0.2">'
+        url = "/contribute/view/%s" % urlquote(rowdict["country"])
+        linkimg = '<a href="%s">%s</a>' % (url,icon)
+        row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s &rarr; %s' % (rowdict['mindate'],rowdict['maxdate'])]
+        lists.append((None,row))
+        
+    countriestable = lists2table(request, lists=lists,
+                                  fields=["","Country","Changes","Discussions","Issues","Years"])
+    content = """
+                {countriestable}
+                <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(countriestable=countriestable)
+    grids.append(dict(title="Countries:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
 
-            countrycell = """
-                        <div id="countryheader" style="display:inline-block; width:70%; text-align:left;">
-                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{country}</h3>
-                        </div>
+    # milestones
+    milestones = Milestone.objects.filter(country='', status="Active")
+    def iter_milestones():
+        for m in milestones:
+            # calculate progress here
+            milestoneform = MilestoneForm(instance=m)
+            try:
+                progress = milestoneform.get_progress()
+                progresstext = '%.0f%%' % progress
+            except:
+                progress = 0
+                progresstext = "NA"
+            yield m,milestoneform,progress,progresstext
 
-                        <div id="countryshape" style="display:inline-block; width:30%">
-                            <a href="{url}">
-                            {icon}
-                            </a>
-                        </div>
-                        """.format(**rowdict)
-##            countrycell = """
-##                        <div id="countryshape" style="display:inline-block; width:100%">
-##                            <a href="{url}">
-##                            {icon}
-##                            </a>
-##                            <p style="color:black; margin:5px 0px 5px 0px; padding:0px"><b>{country}</b></p>
-##                        </div>
-##                        """.format(**rowdict)
-            yearcell = """
-                        <div id="countryheader" style="display:inline-block; vertical-align:top; text-align:right;">
-                            <h3 style="color:black; margin:5px 0px 5px 0px; padding:0px">{mindate} &rarr; {maxdate}</h3>
-                        </div>
-                        """.format(**rowdict)
-
-            entrycell = """
-                            <div style="display:inline-block; padding:0px 5% 0px 5%">
-                                <img src="/static/typechange.png" style="height:20px">
-                                <b style="text-align:center; vertical-align:top; margin:5px">{entries} Historical Changes</b>
-                            </div>
-                            """.format(**rowdict)
-
-            if rowdict['discussions']:
-                discusscell = """
-                                <div style="display:inline-block; padding:0px 5% 0px 5%">
-                                    <img src="/static/comment.png" style="height:20px">
-                                    <b style="text-align:center; vertical-align:top; margin:5px">{discussions} Discussions</b>
-                                </div>
-                                """.format(**rowdict)
-            else:
-                discusscell = """
-                                <div style="display:inline-block; padding:0px 5% 0px 5%; opacity:0.2">
-                                    <img src="/static/comment.png" style="height:20px">
-                                    <b style="text-align:center; vertical-align:top; margin:5px">{discussions} Discussions</b>
-                                </div>
-                                """.format(**rowdict)
-
-            if rowdict['issues']:
-                issuecell = """
-                                <div style="display:inline-block; padding:0px 5% 0px 5%">
-                                    <img src="/static/issue.png" style="height:20px">
-                                    <b style="text-align:center; vertical-align:top; margin:5px">{issues} Issues</b>
-                                </div>
-                            """.format(**rowdict)
-            else:
-                issuecell = """
-                                <div style="display:inline-block; padding:0px 5% 0px 5%; opacity:0.2">
-                                    <img src="/static/issue.png" style="height:20px">
-                                    <b style="text-align:center; vertical-align:top; margin:5px">{issues} Issues</b>
-                                </div>
-                            """.format(**rowdict)
-
-
-            detailcell = """
-                        <h3>{entr}</h3>
-                        <h3>{disc}</h3>
-                        <h3>{iss}</h3>
-                        """.format(entr=entrycell, disc=discusscell, iss=issuecell)
-
-            row = [countrycell,detailcell,yearcell]
-            lists.append((None,row))
-            
-        countriestable = lists2table(request, lists=lists,
-                                      fields=["Country","Details","Years"])
-        content = """
-                    <div style="margin-left:20px">{countriestable}</div>
-                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                    """.format(countriestable=countriestable)
-
-        grids.append(dict(title="<h3>Countries:</h3>",
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none; text-align:center",
-                          width="99%",
-                          ))
-
-    else:
-        for country in sorted(rowdicts.keys()):
-            if not country: continue
-            rowdict = rowdicts[country]
-            rowdict['mindate'] = rowdict['mindate'].year
-            rowdict['maxdate'] = rowdict['maxdate'].year
-            rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
-            rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
-            rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
-
-            cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
-                                            FROM provshapes_cntrshape
-                                            WHERE simplify=0.2 AND name='%s'
-                                            ''' % country)
-            obj = next(iter(cntr), None)
-            if obj:
-                # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
-                svg = obj.svg
-                multis = svg.replace(' Z', '').split('M ')
-                flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
-                xs,ys = flat[0::2],flat[1::2]
-                bbox = min(xs),min(ys),max(xs),max(ys)
-                xmin,ymin,xmax,ymax = bbox
-                w,h = xmax-xmin,ymax-ymin
-                viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
-                #print country,obj.name,bbox,viewbox
-                icon = '<svg height="60px" width="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
-            else:
-                icon = '<img src="/static/globe.png" style="height:60px; opacity:0.2">'
-            url = "/contribute/view/%s" % urlquote(rowdict["country"])
-            linkimg = '<a href="%s">%s</a>' % (url,icon)
-            row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s &rarr; %s' % (rowdict['mindate'],rowdict['maxdate'])]
-            lists.append((None,row))
-            
-        countriestable = lists2table(request, lists=lists,
-                                      fields=["","Country","Changes","Discussions","Issues","Years"])
-        content = """
-                    {countriestable}
-                    <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                    """.format(countriestable=countriestable)
-        grids.append(dict(title="Countries:",
-                          content=content,
-                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                          width="99%",
-                          ))
+    fields = ["","title","progress"]
+    lists = []
+    for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
+        title = m.title
+        progbar = '''
+                    <div style="display:relative; text-display:center; width:70%; padding:0px; margin-left:15%; margin-top:10px; height:13px; border-style:solid; border-color:black; border-width:1px">
+                        <span style="display:block; padding:0; margin:0; height:100%; width:{progress}%; color:white; background-color:rgb(255,108,72)">
+                        </span>
+                    </div>
+                    '''.format(progress=int(progress), progresstext=progresstext)
+        url = "/viewmilestone/%s" % m.pk
+        icon = '<img src="/static/milestone.png" style="height:50px; opacity:0.2">'
+        linkimg = '<a href="%s">%s</a>' % (url,icon)
+        row = [linkimg, title, progbar] #progresstext]
+        lists.append((None,row))
+        
+    milestonetable = lists2table(request, lists=lists,
+                                  fields=fields,
+                                 classname='milestonetable', color='rgb(255,108,72)')
+    content = """
+                {milestonetable}
+                <br><div width="100%" style="text-align:center"><a href="/addmilestone/" style="text-align:center; background-color:rgb(255,108,72); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(milestonetable=milestonetable)
+    grids.append(dict(title="<br><hr>Milestones:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
 
     # comments
     issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
@@ -1993,12 +2023,11 @@ def allcountries(request):
     issuetable = issues2html(request, issues, 'rgb(27,138,204)')
 
     content = """
-                <hr><h3 id="comments">General Discussion:</h3>
                 <div style="margin-left:20px">{issuetable}</div>
                 <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 """.format(issuetable=issuetable)
 
-    grids.append(dict(title="",
+    grids.append(dict(title="<br><hr>General Discussion:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",

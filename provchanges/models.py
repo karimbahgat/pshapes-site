@@ -112,6 +112,35 @@ class Map(models.Model):
     country = models.TextField(blank=True, verbose_name=u"Country")
 
 
+class Milestone(models.Model):
+    """A milestone.
+    Describes a goal to be achieved, and
+    the operationalizations of those goals,
+    so that they can be tracked. 
+    """
+    status = models.CharField(choices=[("Active","Active"),
+                                       ("Completed","Completed"),
+                                       ("Withdrawn","Withdrawn"),
+                                        ],
+                              default="Active",
+                              max_length=40)
+    added = models.DateTimeField()
+    modified = models.DateTimeField()
+    
+    title = models.CharField(max_length=500)
+    description = models.TextField(blank=True)
+    country = models.TextField(blank=True)
+
+    model = models.CharField(choices=[("ProvChange","ProvChange"),
+                                       ("Map","Map"),
+                                       ("Source","Source"),
+                                       ("Issue","Issue"),
+                                        ],
+                              max_length=40)
+    subset = models.TextField(blank=True)
+    condition = models.TextField(blank=True)
+
+
 class ProvChange(models.Model):
 
     # TODO: Add verbose_name=...
@@ -176,6 +205,7 @@ class ProvChange(models.Model):
     fromhasc = models.CharField(max_length=40, blank=True, verbose_name=u"From province HASC code")
     fromcapitalname = models.CharField(max_length=40, blank=True, verbose_name=u"From province capital (name change)")
     fromcapital = models.CharField(max_length=40, blank=True, verbose_name=u"From province capital (moved)")
+    fromcapitalmove = models.PointField(null=True, blank=True, verbose_name=u"From province capital (moved)")
     fromtype = models.CharField(choices=[("Province","Province"),
                                          ("Municipality","Municipality"),
                                          ("District","District"),
@@ -205,6 +235,7 @@ class ProvChange(models.Model):
     tohasc = models.CharField(max_length=40, blank=True, verbose_name=u"To province HASC code")
     tocapitalname = models.CharField(max_length=40, blank=True, verbose_name=u"To province capital (name change)")
     tocapital = models.CharField(max_length=40, blank=True, verbose_name=u"To province capital (moved)")
+    tocapitalmove = models.PointField(null=True, blank=True, verbose_name=u"To province capital (moved)")
     totype = models.CharField(choices=[("Province","Province"),
                                          ("Municipality","Municipality"),
                                          ("District","District"),

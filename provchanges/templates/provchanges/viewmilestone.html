@@ -1,0 +1,98 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+
+
+
+<div style="padding: 0 4% 0 4%; width:80%;" >
+
+<h2>Milestone</h2>
+
+    <div style="padding-left:20px;">
+
+        <div style="float:left;">
+            <a href="/editmilestone/{{ pk }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Edit
+            </a>
+        </div>
+
+        {% if request.user %}
+            {% if milestoneform.status.value == "Active" %}
+                <div style="float:right;">
+                    <a href="/dropmilestone/{{ pk }}" style="text-align:center; background-color:crimson; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    Drop?
+                    </a>
+                </div>
+            {% else %}
+                <div style="float:right;">
+                    <a href="/notimplementedyet/{{ pk }}" style="text-align:center; background-color:green; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    Resubmit?
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+
+    </div>
+
+    <br><br>
+
+
+
+    
+    
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url {
+                width:98%
+                }
+        </style>
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="/static/milestone.png">{{ pk }}
+        </h2>
+        <h2 style="text-align:center">{{ milestoneform.title.value }}</h2>
+
+        <div style="display:table; width:80%; padding:7px; margin-left:10%; height:30px; border-style:solid; border-color:black; border-width:2px">
+            <div style="display:table-cell; text-align:center; padding:0; margin:0; width:{{ progress }}%; color:white; background-color:green">
+            </div>
+            <h3 style="display:table-cell; vertical-align:middle; padding-left:10px; margin:0">{{ progresstext }}</h3>
+        </div>
+
+        <br>
+		
+	<table style="font-weight:bold; overflow:hidden; border-spacing:0 10px; padding-bottom:100px; padding-left:40px">
+            
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.model.label_tag }}</td>
+                <td style="font-weight:normal">{{ milestoneform.model.value }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.description.label_tag }}</td>
+                <td style="font-weight:normal; padding-bottom:20px">{{ milestoneform.description.value }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.subset.label_tag }}</td>
+                <td style="font-weight:normal; padding-bottom:20px">{{ milestoneform.subset.value }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.condition.label_tag }}</td>
+                <td style="font-weight:normal; padding-bottom:20px">{{ milestoneform.condition.value }}</td>
+            </td>
+
+        </table>
+
+</div>
+
+
+{% endblock %}

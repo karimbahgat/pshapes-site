@@ -76,6 +76,10 @@ urlpatterns = [
     url(r'^editmap/(?P<pk>[0-9]+)/$', "provchanges.views.editmap"),
     url(r'^dropmap/(?P<pk>[0-9]+)/$', "provchanges.views.dropmap"),
 
+    url(r'^addmilestone/$', "provchanges.views.addmilestone"),
+    url(r'^viewmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.viewmilestone"),
+    url(r'^editmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.editmilestone"),
+    url(r'^dropmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.dropmilestone"),
 
 
     # -----

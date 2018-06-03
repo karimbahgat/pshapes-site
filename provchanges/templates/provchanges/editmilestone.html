@@ -1,0 +1,84 @@
+
+{% extends 'pshapes_site/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+
+
+
+
+<div style="padding: 0 4% 0 4%; width:80%;" >
+
+<h2>Edit Milestone</h2>
+
+    <div style="padding-left:20px;">
+        <div style="float:left;">
+            <a href="{{ request.META.HTTP_REFERER }}" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+            Back
+            </a>
+        </div>
+    </div>
+
+<br><br>
+    
+<form action="/editmilestone/{{ pk }}/" method="post">
+    {% csrf_token %}
+
+
+
+        <style>
+            #id_title {
+                width:60%
+                }
+            #id_citation, #id_note, #id_url {
+                width:98%
+                }
+        </style>
+
+        <h2 style="text-align:center; margin-top:0">
+            <img height="25px" src="/static/milestone.png">{{ pk }}
+        </h2>
+
+	<table style="width:98%; font-weight:bold; overflow:hidden; border-spacing:0 10px;">
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.title.label_tag }}</td>
+                <td style="font-weight:normal">{{ milestoneform.title }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.model.label_tag }}</td>
+                <td style="font-weight:normal">{{ milestoneform.model }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.description.label_tag }}</td>
+                <td style="font-weight:normal; padding-bottom:20px">{{ milestoneform.description }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.subset.label_tag }}</td>
+                <td style="font-weight:normal">{{ milestoneform.subset }}</td>
+            </td>
+
+            <tr>
+                <td style="text-align:right; vertical-align:top">{{ milestoneform.condition.label_tag }}</td>
+                <td style="font-weight:normal">{{ milestoneform.condition }}</td>
+            </td>
+
+
+        </table>
+
+
+
+
+    <input type="submit" style="float:right; text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+
+</form>
+
+</div>
+
+
+{% endblock %}

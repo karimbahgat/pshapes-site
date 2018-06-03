@@ -13,8 +13,8 @@ from provshapes.models import ProvShape
 shortdescr = """
 Pshapes (pronounced p-shapes) is an open-source crowdsourcing project for creating and maintaining
 data on historical provinces and boundaries.
-The online platform makes it possible for anyone who has an interest in a particular country
-to code it themselves, whether that be data-enthusiasts, historians, researchers, or country-experts.
+The online platform makes it possible for just about anyone who wants to contribute or would like data on a particular country
+to code it themselves.
 Most of the information is already available from
 our list of online sources, making it easy to jump straight into it with little or no background-knowledge.
 """
@@ -776,7 +776,7 @@ def about_motivation(request):
                         <hr>
                         
                         <p style="font-style:italic; margin-left:10px">
-                        * Sadly, it appears that the Statoids website, one of the main sources for historical province changes,
+                        * It appears that the Statoids website, one of the main sources for historical province changes,
                         <a href="http://www.statoids.com/mgtletter.html">will not be updated as frequently as before</a>.
                         Hopefully, Pshapes can build on and continue the great work, vision, and legacy of the author of that website,
                         Gwilliam Law. 
