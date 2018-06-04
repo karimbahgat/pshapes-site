@@ -29,6 +29,17 @@ import urllib2
 
 countries = [(u'Afghanistan', u'Afghanistan'), (u'\xc5land Islands', u'\xc5land Islands'), (u'Albania', u'Albania'), (u'Algeria', u'Algeria'), (u'American Samoa', u'American Samoa'), (u'Andorra', u'Andorra'), (u'Angola', u'Angola'), (u'Anguilla', u'Anguilla'), (u'Antigua and Barbuda', u'Antigua and Barbuda'), (u'Argentina', u'Argentina'), (u'Armenia', u'Armenia'), (u'Aruba', u'Aruba'), (u'Australia', u'Australia'), (u'Austria', u'Austria'), (u'Azerbaijan', u'Azerbaijan'), (u'The Bahamas', u'The Bahamas'), (u'Bahrain', u'Bahrain'), (u'Bangladesh', u'Bangladesh'), (u'Barbados', u'Barbados'), (u'Belarus', u'Belarus'), (u'Belgium', u'Belgium'), (u'Belize', u'Belize'), (u'Benin', u'Benin'), (u'Bermuda', u'Bermuda'), (u'Bhutan', u'Bhutan'), (u'Bolivia', u'Bolivia'), (u'Bonaire', u'Bonaire'), (u'Bosnia and Herzegovina', u'Bosnia and Herzegovina'), (u'Botswana', u'Botswana'), (u'Bouvet Island', u'Bouvet Island'), (u'Brazil', u'Brazil'), (u'British Indian Ocean Territory', u'British Indian Ocean Territory'), (u'United States Minor Outlying Islands', u'United States Minor Outlying Islands'), (u'British Virgin Islands', u'British Virgin Islands'), (u'Brunei', u'Brunei'), (u'Bulgaria', u'Bulgaria'), (u'Burkina Faso', u'Burkina Faso'), (u'Burundi', u'Burundi'), (u'Cambodia', u'Cambodia'), (u'Cameroon', u'Cameroon'), (u'Canada', u'Canada'), (u'Cape Verde', u'Cape Verde'), (u'Cayman Islands', u'Cayman Islands'), (u'Central African Republic', u'Central African Republic'), (u'Chad', u'Chad'), (u'Chile', u'Chile'), (u'China', u'China'), (u'Christmas Island', u'Christmas Island'), (u'Cocos (Keeling) Islands', u'Cocos (Keeling) Islands'), (u'Colombia', u'Colombia'), (u'Comoros', u'Comoros'), (u'Republic of the Congo', u'Republic of the Congo'), (u'Democratic Republic of the Congo', u'Democratic Republic of the Congo'), (u'Cook Islands', u'Cook Islands'), (u'Costa Rica', u'Costa Rica'), (u'Croatia', u'Croatia'), (u'Cuba', u'Cuba'), (u'Cura\xe7ao', u'Cura\xe7ao'), (u'Cyprus', u'Cyprus'), (u'Czech Republic', u'Czech Republic'), (u'Denmark', u'Denmark'), (u'Djibouti', u'Djibouti'), (u'Dominica', u'Dominica'), (u'Dominican Republic', u'Dominican Republic'), (u'Ecuador', u'Ecuador'), (u'Egypt', u'Egypt'), (u'El Salvador', u'El Salvador'), (u'Equatorial Guinea', u'Equatorial Guinea'), (u'Eritrea', u'Eritrea'), (u'Estonia', u'Estonia'), (u'Ethiopia', u'Ethiopia'), (u'Falkland Islands', u'Falkland Islands'), (u'Faroe Islands', u'Faroe Islands'), (u'Fiji', u'Fiji'), (u'Finland', u'Finland'), (u'France', u'France'), (u'French Guiana', u'French Guiana'), (u'French Polynesia', u'French Polynesia'), (u'French Southern and Antarctic Lands', u'French Southern and Antarctic Lands'), (u'Gabon', u'Gabon'), (u'The Gambia', u'The Gambia'), (u'Georgia', u'Georgia'), (u'Germany', u'Germany'), (u'Ghana', u'Ghana'), (u'Gibraltar', u'Gibraltar'), (u'Greece', u'Greece'), (u'Greenland', u'Greenland'), (u'Grenada', u'Grenada'), (u'Guadeloupe', u'Guadeloupe'), (u'Guam', u'Guam'), (u'Guatemala', u'Guatemala'), (u'Guernsey', u'Guernsey'), (u'Guinea', u'Guinea'), (u'Guinea-Bissau', u'Guinea-Bissau'), (u'Guyana', u'Guyana'), (u'Haiti', u'Haiti'), (u'Heard Island and McDonald Islands', u'Heard Island and McDonald Islands'), (u'Honduras', u'Honduras'), (u'Hong Kong', u'Hong Kong'), (u'Hungary', u'Hungary'), (u'Iceland', u'Iceland'), (u'India', u'India'), (u'Indonesia', u'Indonesia'), (u'Ivory Coast', u'Ivory Coast'), (u'Iran', u'Iran'), (u'Iraq', u'Iraq'), (u'Republic of Ireland', u'Republic of Ireland'), (u'Isle of Man', u'Isle of Man'), (u'Israel', u'Israel'), (u'Italy', u'Italy'), (u'Jamaica', u'Jamaica'), (u'Japan', u'Japan'), (u'Jersey', u'Jersey'), (u'Jordan', u'Jordan'), (u'Kazakhstan', u'Kazakhstan'), (u'Kenya', u'Kenya'), (u'Kiribati', u'Kiribati'), (u'Kuwait', u'Kuwait'), (u'Kyrgyzstan', u'Kyrgyzstan'), (u'Laos', u'Laos'), (u'Latvia', u'Latvia'), (u'Lebanon', u'Lebanon'), (u'Lesotho', u'Lesotho'), (u'Liberia', u'Liberia'), (u'Libya', u'Libya'), (u'Liechtenstein', u'Liechtenstein'), (u'Lithuania', u'Lithuania'), (u'Luxembourg', u'Luxembourg'), (u'Macau', u'Macau'), (u'Republic of Macedonia', u'Republic of Macedonia'), (u'Madagascar', u'Madagascar'), (u'Malawi', u'Malawi'), (u'Malaysia', u'Malaysia'), (u'Maldives', u'Maldives'), (u'Mali', u'Mali'), (u'Malta', u'Malta'), (u'Marshall Islands', u'Marshall Islands'), (u'Martinique', u'Martinique'), (u'Mauritania', u'Mauritania'), (u'Mauritius', u'Mauritius'), (u'Mayotte', u'Mayotte'), (u'Mexico', u'Mexico'), (u'Federated States of Micronesia', u'Federated States of Micronesia'), (u'Moldova', u'Moldova'), (u'Monaco', u'Monaco'), (u'Mongolia', u'Mongolia'), (u'Montenegro', u'Montenegro'), (u'Montserrat', u'Montserrat'), (u'Morocco', u'Morocco'), (u'Mozambique', u'Mozambique'), (u'Myanmar', u'Myanmar'), (u'Namibia', u'Namibia'), (u'Nauru', u'Nauru'), (u'Nepal', u'Nepal'), (u'Netherlands', u'Netherlands'), (u'New Caledonia', u'New Caledonia'), (u'New Zealand', u'New Zealand'), (u'Nicaragua', u'Nicaragua'), (u'Niger', u'Niger'), (u'Nigeria', u'Nigeria'), (u'Niue', u'Niue'), (u'Norfolk Island', u'Norfolk Island'), (u'North Korea', u'North Korea'), (u'Northern Mariana Islands', u'Northern Mariana Islands'), (u'Norway', u'Norway'), (u'Oman', u'Oman'), (u'Pakistan', u'Pakistan'), (u'Palau', u'Palau'), (u'Palestine', u'Palestine'), (u'Panama', u'Panama'), (u'Papua New Guinea', u'Papua New Guinea'), (u'Paraguay', u'Paraguay'), (u'Peru', u'Peru'), (u'Philippines', u'Philippines'), (u'Pitcairn Islands', u'Pitcairn Islands'), (u'Poland', u'Poland'), (u'Portugal', u'Portugal'), (u'Puerto Rico', u'Puerto Rico'), (u'Qatar', u'Qatar'), (u'Republic of Kosovo', u'Republic of Kosovo'), (u'R\xe9union', u'R\xe9union'), (u'Romania', u'Romania'), (u'Russia', u'Russia'), (u'Rwanda', u'Rwanda'), (u'Saint Barth\xe9lemy', u'Saint Barth\xe9lemy'), (u'Saint Helena', u'Saint Helena'), (u'Saint Kitts and Nevis', u'Saint Kitts and Nevis'), (u'Saint Lucia', u'Saint Lucia'), (u'Saint Martin', u'Saint Martin'), (u'Saint Pierre and Miquelon', u'Saint Pierre and Miquelon'), (u'Saint Vincent and the Grenadines', u'Saint Vincent and the Grenadines'), (u'Samoa', u'Samoa'), (u'San Marino', u'San Marino'), (u'S\xe3o Tom\xe9 and Pr\xedncipe', u'S\xe3o Tom\xe9 and Pr\xedncipe'), (u'Saudi Arabia', u'Saudi Arabia'), (u'Senegal', u'Senegal'), (u'Serbia', u'Serbia'), (u'Seychelles', u'Seychelles'), (u'Sierra Leone', u'Sierra Leone'), (u'Singapore', u'Singapore'), (u'Sint Maarten', u'Sint Maarten'), (u'Slovakia', u'Slovakia'), (u'Slovenia', u'Slovenia'), (u'Solomon Islands', u'Solomon Islands'), (u'Somalia', u'Somalia'), (u'South Africa', u'South Africa'), (u'South Georgia', u'South Georgia'), (u'South Korea', u'South Korea'), (u'South Sudan', u'South Sudan'), (u'Spain', u'Spain'), (u'Sri Lanka', u'Sri Lanka'), (u'Sudan', u'Sudan'), (u'Suriname', u'Suriname'), (u'Svalbard and Jan Mayen', u'Svalbard and Jan Mayen'), (u'Swaziland', u'Swaziland'), (u'Sweden', u'Sweden'), (u'Switzerland', u'Switzerland'), (u'Syria', u'Syria'), (u'Taiwan', u'Taiwan'), (u'Tajikistan', u'Tajikistan'), (u'Tanzania', u'Tanzania'), (u'Thailand', u'Thailand'), (u'East Timor', u'East Timor'), (u'Togo', u'Togo'), (u'Tokelau', u'Tokelau'), (u'Tonga', u'Tonga'), (u'Trinidad and Tobago', u'Trinidad and Tobago'), (u'Tunisia', u'Tunisia'), (u'Turkey', u'Turkey'), (u'Turkmenistan', u'Turkmenistan'), (u'Turks and Caicos Islands', u'Turks and Caicos Islands'), (u'Tuvalu', u'Tuvalu'), (u'Uganda', u'Uganda'), (u'Ukraine', u'Ukraine'), (u'United Arab Emirates', u'United Arab Emirates'), (u'United Kingdom', u'United Kingdom'), (u'United States', u'United States'), (u'Uruguay', u'Uruguay'), (u'Uzbekistan', u'Uzbekistan'), (u'Vanuatu', u'Vanuatu'), (u'Venezuela', u'Venezuela'), (u'Vietnam', u'Vietnam'), (u'Wallis and Futuna', u'Wallis and Futuna'), (u'Western Sahara', u'Western Sahara'), (u'Yemen', u'Yemen'), (u'Zambia', u'Zambia'), (u'Zimbabwe', u'Zimbabwe')]
 
+regions = {"Europe": "\u00c5land Islands|Albania|Andorra|Austria|Belarus|Belgium|Bosnia and Herzegovina|Bulgaria|Croatia|Cyprus|Czech Republic|Denmark|Estonia|Faroe Islands|Finland|France|Germany|Gibraltar|Greece|Guernsey|Holy See|Hungary|Iceland|Republic of Ireland|Isle of Man|Italy|Jersey|Latvia|Liechtenstein|Lithuania|Luxembourg|Republic of Macedonia|Malta|Moldova|Monaco|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|San Marino|Serbia|Slovakia|Slovenia|Spain|Svalbard and Jan Mayen|Sweden|Switzerland|Ukraine|United Kingdom",
+                "Oceania": "American Samoa|Australia|Christmas Island|Cocos (Keeling) Islands|Cook Islands|Fiji|French Polynesia|Guam|Kiribati|Marshall Islands|Federated States of Micronesia|Nauru|New Caledonia|New Zealand|Niue|Norfolk Island|Northern Mariana Islands|Palau|Papua New Guinea|Pitcairn Islands|Samoa|Solomon Islands|Tokelau|Tonga|Tuvalu|Vanuatu|Wallis and Futuna",
+                "Central America": "Anguilla|Antigua and Barbuda|Aruba|The Bahamas|Barbados|Belize|Virgin Islands (British)|Virgin Islands (U.S.)|Cayman Islands|Costa Rica|Cuba|Dominica|Dominican Republic|El Salvador|Grenada|Guadeloupe|Guatemala|Haiti|Honduras|Jamaica|Martinique|Mexico|Montserrat|Nicaragua|Panama|Puerto Rico|Saint Barth\u00e9lemy|Saint Kitts and Nevis|Saint Lucia|Saint Martin|Saint Vincent and the Grenadines|Trinidad and Tobago|Turks and Caicos Islands",
+                "Africa": "Angola|Benin|Botswana|British Indian Ocean Territory|Burkina Faso|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Republic of the Congo|Democratic Republic of the Congo|Djibouti|Equatorial Guinea|Eritrea|Ethiopia|French Southern and Antarctic Lands|Gabon|The Gambia|Ghana|Guinea|Guinea-Bissau|Ivory Coast|Kenya|Lesotho|Liberia|Madagascar|Malawi|Mali|Mauritania|Mauritius|Mayotte|Mozambique|Namibia|Niger|Nigeria|R\u00e9union|Rwanda|Saint Helena|S\u00e3o Tom\u00e9 and Pr\u00edncipe|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Swaziland|Tanzania|Togo|Uganda|Zambia|Zimbabwe",
+                "Asia": "Afghanistan|Bangladesh|Bhutan|Brunei|Cambodia|China|Hong Kong|India|Indonesia|Japan|Kazakhstan|Kyrgyzstan|Laos|Macau|Malaysia|Maldives|Mongolia|Myanmar|Nepal|North Korea|Pakistan|Philippines|Russia|Singapore|South Korea|Sri Lanka|Taiwan|Tajikistan|Thailand|East Timor|Turkmenistan|Uzbekistan|Vietnam",
+                "North America": "Bermuda|United States Minor Outlying Islands|Canada|Greenland|Saint Pierre and Miquelon|United States",
+                "South America": "Argentina|Bolivia|Brazil|Chile|Colombia|Ecuador|Falkland Islands|French Guiana|Guyana|Paraguay|Peru|South Georgia|Suriname|Uruguay|Venezuela",
+                "Middle East": "Algeria|Armenia|Azerbaijan|Bahrain|Egypt|Georgia|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|Turkey|United Arab Emirates|Western Sahara|Yemen",
+                }
+
+
 def advancedchanges(request):
     bannertitle = "Advanced Change View"
     
@@ -1663,142 +1674,8 @@ map_resources = """
                 """
 
 
-def allcountries(request):
+def contribute_countries(request):
     bannertitle = "Contribute"
-
-##    from django.db.models import Count
-##    changes = ProvChange.objects.filter(status__in=["Active","Pending"]).count()
-##    edits = ProvChange.objects.filter(status="NonActive").count() # each edit pushes the old version into nonactive
-##    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
-##    discussions = Issue.objects.filter(changeid__isnull=True, status="Active").count()
-##    issues = Issue.objects.filter(changeid__isnull=False, status="Active").count()
-##    vouches = Vouch.objects.filter(status="Active").count()
-##    users = User.objects.all().count()
-##
-##    #<img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
-##    #bars = [dict(value=ch) for ch in ProvChange.objects.filter(status="Pending")]
-##    bars = [dict(value=v, label=v) for v in range(0,100+1,10)] # just for testing
-##    # TODO: group by year and month, sort by 10 most recent
-##    curdate = datetime.datetime.now()
-####    aggs = ProvChange.objects.\
-####                            extra(select={'month': "EXTRACT(month FROM date)"}).\
-####                            values('month').\
-####                            annotate(count_items=Count('date'))
-####    bars = [dict(value=a['count_items'], label=a['month']) for a in aggs]
-##
-##    bars = []
-##    graphchanges = ProvChange.objects.all()
-##    for w in range(10):
-##        d2 = curdate - datetime.timedelta(30*w)
-##        d1 = curdate - datetime.timedelta(30*(w+1))
-##        c = graphchanges.filter(added__gt=d1, added__lte=d2).count()
-##        bars.append(dict(value=c, label=""))
-##    bars[2]['label'] = d1.strftime("%b, %Y")
-##    bars[-1]['label'] = curdate.strftime("%b, %Y")
-##    
-##    contribcharttemplate = """
-##                        <style>
-##                        .chart rect {
-##                          fill: rgb(0,162,232);
-##                        }
-##
-##                        .chart text {
-##                          fill: white;
-##                          font: 10px sans-serif;
-##                          text-anchor: end;
-##                        }
-##                        </style>
-##
-##                        <svg class="chart" width="420" height="120">
-##                        <g transform="translate(0,110) scale(1,-1)">
-##                            
-##                            {% for bar in bars %}
-##                                    <rect x="{% widthratio forloop.counter0 1 10 %}%" y="0%" width="10%" height="{{ bar.value }}%"></rect>
-##                                    <text transform="scale(1,-1)" x="{% widthratio forloop.counter0 1 10 %}%" y="5%" dy=".35em">{{ bar.label }}</text>
-##                            {% endfor %}
-##                            
-##                        </g>
-##                        </svg>
-##                    """
-##    
-##    contribchart = Template(contribcharttemplate).render(Context({"request":request, 'bars':bars}))
-##
-##    bannerleft = contribchart
-
-
-
-##    # random check
-##    obj = ProvChange.objects.exclude(status="NonActive").order_by('?').first()
-##    country = obj.fromcountry
-##    if obj.fromcountry != obj.tocountry:
-##        tocountry = ' (%s)' % obj.tocountry
-##    else:
-##        tocountry = ''
-##    # override special for begin
-##    if obj.type == 'Begin':
-##        country = obj.tocountry
-##        tocountry = ''
-##    # texts
-##    if obj.type == 'NewInfo':
-##        changetext = "'%s' changed information to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'Breakaway':
-##        changetext = "'%s'%s seceded from '%s'" % (obj.toname,tocountry,obj.fromname)
-##    elif obj.type == 'SplitPart':
-##        changetext = "'%s'%s was created when '%s' split apart" % (obj.toname,tocountry,obj.fromname)
-##    elif obj.type == 'TransferNew':
-##        changetext = "'%s' transferred territory to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'MergeNew':
-##        changetext = "'%s' merged to form part of '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'TransferExisting':
-##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'MergeExisting':
-##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'Begin':
-##        changetext = "'%s' was created" % obj.toname
-##
-##    # OLD, to be deprecated
-##    elif obj.type == 'PartTransfer':
-##        changetext = "'%s' transferred territory to '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##    elif obj.type == 'FullTransfer':
-##        changetext = "'%s' merged into '%s'%s" % (obj.fromname,obj.toname,tocountry)
-##
-##    
-##    vouches = list(Vouch.objects.filter(changeid=obj.changeid, status='Active'))
-##    vouchicon = """
-##    				<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
-##				<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">
-##				%s
-##				</a>
-##				<img src="/static/vouch.png" height=30px style="filter:invert(100)" />
-##				</div>
-##				""" % len(vouches)
-##    issues = Issue.objects.filter(changeid=obj.changeid, status='Active').count()
-##    issueicon = """
-##		<div style="display:inline; color:white; border-radius:10px; padding:7px; margin:10px; height:40px">
-##		<a style="color:white; font-family:inherit; font-size:inherit; font-weight:bold;">
-##		%s
-##		</a>
-##		<img src="/static/issue.png" height=25px style="filter:invert(100)" />
-##		</div>
-##				""" % issues
-##    content = """
-##            <div style="text-align:left; padding-left:20px; padding-right:20px; padding-bottom:10px; margin-bottom:10px; border-color:white; border-style:solid">
-##                <h3>Country: {country}</h3>
-##                <div style="font-size:small">
-##                <p><b>{date}:</b> {changetext}</p>
-##                <p><em>(Source: {source})</em></p> 
-##
-##                <a href="provchange/{pk}/view" style="background-color:rgb(7,118,183); float:right; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px; position:relative; bottom:5px">
-##                Check Now
-##                </a>
-##                
-##                <div style="">{vouchicon}{issueicon}</div>
-##                </div>
-##            </div>
-##                """.format(date=obj.date, country=country.encode("utf8"), changetext=changetext.encode("utf8"),
-##                           vouchicon=vouchicon, issueicon=issueicon, pk=obj.pk, source=text_formatted(obj.source))
-##
-##    bannerleft = content
 
     bannerleft = """
                         <div style="width:100%; height:240px; overflow: hidden; text-align:left">
@@ -2036,6 +1913,562 @@ def allcountries(request):
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
                                                            #'custombanner':custombanner,
                                                            "bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
+                  )
+
+
+def contribute_regions(request):
+    bannertitle = "Contribute"
+
+    mapp = """
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+            <div style="width:95%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            </div>
+	
+	<script defer="defer">
+	var map = new OpenLayers.Map('map', {allOverlays: true,
+                                            fractionalZoom: true,
+                                            //resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            controls: [],
+                                            });
+	</script>
+
+        <script>
+	// empty country layer
+	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black',
+                                          label:""}, //${getLabel}", labelAlign:"cm"},
+                                          {context: {getLabel: function(feature) {
+                                                                                return feature.attributes.region.toUpperCase();
+                                                                                }
+                                                     }
+                                            }
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		feats = [];
+		for (feat of countries) {
+                        feats.push(feat);
+		};
+		map.zoomToExtent([-170,70,180,-40]);
+		//map.zoomToExtent([-150,70,150,-70]);
+		//map.zoomToExtent([-80,30,80,-30]);
+		countryLayer.addFeatures(feats);
+	};
+
+        // $.getJSON('https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json', {}, rendercountries);
+        $.getJSON('/static/regions.geojson', {}, rendercountries);
+
+        function selectfunc(feature) {
+            var name = feature.attributes.region;
+            window.location.href = "/contribute/regions/"+name;
+        };
+        function highlightfunc(feature) {
+            //alert('hover');
+            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.5, strokeColor:'black'}
+            countryLayer.redraw();
+        };
+        function unhighlightfunc(feature) {
+            //alert('unhover');
+            feature.style = {fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black'}
+            countryLayer.redraw();
+        };
+        selectControl = new OpenLayers.Control.SelectFeature(countryLayer, {onSelect: selectfunc,
+                                                                        callbacks: {over:highlightfunc,
+                                                                                    out:unhighlightfunc}
+                                                                        } );
+        map.addControl(selectControl);
+        selectControl.activate();
+
+        </script>
+        """
+
+    if request.user.is_authenticated():
+        welcome = '<h3>Welcome, <a href="/account">{user}</a>!</h3>'.format(user=request.user.username)
+        signuparea = ""
+
+    else:
+        welcome = '<h3>Welcome!</h3>'
+        signuparea = """
+                            <br>
+                            <div style="text-align:center">
+                            <a href="/registration" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Sign Up
+                            </a>
+                            or
+                            <a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                            Login
+                            </a>
+                            </div>
+                            """
+
+##                <p>
+##                Contributing to Pshapes is both easy and fast: just register and
+##                contribute as little or as much as possible. You can add changes, quality check,
+##                vouch or edit the work of others, raise issues, or discuss difficult cases. 
+##                </p>
+
+    custombanner = """
+                    <style>
+                        .blackbackground a { color:white }
+                        .blackbackground a:visited { color:grey }
+                    </style>
+                    """
+    custombanner += """
+                    <div class="blackbackground" style="width:95%">
+                        <h2 style="text-align:center">{bannertitle}</h2>
+                        {welcome}
+                        <div style="text-align:center">
+                            {mapp}
+                        </div>
+                    </div>
+                    <div class="blackbackground" style="width:95%; vertical-align:top">
+
+                            {signuparea}
+
+                            <br>
+                    
+                            <div style="display:none; text-align:left; padding-left:8%">
+                                    
+                                    <div>
+                                    <img src="/static/milestone.png" height="40px" style="display:inline-block; filter:invert(100%)">
+                                    <h4 style="display:inline-block">
+                                    Help reach a new milestone. Join existing efforts to improve the data. 
+                                    </h4>
+                                    </div>
+
+                                    <div>
+                                    <img src="/static/issue.png" height="40px" style="display:inline-block; filter:invert(100%)">
+                                    <h4 style="display:inline-block">
+                                    Quality check the work of others. You may raise issues, vouch, or edit the data.
+                                    </h4>
+                                    </div>
+
+                                    <div>
+                                    <img src="/static/comment.png" height="40px" style="display:inline-block; filter:invert(100%)">
+                                    <h4 style="display:inline-block">
+                                    Participate in discussions about the Pshapes project or website. 
+                                    </h4>
+                                    </div>
+
+                                    <div>
+                                    <img src="/static/info.png" height="40px" style="display:inline-block; filter:invert(100%)">
+                                    <h4 style="display:inline-block">
+                                    Still new? Read <a href="/about/tutorial">the tutorial</a> for more on how it works.
+                                    </h4>
+                                    </div>
+
+                            </div>
+
+                    </div>
+                    
+                    """.format(bannertitle=bannertitle, welcome=welcome, signuparea=signuparea, mapp=mapp)
+        
+
+    
+    grids = []
+
+
+    # regions
+    def iter_regions():
+        countrypairs = ProvChange.objects.filter(status__in='Active Pending').distinct('fromcountry','tocountry').values('fromcountry','tocountry')
+        coded = set((c['fromcountry'] for c in countrypairs)) | set((c['tocountry'] for c in countrypairs))
+        for reg,regcountries in regions.items():
+            regcountries = regcountries.split('|')
+            # calculate progress here
+            regcoded = [c for c in coded if c in regcountries]
+            progress = len(regcoded) / float(len(regcountries)) * 100
+            print reg,progress
+            yield reg, progress
+
+    color = 'orange' #'rgb(255,108,72)'
+    fields = ["","region","progress"]
+    lists = []
+    #for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
+    for reg,progress in sorted(iter_regions(), key=lambda tup: tup[0]):
+        progbar = '''
+                    <div style="display:relative; text-display:center; width:70%; padding:0px; margin-left:15%; margin-top:10px; height:13px; border-style:solid; border-color:black; border-width:1px">
+                        <span style="display:block; padding:0; margin:0; height:100%; width:{progress}%; color:white; background-color:{color}">
+                        </span>
+                    </div>
+                    '''.format(progress=int(progress), color=color)
+        url = "/contribute/regions/%s" % reg
+        icon = '<img src="/static/globe.png" style="height:50px; opacity:0.2">'
+        linkimg = '<a href="%s">%s</a>' % (url,icon)
+        row = [linkimg, reg, progbar] #progresstext]
+        lists.append((None,row))
+        
+    regionstable = lists2table(request, lists=lists,
+                                  fields=fields,
+                                 )
+    content = """
+                {regionstable}
+                """.format(regionstable=regionstable)
+    grids.append(dict(title='''<img src="/static/globe.png" height="50px" style="display:inline-block">
+                                Choose one of the regions to begin:''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    # comments
+    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+    
+    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+
+    content = """
+                <div style="margin-left:20px">{issuetable}</div>
+                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(issuetable=issuetable)
+
+    grids.append(dict(title='''<br><hr>
+                                <img src="/static/comment.png" height="35px" style="display:inline-block">
+                                Ask questions or suggest improvements to the website:''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    # maps
+    color = 'rgb(58,177,73)'
+
+    maps = list(Map.objects.filter(status='Active')[:10])
+
+    fields = ['', 'year', 'title', 'note', 'external link']
+    lists = []
+    for mapp in maps:
+        wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
+        if wms:
+            try:
+                wmslink = WMS_Helper(wms).image_url(height=50)
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+            except:
+                wmslink = "/static/map.png"
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+        else:
+            wmslink = "/static/map.png"
+            imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+        urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+        row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
+        lists.append((None,row))
+
+    table = lists2table(request, lists, fields, 'maptable', color)
+
+    content = '''<div style="margin-left:2%">
+                    {table}
+                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                </div>
+                '''.format(table=table.encode('utf8'), color=color)
+        
+    grids.append(dict(title='''
+                            <br><hr>
+                                 <img src="/static/map.png" height="40px">
+                                 Add useful maps to the map collection:
+                            ''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="95%",
+                      ))
+
+
+    # milestones
+    milestones = Milestone.objects.filter(country='', status="Active")
+    def iter_milestones():
+        for m in milestones:
+            # calculate progress here
+            milestoneform = MilestoneForm(instance=m)
+            try:
+                progress = milestoneform.get_progress()
+                progresstext = '%.0f%%' % progress
+            except:
+                progress = 0
+                progresstext = "NA"
+            yield m,milestoneform,progress,progresstext
+
+    color = 'orange' #'rgb(255,108,72)'
+    fields = ["","title","progress"]
+    lists = []
+    for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
+        title = m.title
+        progbar = '''
+                    <div style="display:relative; text-display:center; width:70%; padding:0px; margin-left:15%; margin-top:10px; height:13px; border-style:solid; border-color:black; border-width:1px">
+                        <span style="display:block; padding:0; margin:0; height:100%; width:{progress}%; color:white; background-color:{color}">
+                        </span>
+                    </div>
+                    '''.format(progress=int(progress), progresstext=progresstext, color=color)
+        url = "/viewmilestone/%s" % m.pk
+        icon = '<img src="/static/milestone.png" style="height:50px; opacity:0.2">'
+        linkimg = '<a href="%s">%s</a>' % (url,icon)
+        row = [linkimg, title, progbar] #progresstext]
+        lists.append((None,row))
+        
+    milestonetable = lists2table(request, lists=lists,
+                                  fields=fields,
+                                 classname='milestonetable', color=color)
+    content = """
+                {milestonetable}
+                <br><div width="100%" style="text-align:center"><a href="/addmilestone/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(milestonetable=milestonetable, color=color)
+    
+    grids.append(dict(title='''<br><hr>
+                                <img src="/static/milestone.png" height="40px" style="display:inline-block">
+                                Improve the data by performing specific tasks:''',
+                      content=content, #'Join existing efforts to improve the data:'
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           'custombanner':custombanner,
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
+                  )
+
+
+
+def contribute_region(request, region):
+    bannertitle = region
+
+    mapp = """
+        <script>
+        var region = '%s'
+        </script>
+        """ % region
+    mapp += """
+	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
+
+            <div style="width:95%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            </div>
+	
+	<script defer="defer">
+	var map = new OpenLayers.Map('map', {allOverlays: true,
+                                            fractionalZoom: true,
+                                            //resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            controls: [],
+                                            });
+	</script>
+
+        <script>
+	// empty country layer
+	var style = new OpenLayers.Style({fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black',
+                                          label:""}, //${getLabel}", labelAlign:"cm"},
+                                          {context: {getLabel: function(feature) {
+                                                                                return feature.attributes.region.toUpperCase();
+                                                                                }
+                                                     }
+                                            }
+					);
+	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
+	map.addLayers([countryLayer]);
+
+        function getMaxPoly(polys) {
+              // https://stackoverflow.com/questions/37306548/how-to-show-one-label-per-multi-polygon-in-open-layers-3
+              var polyObj = [];
+              //now need to find which one is the greater and so label only this
+              for (var b = 0; b < polys.length; b++) {
+                polyObj.push({ poly: polys[b], area: polys[b].getArea() });
+              };
+              polyObj.sort(function (a, b) { return a.area - b.area });
+
+              return polyObj[polyObj.length - 1].poly;
+        }
+
+	onlymainbbox = function(lyr) {
+            var bbox = 0;
+            for (f of lyr.features) {
+                mpol = getMaxPoly(f.geometry.components);
+                _box = mpol.getBounds();
+                if (bbox == 0) {
+                    bbox = _box;
+                } else {
+                    bbox.extend(_box);
+                }
+            }
+            return bbox;
+	};
+
+	onlybigbbox = function(lyr) {
+            var bbox = 0;
+            for (f of lyr.features) {
+                for (g of f.geometry.components) {
+                    area = g.getArea();
+                    if (area > 30 | (f.attributes.region == 'Central America' & area > 2)) {
+                        _box = g.getBounds();
+                        if (bbox == 0) {
+                            bbox = _box;
+                        } else {
+                            bbox.extend(_box);
+                        }
+                    }
+                }
+            }
+            return bbox;
+	}
+
+        rendercountries = function(data) {
+		var geojson_format = new OpenLayers.Format.GeoJSON();
+		var geoj_str = JSON.stringify(data);
+		countries = geojson_format.read(geoj_str, "FeatureCollection");
+		
+		feats = [];
+		for (feat of countries) {
+                        if (feat.attributes.region == region) {
+                            feats.push(feat);
+                        }
+		};
+		countryLayer.addFeatures(feats);
+		//alert(countryLayer.getDataExtent());
+		//map.zoomToExtent(countryLayer.getDataExtent());
+		bounds = onlybigbbox(countryLayer);
+		map.zoomToExtent(bounds);
+	};
+
+        $.getJSON('/static/countries_simple.geojson', {}, rendercountries);
+
+        function selectfunc(feature) {
+            var name = feature.attributes.country;
+            window.location.href = "/contribute/view/"+name;
+        };
+        function highlightfunc(feature) {
+            //alert('hover');
+            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.5, strokeColor:'black'}
+            countryLayer.redraw();
+        };
+        function unhighlightfunc(feature) {
+            //alert('unhover');
+            feature.style = {fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black'}
+            countryLayer.redraw();
+        };
+        selectControl = new OpenLayers.Control.SelectFeature(countryLayer, {onSelect: selectfunc,
+                                                                        callbacks: {over:highlightfunc,
+                                                                                    out:unhighlightfunc}
+                                                                        } );
+        map.addControl(selectControl);
+        selectControl.activate();
+
+        </script>
+        """
+
+##                <p>
+##                Contributing to Pshapes is both easy and fast: just register and
+##                contribute as little or as much as possible. You can add changes, quality check,
+##                vouch or edit the work of others, raise issues, or discuss difficult cases. 
+##                </p>
+
+    custombanner = """
+                    <style>
+                        .blackbackground a { color:white }
+                        .blackbackground a:visited { color:grey }
+                    </style>
+                    """
+    custombanner += """
+                    <br>
+                    
+                    <div>
+                    <a href="/contribute/regions/" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                    Back to World
+                    </a>
+                    </div>
+                    
+                    <div class="blackbackground" style="width:95%">
+                        <h2 style="text-align:center">{bannertitle}</h2>
+                        <div style="text-align:center">
+                            {mapp}
+                        </div>
+                    </div>
+                    
+                    <div class="blackbackground" style="width:95%; vertical-align:top">
+                    </div>
+
+                    <br><br>
+                    
+                    """.format(bannertitle=bannertitle, mapp=mapp)
+        
+
+    
+    grids = []
+
+    # countries
+
+    from django.db.models import Count,Max,Min
+
+    regcountries = regions[region].split('|')
+
+    # already coded
+    fields = ["country","entries","issues","discussions","mindate","maxdate"]
+    lists = []
+    rowdicts = dict([(countryid,dict(country=countryid,entries=0,mindate="-",maxdate="-")) for countryid in regcountries])
+    for rowdict in ProvChange.objects.filter(fromcountry__in=regcountries).values("fromcountry").exclude(status="NonActive").annotate(entries=Count('pk'),
+                                                                                                 mindate=Min("date"),
+                                                                                                 maxdate=Max("date")):
+        rowdict["country"] = rowdict.pop("fromcountry")
+        rowdicts[rowdict["country"]] = rowdict
+    for rowdict in ProvChange.objects.filter(tocountry__in=regcountries).values("tocountry").exclude(status="NonActive").annotate(entries=Count('pk'),
+                                                                                                 mindate=Min("date"),
+                                                                                                 maxdate=Max("date")):
+        rowdict["country"] = rowdict.pop("tocountry")
+        if rowdict["country"] in rowdicts:
+            cur = rowdicts[rowdict["country"]]
+            cur["entries"] = max(cur["entries"],rowdict["entries"]) # NOTE: by overwriting here, we are only keeping counts of tocountry (if we plus then we basically double the count)
+            cur["mindate"] = min(cur["mindate"], rowdict["mindate"]) if cur["mindate"] != "-" else rowdict["mindate"]
+            cur["maxdate"] = min(cur["maxdate"], rowdict["maxdate"]) if cur["maxdate"] != "-" else rowdict["maxdate"]
+        else:
+            rowdicts[rowdict["country"]] = rowdict
+
+    for country in sorted(rowdicts.keys()):
+        if not country: continue
+        rowdict = rowdicts[country]
+        rowdict['mindate'] = rowdict['mindate'].year if rowdict["mindate"] != "-" else rowdict["mindate"]
+        rowdict['maxdate'] = rowdict['maxdate'].year if rowdict["maxdate"] != "-" else rowdict["maxdate"]
+        rowdict['discussions'] = Issue.objects.filter(country=country, changeid=None, status="Active").count()
+        rowdict['issues'] = Issue.objects.filter(country=country, changeid__isnull=False, status="Active").count()
+        rowdict['url'] = "/contribute/view/%s" % urlquote(rowdict["country"])
+
+        cntr = CntrShape.objects.raw('''SELECT 1 AS id, ST_AsSVG(geom) as svg, name, geom
+                                        FROM provshapes_cntrshape
+                                        WHERE simplify=0.2 AND name='%s'
+                                        ''' % country)
+        obj = next(iter(cntr), None)
+        if obj:
+            # TODO: not very effective since we parse and calculate bbox from the SVG string, because the coordinates in ST_AsSVG() are not the same as the real coords and bbox
+            svg = obj.svg
+            multis = svg.replace(' Z', '').split('M ')
+            flat = [float(v) for mult in multis for v in mult.replace('L ','').strip().split()]
+            xs,ys = flat[0::2],flat[1::2]
+            bbox = min(xs),min(ys),max(xs),max(ys)
+            xmin,ymin,xmax,ymax = bbox
+            w,h = xmax-xmin,ymax-ymin
+            viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
+            #print country,obj.name,bbox,viewbox
+            icon = '<svg height="60px" width="80px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+        else:
+            icon = '<img src="/static/globe.png" style="height:60px; opacity:0.2">'
+        url = "/contribute/view/%s" % urlquote(rowdict["country"])
+        linkimg = '<a href="%s">%s</a>' % (url,icon)
+        row = [linkimg, rowdict['country'], rowdict['entries'], rowdict['discussions'], rowdict['issues'], '%s &rarr; %s' % (rowdict['mindate'],rowdict['maxdate'])]
+        lists.append((None,row))
+        
+    countriestable = lists2table(request, lists=lists,
+                                  fields=["","Country","Changes","Discussions","Issues","Years"])
+    content = """
+                {countriestable}
+                <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(countriestable=countriestable)
+    grids.append(dict(title="Countries:",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           'custombanner':custombanner,
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
                                                            }
                   )
 

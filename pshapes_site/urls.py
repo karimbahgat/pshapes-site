@@ -39,13 +39,17 @@ urlpatterns = [
     #url('^guidelines/codingrules/$', "provchanges.views.guidelines_codingrules"),
     #url('^guidelines/mapping/$', "provchanges.views.guidelines_mapping"),
 
+    # regions
+    url('^contribute/regions/$', "provchanges.views.contribute_regions"),
+    url('^contribute/regions/(?P<region>[^/]+)/$', "provchanges.views.contribute_region"), 
+
     # country
     url('^contribute/view/(?P<country>[^/]+)/$', "provchanges.views.viewcountry"),
     url('^contribute/add/$', "provchanges.views.addcountry"),
     url('^contribute/edit/(?P<country>[^/]+)/$', "provchanges.views.editcountry"),
 
     # province (event or change depending on get params)
-    url('^contribute/countries/$', "provchanges.views.allcountries"), 
+    url('^contribute/countries/$', "provchanges.views.contribute_regions"), 
     url('^contribute/view/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.viewprov"), # event
     url('^contribute/add/(?P<country>[^/]+)/$', "provchanges.views.addprov"),
     url('^contribute/add/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.addprov"),

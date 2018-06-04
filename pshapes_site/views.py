@@ -528,29 +528,28 @@ def home(request):
         viewbox = '%s %s %s %s' % (xmin,ymin,w,h)
         #print obj.country,obj.name,bbox,viewbox
         icon = '<svg height="100px" viewBox="{viewbox}" preserveAspectRatio="xMidYMid meet"><path d="{path}" /></svg>'.format(path=svg, viewbox=viewbox)
+        content = """
+                    <h3>{name}, {country}</h3>
+                    <div style="text-align:center">
+                        <a href="/viewprov?country={country}&name={name}&date={date}">
+                        {icon}
+                        </a>
+                    </div>
+                    
+                    <div style="font-size:small; margin-bottom:10px">
+                        <p><b>{name}</b> was a province that existed in <b>{country}</b>
+                        from <b>{start}</b> to <b>{end}</b>
+                        </p>
+
+                        <a href="/viewprov?country={country}&name={name}&date={date}" style="background-color:rgb(7,118,183); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px">
+                        View
+                        </a>
+                    </div>
+                    """.format(country=obj.country.encode("utf8"), name=obj.name.encode("utf8"),
+                               icon=icon, date=obj.start,
+                               start=obj.start.year, end=obj.end.year)
     else:
-        icon = ""
-
-    content = """
-                <h3>{name}, {country}</h3>
-                <div style="text-align:center">
-                    <a href="/viewprov?country={country}&name={name}&date={date}">
-                    {icon}
-                    </a>
-                </div>
-                
-                <div style="font-size:small; margin-bottom:10px">
-                    <p><b>{name}</b> was a province that existed in <b>{country}</b>
-                    from <b>{start}</b> to <b>{end}</b>
-                    </p>
-
-                    <a href="/viewprov?country={country}&name={name}&date={date}" style="background-color:rgb(7,118,183); color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:7px">
-                    View
-                    </a>
-                </div>
-                """.format(country=obj.country.encode("utf8"), name=obj.name.encode("utf8"),
-                           icon=icon, date=obj.start,
-                           start=obj.start.year, end=obj.end.year)
+        content = ""
 
     grids.append(dict(title="Featured Province:",
                       content=content,
