@@ -29,15 +29,7 @@ import urllib2
 
 countries = [(u'Afghanistan', u'Afghanistan'), (u'\xc5land Islands', u'\xc5land Islands'), (u'Albania', u'Albania'), (u'Algeria', u'Algeria'), (u'American Samoa', u'American Samoa'), (u'Andorra', u'Andorra'), (u'Angola', u'Angola'), (u'Anguilla', u'Anguilla'), (u'Antigua and Barbuda', u'Antigua and Barbuda'), (u'Argentina', u'Argentina'), (u'Armenia', u'Armenia'), (u'Aruba', u'Aruba'), (u'Australia', u'Australia'), (u'Austria', u'Austria'), (u'Azerbaijan', u'Azerbaijan'), (u'The Bahamas', u'The Bahamas'), (u'Bahrain', u'Bahrain'), (u'Bangladesh', u'Bangladesh'), (u'Barbados', u'Barbados'), (u'Belarus', u'Belarus'), (u'Belgium', u'Belgium'), (u'Belize', u'Belize'), (u'Benin', u'Benin'), (u'Bermuda', u'Bermuda'), (u'Bhutan', u'Bhutan'), (u'Bolivia', u'Bolivia'), (u'Bonaire', u'Bonaire'), (u'Bosnia and Herzegovina', u'Bosnia and Herzegovina'), (u'Botswana', u'Botswana'), (u'Bouvet Island', u'Bouvet Island'), (u'Brazil', u'Brazil'), (u'British Indian Ocean Territory', u'British Indian Ocean Territory'), (u'United States Minor Outlying Islands', u'United States Minor Outlying Islands'), (u'British Virgin Islands', u'British Virgin Islands'), (u'Brunei', u'Brunei'), (u'Bulgaria', u'Bulgaria'), (u'Burkina Faso', u'Burkina Faso'), (u'Burundi', u'Burundi'), (u'Cambodia', u'Cambodia'), (u'Cameroon', u'Cameroon'), (u'Canada', u'Canada'), (u'Cape Verde', u'Cape Verde'), (u'Cayman Islands', u'Cayman Islands'), (u'Central African Republic', u'Central African Republic'), (u'Chad', u'Chad'), (u'Chile', u'Chile'), (u'China', u'China'), (u'Christmas Island', u'Christmas Island'), (u'Cocos (Keeling) Islands', u'Cocos (Keeling) Islands'), (u'Colombia', u'Colombia'), (u'Comoros', u'Comoros'), (u'Republic of the Congo', u'Republic of the Congo'), (u'Democratic Republic of the Congo', u'Democratic Republic of the Congo'), (u'Cook Islands', u'Cook Islands'), (u'Costa Rica', u'Costa Rica'), (u'Croatia', u'Croatia'), (u'Cuba', u'Cuba'), (u'Cura\xe7ao', u'Cura\xe7ao'), (u'Cyprus', u'Cyprus'), (u'Czech Republic', u'Czech Republic'), (u'Denmark', u'Denmark'), (u'Djibouti', u'Djibouti'), (u'Dominica', u'Dominica'), (u'Dominican Republic', u'Dominican Republic'), (u'Ecuador', u'Ecuador'), (u'Egypt', u'Egypt'), (u'El Salvador', u'El Salvador'), (u'Equatorial Guinea', u'Equatorial Guinea'), (u'Eritrea', u'Eritrea'), (u'Estonia', u'Estonia'), (u'Ethiopia', u'Ethiopia'), (u'Falkland Islands', u'Falkland Islands'), (u'Faroe Islands', u'Faroe Islands'), (u'Fiji', u'Fiji'), (u'Finland', u'Finland'), (u'France', u'France'), (u'French Guiana', u'French Guiana'), (u'French Polynesia', u'French Polynesia'), (u'French Southern and Antarctic Lands', u'French Southern and Antarctic Lands'), (u'Gabon', u'Gabon'), (u'The Gambia', u'The Gambia'), (u'Georgia', u'Georgia'), (u'Germany', u'Germany'), (u'Ghana', u'Ghana'), (u'Gibraltar', u'Gibraltar'), (u'Greece', u'Greece'), (u'Greenland', u'Greenland'), (u'Grenada', u'Grenada'), (u'Guadeloupe', u'Guadeloupe'), (u'Guam', u'Guam'), (u'Guatemala', u'Guatemala'), (u'Guernsey', u'Guernsey'), (u'Guinea', u'Guinea'), (u'Guinea-Bissau', u'Guinea-Bissau'), (u'Guyana', u'Guyana'), (u'Haiti', u'Haiti'), (u'Heard Island and McDonald Islands', u'Heard Island and McDonald Islands'), (u'Honduras', u'Honduras'), (u'Hong Kong', u'Hong Kong'), (u'Hungary', u'Hungary'), (u'Iceland', u'Iceland'), (u'India', u'India'), (u'Indonesia', u'Indonesia'), (u'Ivory Coast', u'Ivory Coast'), (u'Iran', u'Iran'), (u'Iraq', u'Iraq'), (u'Republic of Ireland', u'Republic of Ireland'), (u'Isle of Man', u'Isle of Man'), (u'Israel', u'Israel'), (u'Italy', u'Italy'), (u'Jamaica', u'Jamaica'), (u'Japan', u'Japan'), (u'Jersey', u'Jersey'), (u'Jordan', u'Jordan'), (u'Kazakhstan', u'Kazakhstan'), (u'Kenya', u'Kenya'), (u'Kiribati', u'Kiribati'), (u'Kuwait', u'Kuwait'), (u'Kyrgyzstan', u'Kyrgyzstan'), (u'Laos', u'Laos'), (u'Latvia', u'Latvia'), (u'Lebanon', u'Lebanon'), (u'Lesotho', u'Lesotho'), (u'Liberia', u'Liberia'), (u'Libya', u'Libya'), (u'Liechtenstein', u'Liechtenstein'), (u'Lithuania', u'Lithuania'), (u'Luxembourg', u'Luxembourg'), (u'Macau', u'Macau'), (u'Republic of Macedonia', u'Republic of Macedonia'), (u'Madagascar', u'Madagascar'), (u'Malawi', u'Malawi'), (u'Malaysia', u'Malaysia'), (u'Maldives', u'Maldives'), (u'Mali', u'Mali'), (u'Malta', u'Malta'), (u'Marshall Islands', u'Marshall Islands'), (u'Martinique', u'Martinique'), (u'Mauritania', u'Mauritania'), (u'Mauritius', u'Mauritius'), (u'Mayotte', u'Mayotte'), (u'Mexico', u'Mexico'), (u'Federated States of Micronesia', u'Federated States of Micronesia'), (u'Moldova', u'Moldova'), (u'Monaco', u'Monaco'), (u'Mongolia', u'Mongolia'), (u'Montenegro', u'Montenegro'), (u'Montserrat', u'Montserrat'), (u'Morocco', u'Morocco'), (u'Mozambique', u'Mozambique'), (u'Myanmar', u'Myanmar'), (u'Namibia', u'Namibia'), (u'Nauru', u'Nauru'), (u'Nepal', u'Nepal'), (u'Netherlands', u'Netherlands'), (u'New Caledonia', u'New Caledonia'), (u'New Zealand', u'New Zealand'), (u'Nicaragua', u'Nicaragua'), (u'Niger', u'Niger'), (u'Nigeria', u'Nigeria'), (u'Niue', u'Niue'), (u'Norfolk Island', u'Norfolk Island'), (u'North Korea', u'North Korea'), (u'Northern Mariana Islands', u'Northern Mariana Islands'), (u'Norway', u'Norway'), (u'Oman', u'Oman'), (u'Pakistan', u'Pakistan'), (u'Palau', u'Palau'), (u'Palestine', u'Palestine'), (u'Panama', u'Panama'), (u'Papua New Guinea', u'Papua New Guinea'), (u'Paraguay', u'Paraguay'), (u'Peru', u'Peru'), (u'Philippines', u'Philippines'), (u'Pitcairn Islands', u'Pitcairn Islands'), (u'Poland', u'Poland'), (u'Portugal', u'Portugal'), (u'Puerto Rico', u'Puerto Rico'), (u'Qatar', u'Qatar'), (u'Republic of Kosovo', u'Republic of Kosovo'), (u'R\xe9union', u'R\xe9union'), (u'Romania', u'Romania'), (u'Russia', u'Russia'), (u'Rwanda', u'Rwanda'), (u'Saint Barth\xe9lemy', u'Saint Barth\xe9lemy'), (u'Saint Helena', u'Saint Helena'), (u'Saint Kitts and Nevis', u'Saint Kitts and Nevis'), (u'Saint Lucia', u'Saint Lucia'), (u'Saint Martin', u'Saint Martin'), (u'Saint Pierre and Miquelon', u'Saint Pierre and Miquelon'), (u'Saint Vincent and the Grenadines', u'Saint Vincent and the Grenadines'), (u'Samoa', u'Samoa'), (u'San Marino', u'San Marino'), (u'S\xe3o Tom\xe9 and Pr\xedncipe', u'S\xe3o Tom\xe9 and Pr\xedncipe'), (u'Saudi Arabia', u'Saudi Arabia'), (u'Senegal', u'Senegal'), (u'Serbia', u'Serbia'), (u'Seychelles', u'Seychelles'), (u'Sierra Leone', u'Sierra Leone'), (u'Singapore', u'Singapore'), (u'Sint Maarten', u'Sint Maarten'), (u'Slovakia', u'Slovakia'), (u'Slovenia', u'Slovenia'), (u'Solomon Islands', u'Solomon Islands'), (u'Somalia', u'Somalia'), (u'South Africa', u'South Africa'), (u'South Georgia', u'South Georgia'), (u'South Korea', u'South Korea'), (u'South Sudan', u'South Sudan'), (u'Spain', u'Spain'), (u'Sri Lanka', u'Sri Lanka'), (u'Sudan', u'Sudan'), (u'Suriname', u'Suriname'), (u'Svalbard and Jan Mayen', u'Svalbard and Jan Mayen'), (u'Swaziland', u'Swaziland'), (u'Sweden', u'Sweden'), (u'Switzerland', u'Switzerland'), (u'Syria', u'Syria'), (u'Taiwan', u'Taiwan'), (u'Tajikistan', u'Tajikistan'), (u'Tanzania', u'Tanzania'), (u'Thailand', u'Thailand'), (u'East Timor', u'East Timor'), (u'Togo', u'Togo'), (u'Tokelau', u'Tokelau'), (u'Tonga', u'Tonga'), (u'Trinidad and Tobago', u'Trinidad and Tobago'), (u'Tunisia', u'Tunisia'), (u'Turkey', u'Turkey'), (u'Turkmenistan', u'Turkmenistan'), (u'Turks and Caicos Islands', u'Turks and Caicos Islands'), (u'Tuvalu', u'Tuvalu'), (u'Uganda', u'Uganda'), (u'Ukraine', u'Ukraine'), (u'United Arab Emirates', u'United Arab Emirates'), (u'United Kingdom', u'United Kingdom'), (u'United States', u'United States'), (u'Uruguay', u'Uruguay'), (u'Uzbekistan', u'Uzbekistan'), (u'Vanuatu', u'Vanuatu'), (u'Venezuela', u'Venezuela'), (u'Vietnam', u'Vietnam'), (u'Wallis and Futuna', u'Wallis and Futuna'), (u'Western Sahara', u'Western Sahara'), (u'Yemen', u'Yemen'), (u'Zambia', u'Zambia'), (u'Zimbabwe', u'Zimbabwe')]
 
-regions = {"Europe": "\u00c5land Islands|Albania|Andorra|Austria|Belarus|Belgium|Bosnia and Herzegovina|Bulgaria|Croatia|Cyprus|Czech Republic|Denmark|Estonia|Faroe Islands|Finland|France|Germany|Gibraltar|Greece|Guernsey|Holy See|Hungary|Iceland|Republic of Ireland|Isle of Man|Italy|Jersey|Latvia|Liechtenstein|Lithuania|Luxembourg|Republic of Macedonia|Malta|Moldova|Monaco|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|San Marino|Serbia|Slovakia|Slovenia|Spain|Svalbard and Jan Mayen|Sweden|Switzerland|Ukraine|United Kingdom",
-                "Oceania": "American Samoa|Australia|Christmas Island|Cocos (Keeling) Islands|Cook Islands|Fiji|French Polynesia|Guam|Kiribati|Marshall Islands|Federated States of Micronesia|Nauru|New Caledonia|New Zealand|Niue|Norfolk Island|Northern Mariana Islands|Palau|Papua New Guinea|Pitcairn Islands|Samoa|Solomon Islands|Tokelau|Tonga|Tuvalu|Vanuatu|Wallis and Futuna",
-                "Central America": "Anguilla|Antigua and Barbuda|Aruba|The Bahamas|Barbados|Belize|Virgin Islands (British)|Virgin Islands (U.S.)|Cayman Islands|Costa Rica|Cuba|Dominica|Dominican Republic|El Salvador|Grenada|Guadeloupe|Guatemala|Haiti|Honduras|Jamaica|Martinique|Mexico|Montserrat|Nicaragua|Panama|Puerto Rico|Saint Barth\u00e9lemy|Saint Kitts and Nevis|Saint Lucia|Saint Martin|Saint Vincent and the Grenadines|Trinidad and Tobago|Turks and Caicos Islands",
-                "Africa": "Angola|Benin|Botswana|British Indian Ocean Territory|Burkina Faso|Burundi|Cameroon|Cape Verde|Central African Republic|Chad|Comoros|Republic of the Congo|Democratic Republic of the Congo|Djibouti|Equatorial Guinea|Eritrea|Ethiopia|French Southern and Antarctic Lands|Gabon|The Gambia|Ghana|Guinea|Guinea-Bissau|Ivory Coast|Kenya|Lesotho|Liberia|Madagascar|Malawi|Mali|Mauritania|Mauritius|Mayotte|Mozambique|Namibia|Niger|Nigeria|R\u00e9union|Rwanda|Saint Helena|S\u00e3o Tom\u00e9 and Pr\u00edncipe|Senegal|Seychelles|Sierra Leone|Somalia|South Africa|South Sudan|Sudan|Swaziland|Tanzania|Togo|Uganda|Zambia|Zimbabwe",
-                "Asia": "Afghanistan|Bangladesh|Bhutan|Brunei|Cambodia|China|Hong Kong|India|Indonesia|Japan|Kazakhstan|Kyrgyzstan|Laos|Macau|Malaysia|Maldives|Mongolia|Myanmar|Nepal|North Korea|Pakistan|Philippines|Russia|Singapore|South Korea|Sri Lanka|Taiwan|Tajikistan|Thailand|East Timor|Turkmenistan|Uzbekistan|Vietnam",
-                "North America": "Bermuda|United States Minor Outlying Islands|Canada|Greenland|Saint Pierre and Miquelon|United States",
-                "South America": "Argentina|Bolivia|Brazil|Chile|Colombia|Ecuador|Falkland Islands|French Guiana|Guyana|Paraguay|Peru|South Georgia|Suriname|Uruguay|Venezuela",
-                "Middle East": "Algeria|Armenia|Azerbaijan|Bahrain|Egypt|Georgia|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|Turkey|United Arab Emirates|Western Sahara|Yemen",
-                }
+regions = {"Europe": "\u00c5land Islands|Albania|Andorra|Austria|Belgium|Bulgaria|Bosnia and Herzegovina|Belarus|Switzerland|Cyprus|Czech Republic|Germany|Denmark|Spain|Estonia|Finland|France|Faroe Islands|United Kingdom|Guernsey|Gibraltar|Greece|Croatia|Hungary|Isle of Man|Republic of Ireland|Iceland|Italy|Jersey|Republic of Kosovo|Liechtenstein|Lithuania|Luxembourg|Latvia|Monaco|Moldova|Republic of Macedonia|Malta|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|Svalbard and Jan Mayen|San Marino|Serbia|Slovakia|Slovenia|Sweden|Ukraine|Holy See", "Oceania": "American Samoa|Australia|Cocos (Keeling) Islands|Cook Islands|Christmas Island|Fiji|Federated States of Micronesia|Guam|Kiribati|Marshall Islands|Northern Mariana Islands|New Caledonia|Norfolk Island|Niue|Nauru|New Zealand|Pitcairn Islands|Palau|Papua New Guinea|French Polynesia|Solomon Islands|Tokelau|Tonga|Tuvalu|Vanuatu|Wallis and Futuna|Samoa", "Central America": "Aruba|Anguilla|Antigua and Barbuda|Bonaire|The Bahamas|Saint Barth\u00e9lemy|Belize|Barbados|Costa Rica|Cuba|Cura\u00e7ao|Cayman Islands|Dominica|Dominican Republic|Guadeloupe|Grenada|Guatemala|Honduras|Haiti|Jamaica|Saint Kitts and Nevis|Saint Lucia|Saint Martin|Mexico|Montserrat|Martinique|Nicaragua|Panama|Puerto Rico|El Salvador|Sint Maarten|Turks and Caicos Islands|Trinidad and Tobago|Saint Vincent and the Grenadines|Virgin Islands (British)|Virgin Islands (U.S.)", "Africa": "Angola|French Southern and Antarctic Lands|Burundi|Benin|Burkina Faso|Botswana|Central African Republic|Ivory Coast|Cameroon|Democratic Republic of the Congo|Republic of the Congo|Comoros|Cape Verde|Djibouti|Eritrea|Ethiopia|Gabon|Ghana|Guinea|The Gambia|Guinea-Bissau|Equatorial Guinea|British Indian Ocean Territory|Kenya|Liberia|Lesotho|Madagascar|Mali|Mozambique|Mauritania|Mauritius|Malawi|Mayotte|Namibia|Niger|Nigeria|R\u00e9union|Rwanda|Sudan|Senegal|Saint Helena|Sierra Leone|Somalia|South Sudan|S\u00e3o Tom\u00e9 and Pr\u00edncipe|Swaziland|Seychelles|Chad|Togo|Tanzania|Uganda|South Africa|Zambia|Zimbabwe", "Asia": "Afghanistan|Armenia|Azerbaijan|Bangladesh|Brunei|Bhutan|China|Georgia|Hong Kong|Indonesia|India|Japan|Kazakhstan|Kyrgyzstan|Cambodia|South Korea|Laos|Sri Lanka|Macau|Maldives|Myanmar|Mongolia|Malaysia|Nepal|Pakistan|Philippines|North Korea|Russia|Singapore|Thailand|Tajikistan|Turkmenistan|East Timor|Taiwan|Uzbekistan|Vietnam", "North America": "Bermuda|Canada|Greenland|Saint Pierre and Miquelon|United States", "South America": "Argentina|Bolivia|Brazil|Chile|Colombia|Ecuador|Falkland Islands|French Guiana|Guyana|Peru|Paraguay|South Georgia|Suriname|Uruguay|Venezuela", "Middle East": "United Arab Emirates|Bahrain|Algeria|Egypt|Western Sahara|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|Turkey|Yemen"}
 
 
 def advancedchanges(request):
@@ -1918,12 +1910,12 @@ def contribute_countries(request):
 
 
 def contribute_regions(request):
-    bannertitle = "Contribute"
+    bannertitle = "Contributions"
 
     mapp = """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-            <div style="width:95%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            <div style="width:98%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
             </div>
 	
 	<script defer="defer">
@@ -1947,6 +1939,22 @@ def contribute_regions(request):
 	var countryLayer = new OpenLayers.Layer.Vector("Provinces", {styleMap:style});
 	map.addLayers([countryLayer]);
 
+	onlybigbbox = function(f) {
+            var bbox = 0;
+            for (g of f.geometry.components) {
+                area = g.getArea();
+                if (area > 30 | (f.attributes.region == 'Central America' & area > 2)) {
+                    _box = g.getBounds();
+                    if (bbox == 0) {
+                        bbox = _box;
+                    } else {
+                        bbox.extend(_box);
+                    }
+                }
+            }
+            return bbox;
+	};
+
         rendercountries = function(data) {
 		var geojson_format = new OpenLayers.Format.GeoJSON();
 		var geoj_str = JSON.stringify(data);
@@ -1954,12 +1962,52 @@ def contribute_regions(request):
 		
 		feats = [];
 		for (feat of countries) {
-                        feats.push(feat);
+                        feats.push(feat);                        
 		};
 		map.zoomToExtent([-170,70,180,-40]);
-		//map.zoomToExtent([-150,70,150,-70]);
-		//map.zoomToExtent([-80,30,80,-30]);
 		countryLayer.addFeatures(feats);
+
+                // add progress popups
+                for (feat of countryLayer.features) {
+                        //var pos = feat.geometry.getBounds().getCenterLonLat();
+                        //var pos = onlybigbbox(feat).getCenterLonLat();
+                        //pos.lat = pos.lat + 20
+                        //pos.lon = pos.lon - 30
+                        
+                        if (feat.attributes.region == 'Oceania') {
+                            var pos = new OpenLayers.LonLat(104,-33);
+                        } else if (feat.attributes.region == 'Asia') {
+                            var pos = new OpenLayers.LonLat(69, 67);
+                        } else if (feat.attributes.region == 'Middle East') { 
+                            var pos = new OpenLayers.LonLat(42,40); // //48,38
+                        } else if (feat.attributes.region == 'Africa') {
+                            var pos = new OpenLayers.LonLat(10, 15);
+                        } else if (feat.attributes.region == 'Europe') {
+                            var pos = new OpenLayers.LonLat(-10, 85);
+                        } else if (feat.attributes.region == 'South America') {
+                            var pos = new OpenLayers.LonLat(-54, -30);
+                        } else if (feat.attributes.region == 'Central America') {
+                            var pos = new OpenLayers.LonLat(-152, 16);
+                        } else if (feat.attributes.region == 'North America') {
+                            var pos = new OpenLayers.LonLat(-130, 70);
+                        };
+                        var content = '<h3 style="padding:0; margin:0; color:black">'+feat.attributes.region+'</h3>'
+                        content = content + '<div style="display:relative; text-display:center; width:100px; padding:0px; margin-left:5%; margin-top:10px; height:13px; border-style:solid; border-color:black; border-width:1px; background-color:rgb(145,145,145)">'
+                        content = content + '<span id="map_progbar_'     +feat.attributes.region.replace(' ','_')+     '" style="display:block; padding:0; margin:0; height:100%; width:0%; color:white; background-color:orange">'
+                        content = content + '</span></div>'
+                        var popup = new OpenLayers.Popup(null,
+                                           pos,
+                                           new OpenLayers.Size(150,50),
+                                           content,
+                                           null);
+                        popup.autoSize = true;
+                        popup.backgroundColor = "none";
+
+                        feat.popup = popup;
+                        map.addPopup(popup);
+                };
+
+                updatemapbars();
 	};
 
         // $.getJSON('https://gist.githubusercontent.com/hrbrmstr/91ea5cc9474286c72838/raw/59421ff9b268ff0929b051ddafafbeb94a4c1910/continents.json', {}, rendercountries);
@@ -1984,7 +2032,7 @@ def contribute_regions(request):
                                                                                     out:unhighlightfunc}
                                                                         } );
         map.addControl(selectControl);
-        selectControl.activate();
+        selectControl.activate();       
 
         </script>
         """
@@ -2022,8 +2070,9 @@ def contribute_regions(request):
                     """
     custombanner += """
                     <div class="blackbackground" style="width:95%">
+                        <br>
                         <h2 style="text-align:center">{bannertitle}</h2>
-                        {welcome}
+                        <div style="display:none; text-align:center">{welcome}</div>
                         <div style="text-align:center">
                             {mapp}
                         </div>
@@ -2077,21 +2126,22 @@ def contribute_regions(request):
 
     # regions
     def iter_regions():
-        countrypairs = ProvChange.objects.filter(status__in='Active Pending').distinct('fromcountry','tocountry').values('fromcountry','tocountry')
+        countrypairs = ProvChange.objects.filter(status__in=['Active','Pending']).distinct('fromcountry','tocountry').values('fromcountry','tocountry')
         coded = set((c['fromcountry'] for c in countrypairs)) | set((c['tocountry'] for c in countrypairs))
         for reg,regcountries in regions.items():
             regcountries = regcountries.split('|')
             # calculate progress here
             regcoded = [c for c in coded if c in regcountries]
             progress = len(regcoded) / float(len(regcountries)) * 100
-            print reg,progress
             yield reg, progress
 
+    updatemapbars = ''
     color = 'orange' #'rgb(255,108,72)'
     fields = ["","region","progress"]
     lists = []
     #for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
     for reg,progress in sorted(iter_regions(), key=lambda tup: tup[0]):
+        # make table elements
         progbar = '''
                     <div style="display:relative; text-display:center; width:70%; padding:0px; margin-left:15%; margin-top:10px; height:13px; border-style:solid; border-color:black; border-width:1px">
                         <span style="display:block; padding:0; margin:0; height:100%; width:{progress}%; color:white; background-color:{color}">
@@ -2102,80 +2152,35 @@ def contribute_regions(request):
         icon = '<img src="/static/globe.png" style="height:50px; opacity:0.2">'
         linkimg = '<a href="%s">%s</a>' % (url,icon)
         row = [linkimg, reg, progbar] #progresstext]
+        # also make js to update progbars on map
+        updatemapbars += '''
+                        //// {region}
+                        mapbar = document.getElementById('map_progbar_{region}');
+                        mapbar.style.width = '{progress}%';
+                        '''.format(region=reg.replace(' ','_'), progress=progress)
         lists.append((None,row))
+
+    updatemapbars = """<script>
+                        updatemapbars = function() {
+                            %s
+                        };
+                        </script>
+                    """ % updatemapbars
         
     regionstable = lists2table(request, lists=lists,
                                   fields=fields,
                                  )
     content = """
-                {regionstable}
+                <div style="margin-left:21px">{regionstable}</div>
                 """.format(regionstable=regionstable)
-    grids.append(dict(title='''<img src="/static/globe.png" height="50px" style="display:inline-block">
+    print updatemapbars
+    content += updatemapbars
+    grids.append(dict(title='''<img src="/static/globe.png" height="55px" style="display:inline-block; margin-left:0; padding-left:0">
                                 Choose one of the regions to begin:''',
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
-
-    # comments
-    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
-    
-    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
-
-    content = """
-                <div style="margin-left:20px">{issuetable}</div>
-                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(issuetable=issuetable)
-
-    grids.append(dict(title='''<br><hr>
-                                <img src="/static/comment.png" height="35px" style="display:inline-block">
-                                Ask questions or suggest improvements to the website:''',
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
-
-    # maps
-    color = 'rgb(58,177,73)'
-
-    maps = list(Map.objects.filter(status='Active')[:10])
-
-    fields = ['', 'year', 'title', 'note', 'external link']
-    lists = []
-    for mapp in maps:
-        wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
-        if wms:
-            try:
-                wmslink = WMS_Helper(wms).image_url(height=50)
-                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-            except:
-                wmslink = "/static/map.png"
-                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-        else:
-            wmslink = "/static/map.png"
-            imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-        urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
-        row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
-        lists.append((None,row))
-
-    table = lists2table(request, lists, fields, 'maptable', color)
-
-    content = '''<div style="margin-left:2%">
-                    {table}
-                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                </div>
-                '''.format(table=table.encode('utf8'), color=color)
-        
-    grids.append(dict(title='''
-                            <br><hr>
-                                 <img src="/static/map.png" height="40px">
-                                 Add useful maps to the map collection:
-                            ''',
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="95%",
-                      ))
-
 
     # milestones
     milestones = Milestone.objects.filter(country='', status="Active")
@@ -2191,7 +2196,7 @@ def contribute_regions(request):
                 progresstext = "NA"
             yield m,milestoneform,progress,progresstext
 
-    color = 'orange' #'rgb(255,108,72)'
+    color = 'rgb(58,177,73)' #'rgb(255,108,72)'
     fields = ["","title","progress"]
     lists = []
     for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
@@ -2212,17 +2217,76 @@ def contribute_regions(request):
                                   fields=fields,
                                  classname='milestonetable', color=color)
     content = """
-                {milestonetable}
+                <div style="margin-left:20px">{milestonetable}</div>
                 <br><div width="100%" style="text-align:center"><a href="/addmilestone/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 """.format(milestonetable=milestonetable, color=color)
     
     grids.append(dict(title='''<br><hr>
                                 <img src="/static/milestone.png" height="40px" style="display:inline-block">
-                                Improve the data by performing specific tasks:''',
+                                Not sure where to start? Help reach these goals:''',
                       content=content, #'Join existing efforts to improve the data:'
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
+
+    # comments
+    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+    
+    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+
+    content = """
+                <div style="margin-left:22px">{issuetable}</div>
+                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(issuetable=issuetable)
+
+    grids.append(dict(title='''<br><hr>
+                                <img src="/static/comment.png" height="37px" style="display:inline-block">
+                                Ask questions or suggest improvements to the website:''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+##    # maps
+##    color = 'rgb(58,177,73)'
+##
+##    maps = list(Map.objects.filter(status='Active')[:10])
+##
+##    fields = ['', 'year', 'title', 'note', 'external link']
+##    lists = []
+##    for mapp in maps:
+##        wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
+##        if wms:
+##            try:
+##                wmslink = WMS_Helper(wms).image_url(height=50)
+##                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+##            except:
+##                wmslink = "/static/map.png"
+##                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+##        else:
+##            wmslink = "/static/map.png"
+##            imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+##        urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+##        row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
+##        lists.append((None,row))
+##
+##    table = lists2table(request, lists, fields, 'maptable', color)
+##
+##    content = '''<div style="margin-left:2%">
+##                    {table}
+##                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+##                </div>
+##                '''.format(table=table.encode('utf8'), color=color)
+##        
+##    grids.append(dict(title='''
+##                            <br><hr>
+##                                 <img src="/static/map.png" height="40px">
+##                                 Add useful maps to the map collection:
+##                            ''',
+##                      content=content,
+##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="95%",
+##                      ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
                                                            'custombanner':custombanner,
@@ -2243,7 +2307,7 @@ def contribute_region(request, region):
     mapp += """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-            <div style="width:95%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            <div style="width:98%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
             </div>
 	
 	<script defer="defer">
@@ -2323,10 +2387,10 @@ def contribute_region(request, region):
                         }
 		};
 		countryLayer.addFeatures(feats);
-		//alert(countryLayer.getDataExtent());
-		//map.zoomToExtent(countryLayer.getDataExtent());
 		bounds = onlybigbbox(countryLayer);
 		map.zoomToExtent(bounds);
+		
+		markcodedcountries(countryLayer);
 	};
 
         $.getJSON('/static/countries_simple.geojson', {}, rendercountries);
@@ -2337,12 +2401,13 @@ def contribute_region(request, region):
         };
         function highlightfunc(feature) {
             //alert('hover');
-            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:0.5, strokeColor:'black'}
+            feature.normstyle = feature.style
+            feature.style = {fillColor:"rgb(122,122,122)", strokeWidth:2.5, strokeColor:'black'}
             countryLayer.redraw();
         };
         function unhighlightfunc(feature) {
             //alert('unhover');
-            feature.style = {fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black'}
+            feature.style = feature.normstyle //{fillColor:"rgb(200,200,200)", strokeWidth:0.5, strokeColor:'black'}
             countryLayer.redraw();
         };
         selectControl = new OpenLayers.Control.SelectFeature(countryLayer, {onSelect: selectfunc,
@@ -2456,10 +2521,27 @@ def contribute_region(request, region):
         
     countriestable = lists2table(request, lists=lists,
                                   fields=["","Country","Changes","Discussions","Issues","Years"])
+    
     content = """
                 {countriestable}
                 <br><div width="100%" style="text-align:center"><a href="/contribute/add/" style="text-align:center; background-color:orange; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 """.format(countriestable=countriestable)
+
+    # also color in map
+    coded = [k for k,d in rowdicts.items() if d['entries']]
+    content += """
+                <script>
+                markcodedcountries = function(lyr) {
+                    for (feat of lyr.features) {
+                        if ( %s.indexOf(feat.attributes.country) >= 0 ) {
+                            feat.style = {fillColor:"rgb(145,145,145)", strokeWidth:0.5, strokeColor:'black'};
+                            lyr.drawFeature(feat);
+                        }
+                    }
+                }
+                </script>
+                """ % coded
+    
     grids.append(dict(title="Countries:",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",

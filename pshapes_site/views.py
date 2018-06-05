@@ -201,24 +201,6 @@ def home(request):
                     Read More
                     </a>
                     """
-    bannerright = """
-                    <br><br>
-                    <h3 style="text-align:left">Crowdsourcing Historical Province Boundaries</h3>
-                    <div style="text-align:left">
-                        <p>{shortdescr}</p>
-
-                        <p style="font-size:smaller"><em>Note: This is an early Alpha trial version of the website to test
-                        out the data collection effort. Suggestions
-                        and feature requests are welcome.</em>
-                        </p>
-                    </div>
-
-                    <br>
-                    <div style="text-align:right;">
-                        {quickstartbut}
-                    </div>
-                    <br>
-                    """.format(shortdescr=shortdescr, quickstartbut=quickstartbut)
     #<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYci40tiT9XecIGMtu8pLPGd7XqYXwNT_CCZ5PtyDA9ubVl0-P7g">
 ##    bannerleft = """
 ##                    <img src="/static/pshapes pen2 transp.png" width="40%">
@@ -241,12 +223,13 @@ def home(request):
     mapp = """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-            <div style="width:95%; height:44vh; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            <div style="width:98%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
             </div>
 	
 	<script defer="defer">
 	var map = new OpenLayers.Map('map', {allOverlays: true,
-                                            resolutions: [0.5,0.6,0.7,0.8,0.9,1],
+                                            fractionalZoom: true,
+                                            //resolutions: [0.5,0.6,0.7,0.8,0.9,1],
                                             controls: [],
                                             });
 	</script>
@@ -280,6 +263,7 @@ def home(request):
 	};
 
         $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+        //$.getJSON('/static/countries_simple.geojson', {}, rendercountries);
 
         renderprovs = function(data) {
 		var geojson_format = new OpenLayers.Format.GeoJSON();
@@ -323,63 +307,108 @@ def home(request):
         
         </script>
         """
-    
-    bannerleft = """
-                <div style="margin-top:30px">
+
+    custombanner = """
+                    <style>
+                        .blackbackground a { color:white }
+                        .blackbackground a:visited { color:grey }
+                    </style>
+                    """
+    custombanner += """
+                    <div class="blackbackground" style="width:95%; margin-top:30px">
+                        <h2 style="text-align:center">
+                            Welcome to Pshapes
+                        </h2>
+
+                        <h3 style="text-align:center">Crowdsourcing Historical Province Boundaries</h3>
                         
-                        <h2 style="text-align:center">Welcome to Pshapes</h2>
-                
                         <div style="text-align:center">
                             {mapp}
                         </div>
-		    
-                        <b>
-                        <table>
-                        <tr style="vertical-align:text-top">
+
+                        <br>
+    
+                        <table style="width:98%">
+                        <tr style="vertical-align:text-top; text-align:center; margin:0; padding:0">
+
                             <td>
-                            <h1>{countrycount}</h1>
-                            Countries coded
+                                <div>
+                                <img height="40px" src="/static/globe.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{countrycount}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Countries coded</h4>
                             </td>
                             
                             <td>
-                            <h1>{changes}</h1>
-                            Historical changes
+                                <div>
+                                <img height="35px" src="/static/typechange.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{changes}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Historical changes</h4>
                             </td>
 
                             <td>
-                            <h1>{avgedits}</h1>
-                            Edits per change
+                                <div>
+                                <img height="40px" src="/static/globe.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{avgedits}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Edits per change</h4>
                             </td>
 
                             <td>
-                            <h1>{vouches}</h1>
-                            Vouches
+                                <div>
+                                <img height="40px" src="/static/vouch.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{vouches}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Vouches</h4>
                             </td>
                             
                             <td>
-                            <h1>{issues}</h1>
-                            Issues
+                                <div>
+                                <img height="35px" src="/static/issue.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{issues}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Issues</h4>
                             </td>
 
                             <td>
-                            <h1>{discussions}</h1>
-                            Discussions
+                                <div>
+                                <img height="35px" src="/static/comment.png" style="display:inline-block; filter:invert(100%)">
+                                <h1 style="display:inline-block; padding:0; margin:0">{discussions}</h1>
+                                </div>
+                                <h4 style="padding:0; margin:0">Discussions</h4>
                             </td>
                         </tr>
                         </table>
-                        </b>
-                </div>
-                <br>
-                        """.format(mapp=mapp,
-                                   users=users,
-                                   changes=changes,
-                                   avgedits=format(edits/float(changes), '.1f'),
-                                   issues=issues,
-                                   discussions=discussions,
-                                   vouches=vouches,
-                                   countrycount=countrycount,
-                                   )
 
+                        <br>
+
+                        <div style="text-align:left">
+                            <p>{shortdescr}</p>
+
+                            <p style="font-size:smaller"><em>Note: This is an early Alpha trial version of the website to test
+                            out the data collection effort. Suggestions
+                            and feature requests are welcome.</em>
+                            </p>
+                        </div>
+
+                        <div style="text-align:right;">
+                            {quickstartbut}
+                        </div>
+                        <br>
+
+                    </div>
+                    """.format(mapp=mapp,
+                               users=users,
+                               changes=changes,
+                               avgedits=format(edits/float(changes), '.1f'),
+                               issues=issues,
+                               discussions=discussions,
+                               vouches=vouches,
+                               countrycount=countrycount,
+                               shortdescr=shortdescr,
+                               quickstartbut=quickstartbut
+                               )
 
     
 ##    if request.user.is_authenticated():
@@ -637,7 +666,8 @@ def home(request):
                       ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "bannerleft":bannerleft, "bannerright":bannerright}
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright}
+                                                           'custombanner':custombanner},
                   )
 
 ##def about(request):
@@ -1183,7 +1213,7 @@ def download(request):
                 
                 <h2 style="padding-top:10px; text-align:center">Downloading the Dataset</h2>
                     <div style="width:100%; height:240px; overflow: hidden; text-align:left">
-                        <img src="/static/webfrontimg.png" width="95%">
+                        <img src="/static/webdownloadimg.png" width="95%">
                     </div>
                     <div style="text-align:left; clear:both">
                         <p>
