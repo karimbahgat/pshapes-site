@@ -25,12 +25,194 @@ import datetime
 import urllib2
 
 
-# Create your views here.
+
+
+
+
+
+####################################
+# Country and region definitions
 
 countries = [(u'Afghanistan', u'Afghanistan'), (u'\xc5land Islands', u'\xc5land Islands'), (u'Albania', u'Albania'), (u'Algeria', u'Algeria'), (u'American Samoa', u'American Samoa'), (u'Andorra', u'Andorra'), (u'Angola', u'Angola'), (u'Anguilla', u'Anguilla'), (u'Antigua and Barbuda', u'Antigua and Barbuda'), (u'Argentina', u'Argentina'), (u'Armenia', u'Armenia'), (u'Aruba', u'Aruba'), (u'Australia', u'Australia'), (u'Austria', u'Austria'), (u'Azerbaijan', u'Azerbaijan'), (u'The Bahamas', u'The Bahamas'), (u'Bahrain', u'Bahrain'), (u'Bangladesh', u'Bangladesh'), (u'Barbados', u'Barbados'), (u'Belarus', u'Belarus'), (u'Belgium', u'Belgium'), (u'Belize', u'Belize'), (u'Benin', u'Benin'), (u'Bermuda', u'Bermuda'), (u'Bhutan', u'Bhutan'), (u'Bolivia', u'Bolivia'), (u'Bonaire', u'Bonaire'), (u'Bosnia and Herzegovina', u'Bosnia and Herzegovina'), (u'Botswana', u'Botswana'), (u'Bouvet Island', u'Bouvet Island'), (u'Brazil', u'Brazil'), (u'British Indian Ocean Territory', u'British Indian Ocean Territory'), (u'United States Minor Outlying Islands', u'United States Minor Outlying Islands'), (u'British Virgin Islands', u'British Virgin Islands'), (u'Brunei', u'Brunei'), (u'Bulgaria', u'Bulgaria'), (u'Burkina Faso', u'Burkina Faso'), (u'Burundi', u'Burundi'), (u'Cambodia', u'Cambodia'), (u'Cameroon', u'Cameroon'), (u'Canada', u'Canada'), (u'Cape Verde', u'Cape Verde'), (u'Cayman Islands', u'Cayman Islands'), (u'Central African Republic', u'Central African Republic'), (u'Chad', u'Chad'), (u'Chile', u'Chile'), (u'China', u'China'), (u'Christmas Island', u'Christmas Island'), (u'Cocos (Keeling) Islands', u'Cocos (Keeling) Islands'), (u'Colombia', u'Colombia'), (u'Comoros', u'Comoros'), (u'Republic of the Congo', u'Republic of the Congo'), (u'Democratic Republic of the Congo', u'Democratic Republic of the Congo'), (u'Cook Islands', u'Cook Islands'), (u'Costa Rica', u'Costa Rica'), (u'Croatia', u'Croatia'), (u'Cuba', u'Cuba'), (u'Cura\xe7ao', u'Cura\xe7ao'), (u'Cyprus', u'Cyprus'), (u'Czech Republic', u'Czech Republic'), (u'Denmark', u'Denmark'), (u'Djibouti', u'Djibouti'), (u'Dominica', u'Dominica'), (u'Dominican Republic', u'Dominican Republic'), (u'Ecuador', u'Ecuador'), (u'Egypt', u'Egypt'), (u'El Salvador', u'El Salvador'), (u'Equatorial Guinea', u'Equatorial Guinea'), (u'Eritrea', u'Eritrea'), (u'Estonia', u'Estonia'), (u'Ethiopia', u'Ethiopia'), (u'Falkland Islands', u'Falkland Islands'), (u'Faroe Islands', u'Faroe Islands'), (u'Fiji', u'Fiji'), (u'Finland', u'Finland'), (u'France', u'France'), (u'French Guiana', u'French Guiana'), (u'French Polynesia', u'French Polynesia'), (u'French Southern and Antarctic Lands', u'French Southern and Antarctic Lands'), (u'Gabon', u'Gabon'), (u'The Gambia', u'The Gambia'), (u'Georgia', u'Georgia'), (u'Germany', u'Germany'), (u'Ghana', u'Ghana'), (u'Gibraltar', u'Gibraltar'), (u'Greece', u'Greece'), (u'Greenland', u'Greenland'), (u'Grenada', u'Grenada'), (u'Guadeloupe', u'Guadeloupe'), (u'Guam', u'Guam'), (u'Guatemala', u'Guatemala'), (u'Guernsey', u'Guernsey'), (u'Guinea', u'Guinea'), (u'Guinea-Bissau', u'Guinea-Bissau'), (u'Guyana', u'Guyana'), (u'Haiti', u'Haiti'), (u'Heard Island and McDonald Islands', u'Heard Island and McDonald Islands'), (u'Honduras', u'Honduras'), (u'Hong Kong', u'Hong Kong'), (u'Hungary', u'Hungary'), (u'Iceland', u'Iceland'), (u'India', u'India'), (u'Indonesia', u'Indonesia'), (u'Ivory Coast', u'Ivory Coast'), (u'Iran', u'Iran'), (u'Iraq', u'Iraq'), (u'Republic of Ireland', u'Republic of Ireland'), (u'Isle of Man', u'Isle of Man'), (u'Israel', u'Israel'), (u'Italy', u'Italy'), (u'Jamaica', u'Jamaica'), (u'Japan', u'Japan'), (u'Jersey', u'Jersey'), (u'Jordan', u'Jordan'), (u'Kazakhstan', u'Kazakhstan'), (u'Kenya', u'Kenya'), (u'Kiribati', u'Kiribati'), (u'Kuwait', u'Kuwait'), (u'Kyrgyzstan', u'Kyrgyzstan'), (u'Laos', u'Laos'), (u'Latvia', u'Latvia'), (u'Lebanon', u'Lebanon'), (u'Lesotho', u'Lesotho'), (u'Liberia', u'Liberia'), (u'Libya', u'Libya'), (u'Liechtenstein', u'Liechtenstein'), (u'Lithuania', u'Lithuania'), (u'Luxembourg', u'Luxembourg'), (u'Macau', u'Macau'), (u'Republic of Macedonia', u'Republic of Macedonia'), (u'Madagascar', u'Madagascar'), (u'Malawi', u'Malawi'), (u'Malaysia', u'Malaysia'), (u'Maldives', u'Maldives'), (u'Mali', u'Mali'), (u'Malta', u'Malta'), (u'Marshall Islands', u'Marshall Islands'), (u'Martinique', u'Martinique'), (u'Mauritania', u'Mauritania'), (u'Mauritius', u'Mauritius'), (u'Mayotte', u'Mayotte'), (u'Mexico', u'Mexico'), (u'Federated States of Micronesia', u'Federated States of Micronesia'), (u'Moldova', u'Moldova'), (u'Monaco', u'Monaco'), (u'Mongolia', u'Mongolia'), (u'Montenegro', u'Montenegro'), (u'Montserrat', u'Montserrat'), (u'Morocco', u'Morocco'), (u'Mozambique', u'Mozambique'), (u'Myanmar', u'Myanmar'), (u'Namibia', u'Namibia'), (u'Nauru', u'Nauru'), (u'Nepal', u'Nepal'), (u'Netherlands', u'Netherlands'), (u'New Caledonia', u'New Caledonia'), (u'New Zealand', u'New Zealand'), (u'Nicaragua', u'Nicaragua'), (u'Niger', u'Niger'), (u'Nigeria', u'Nigeria'), (u'Niue', u'Niue'), (u'Norfolk Island', u'Norfolk Island'), (u'North Korea', u'North Korea'), (u'Northern Mariana Islands', u'Northern Mariana Islands'), (u'Norway', u'Norway'), (u'Oman', u'Oman'), (u'Pakistan', u'Pakistan'), (u'Palau', u'Palau'), (u'Palestine', u'Palestine'), (u'Panama', u'Panama'), (u'Papua New Guinea', u'Papua New Guinea'), (u'Paraguay', u'Paraguay'), (u'Peru', u'Peru'), (u'Philippines', u'Philippines'), (u'Pitcairn Islands', u'Pitcairn Islands'), (u'Poland', u'Poland'), (u'Portugal', u'Portugal'), (u'Puerto Rico', u'Puerto Rico'), (u'Qatar', u'Qatar'), (u'Republic of Kosovo', u'Republic of Kosovo'), (u'R\xe9union', u'R\xe9union'), (u'Romania', u'Romania'), (u'Russia', u'Russia'), (u'Rwanda', u'Rwanda'), (u'Saint Barth\xe9lemy', u'Saint Barth\xe9lemy'), (u'Saint Helena', u'Saint Helena'), (u'Saint Kitts and Nevis', u'Saint Kitts and Nevis'), (u'Saint Lucia', u'Saint Lucia'), (u'Saint Martin', u'Saint Martin'), (u'Saint Pierre and Miquelon', u'Saint Pierre and Miquelon'), (u'Saint Vincent and the Grenadines', u'Saint Vincent and the Grenadines'), (u'Samoa', u'Samoa'), (u'San Marino', u'San Marino'), (u'S\xe3o Tom\xe9 and Pr\xedncipe', u'S\xe3o Tom\xe9 and Pr\xedncipe'), (u'Saudi Arabia', u'Saudi Arabia'), (u'Senegal', u'Senegal'), (u'Serbia', u'Serbia'), (u'Seychelles', u'Seychelles'), (u'Sierra Leone', u'Sierra Leone'), (u'Singapore', u'Singapore'), (u'Sint Maarten', u'Sint Maarten'), (u'Slovakia', u'Slovakia'), (u'Slovenia', u'Slovenia'), (u'Solomon Islands', u'Solomon Islands'), (u'Somalia', u'Somalia'), (u'South Africa', u'South Africa'), (u'South Georgia', u'South Georgia'), (u'South Korea', u'South Korea'), (u'South Sudan', u'South Sudan'), (u'Spain', u'Spain'), (u'Sri Lanka', u'Sri Lanka'), (u'Sudan', u'Sudan'), (u'Suriname', u'Suriname'), (u'Svalbard and Jan Mayen', u'Svalbard and Jan Mayen'), (u'Swaziland', u'Swaziland'), (u'Sweden', u'Sweden'), (u'Switzerland', u'Switzerland'), (u'Syria', u'Syria'), (u'Taiwan', u'Taiwan'), (u'Tajikistan', u'Tajikistan'), (u'Tanzania', u'Tanzania'), (u'Thailand', u'Thailand'), (u'East Timor', u'East Timor'), (u'Togo', u'Togo'), (u'Tokelau', u'Tokelau'), (u'Tonga', u'Tonga'), (u'Trinidad and Tobago', u'Trinidad and Tobago'), (u'Tunisia', u'Tunisia'), (u'Turkey', u'Turkey'), (u'Turkmenistan', u'Turkmenistan'), (u'Turks and Caicos Islands', u'Turks and Caicos Islands'), (u'Tuvalu', u'Tuvalu'), (u'Uganda', u'Uganda'), (u'Ukraine', u'Ukraine'), (u'United Arab Emirates', u'United Arab Emirates'), (u'United Kingdom', u'United Kingdom'), (u'United States', u'United States'), (u'Uruguay', u'Uruguay'), (u'Uzbekistan', u'Uzbekistan'), (u'Vanuatu', u'Vanuatu'), (u'Venezuela', u'Venezuela'), (u'Vietnam', u'Vietnam'), (u'Wallis and Futuna', u'Wallis and Futuna'), (u'Western Sahara', u'Western Sahara'), (u'Yemen', u'Yemen'), (u'Zambia', u'Zambia'), (u'Zimbabwe', u'Zimbabwe')]
 
 regions = {"Europe": "\u00c5land Islands|Albania|Andorra|Austria|Belgium|Bulgaria|Bosnia and Herzegovina|Belarus|Switzerland|Cyprus|Czech Republic|Germany|Denmark|Spain|Estonia|Finland|France|Faroe Islands|United Kingdom|Guernsey|Gibraltar|Greece|Croatia|Hungary|Isle of Man|Republic of Ireland|Iceland|Italy|Jersey|Republic of Kosovo|Liechtenstein|Lithuania|Luxembourg|Latvia|Monaco|Moldova|Republic of Macedonia|Malta|Montenegro|Netherlands|Norway|Poland|Portugal|Romania|Svalbard and Jan Mayen|San Marino|Serbia|Slovakia|Slovenia|Sweden|Ukraine|Holy See", "Oceania": "American Samoa|Australia|Cocos (Keeling) Islands|Cook Islands|Christmas Island|Fiji|Federated States of Micronesia|Guam|Kiribati|Marshall Islands|Northern Mariana Islands|New Caledonia|Norfolk Island|Niue|Nauru|New Zealand|Pitcairn Islands|Palau|Papua New Guinea|French Polynesia|Solomon Islands|Tokelau|Tonga|Tuvalu|Vanuatu|Wallis and Futuna|Samoa", "Central America": "Aruba|Anguilla|Antigua and Barbuda|Bonaire|The Bahamas|Saint Barth\u00e9lemy|Belize|Barbados|Costa Rica|Cuba|Cura\u00e7ao|Cayman Islands|Dominica|Dominican Republic|Guadeloupe|Grenada|Guatemala|Honduras|Haiti|Jamaica|Saint Kitts and Nevis|Saint Lucia|Saint Martin|Mexico|Montserrat|Martinique|Nicaragua|Panama|Puerto Rico|El Salvador|Sint Maarten|Turks and Caicos Islands|Trinidad and Tobago|Saint Vincent and the Grenadines|Virgin Islands (British)|Virgin Islands (U.S.)", "Africa": "Angola|French Southern and Antarctic Lands|Burundi|Benin|Burkina Faso|Botswana|Central African Republic|Ivory Coast|Cameroon|Democratic Republic of the Congo|Republic of the Congo|Comoros|Cape Verde|Djibouti|Eritrea|Ethiopia|Gabon|Ghana|Guinea|The Gambia|Guinea-Bissau|Equatorial Guinea|British Indian Ocean Territory|Kenya|Liberia|Lesotho|Madagascar|Mali|Mozambique|Mauritania|Mauritius|Malawi|Mayotte|Namibia|Niger|Nigeria|R\u00e9union|Rwanda|Sudan|Senegal|Saint Helena|Sierra Leone|Somalia|South Sudan|S\u00e3o Tom\u00e9 and Pr\u00edncipe|Swaziland|Seychelles|Chad|Togo|Tanzania|Uganda|South Africa|Zambia|Zimbabwe", "Asia": "Afghanistan|Armenia|Azerbaijan|Bangladesh|Brunei|Bhutan|China|Georgia|Hong Kong|Indonesia|India|Japan|Kazakhstan|Kyrgyzstan|Cambodia|South Korea|Laos|Sri Lanka|Macau|Maldives|Myanmar|Mongolia|Malaysia|Nepal|Pakistan|Philippines|North Korea|Russia|Singapore|Thailand|Tajikistan|Turkmenistan|East Timor|Taiwan|Uzbekistan|Vietnam", "North America": "Bermuda|Canada|Greenland|Saint Pierre and Miquelon|United States", "South America": "Argentina|Bolivia|Brazil|Chile|Colombia|Ecuador|Falkland Islands|French Guiana|Guyana|Peru|Paraguay|South Georgia|Suriname|Uruguay|Venezuela", "Middle East": "United Arab Emirates|Bahrain|Algeria|Egypt|Western Sahara|Iran|Iraq|Israel|Jordan|Kuwait|Lebanon|Libya|Morocco|Oman|Palestine|Qatar|Saudi Arabia|Syria|Tunisia|Turkey|Yemen"}
 
+
+
+
+
+
+
+
+###########################
+# Info and text helpers
+
+map_resources = """
+                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
+                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
+                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
+                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
+                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
+                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
+                                    <li><a target="_blank" href="https://legacy.lib.utexas.edu/maps/map_sites/country_sites.html">The Perry-Castaneda Library Map Collection</a></li>
+                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
+                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
+                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
+                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
+                                    <li><a target="_blank" href="https://www.euratlas.net/history/hisatlas/index.html">EurAtlas Historical Maps</a></li>
+                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
+                """
+
+geoinstruct = """
+                <ol>
+                    <li>
+                    Guided by the map, draw a clipping polygon that <em>encircles</em> the province that gave away territory.
+                    <br>
+                    That is, do not follow the borders exactly, but rather draw with a significant error-margin around the province boundaries.
+                    <br>
+                    This makes it easier to draw and will avoid common topological and integration problems in border dataset,
+                    since there are bound to be minor inaccuracies in the historical maps and their georeferencing. 
+                    <br><br>
+                    </li>
+                    <li>
+                    Only if the giving province shares a border with the
+                    receiving province or any other giving provinces, should you follow those parts of the border exactly.
+                    (To avoid gaps between the clipping polygon and any previously drawn giving provinces, shown in gray, 
+                    just make sure they overlap.)
+                    <br><br>
+                    </li>
+                    <li>
+                    If the giving province only gave away parts of its territory
+                    it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
+                    or a series of islands).
+                    <br><br>
+                    </li>
+                    <li>
+                    Draw multiple polygons if necessary.
+                    <br><br>
+                    </li>
+                </ol>
+                
+            </b>
+            """
+
+TYPEINFO = {"NewInfo": {"label": "NewInfo",
+                         "short": "A change was made to a province's name, codes, or capital.",
+                          "descr": """
+                                    The province experienced a change in its basic information. In addition, provinces splitting up, 
+                                    merging together, or experiencing other major territorial changes are sometimes accompanied by changes
+                                    to their name and codes as well. 
+                                    """,
+                          "img": '<img style="width:100px" src="/static/webnewinfo.png"/>',
+                          },
+              "Breakaway": {"label": "Breakaway",
+                            "short": "A new province was created by breaking away from an existing province.",
+                              "descr": """
+                                        This province is the result of breaking away or seceding from a province,
+                                        one which continues to exist afterwards. 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webbreakaway.png"/>',
+                              },
+              "SplitPart": {"label": "SplitPart",
+                            "short": "A new province was created as part of the splitting and dissolution of an existing province.",
+                              "descr": """
+                                        This is one of several parts created after the dissolution of a now defunct province.
+                                        """,
+                              "img": '<img style="width:100px" src="/static/websplit.png"/>',
+                              },
+              "TransferExisting": {"label": "TransferExisting",
+                               "short": "Part of a province's territory was transferred to another province.",
+                              "descr": """
+                                        The transferred territory is sent to an existing province.
+                                        (Requires a map showing the now defunct province) 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webtransferexisting.png"/>',
+                              },
+             "MergeExisting": {"label": "MergeExisting",
+                              "short": "An entire province ceased to exist and became part of another province.",
+                              "descr": """
+                                        An entire province is merged into an existing province.
+                                        (Requires a map showing the now defunct province) 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webmergeexisting.png"/>',
+                              },
+              "TransferNew": {"label": "TransferNew",
+                               "short": "Part of a province's territory was transferred to form part of a new province.",
+                              "descr": """
+                                        The transferred territory is used to serve as part of the foundation for an entirely new province.
+                                        (Requires a map showing the province outline prior to the transfer of territory)
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webtransfernew.png"/>',
+                              },
+             "MergeNew": {"label": "MergeNew",
+                              "short": "An entire province ceased to exist and merged to form part of a new province.",
+                              "descr": """
+                                        An entire province is merged to form part of the foundation for an entirely new province.
+                                        (Requires a map showing the now defunct province) 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webmergenew.png"/>',
+                              },
+             "Begin": {"label": "Begin",
+                              "short": "Marks the earliest known record for this province.",
+                              "descr": """
+                                        Typically used for entire country to say more information is needed
+                                        beyond this point. 
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
+                              },
+               }
+
+EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
+                         "short": "A change was made to a province's name, codes, or capital.",
+                          "descr": """
+                                    
+                                    """,
+                          "img": '<img style="width:100px" src="/static/webnewinfo.png"/>',
+                          },
+              "Breakaway": {"label": "Breakaway",
+                               "short": "A province lost territory to one or more breakaway regions.",
+                              "descr": """
+                                        
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webbreakaway.png"/>',
+                              },
+              "Split": {"label": "Split",
+                               "short": "A province split into multiple new ones.",
+                              "descr": """
+                                        
+                                        """,
+                              "img": '<img style="width:100px" src="/static/websplit.png"/>',
+                              },
+             "Form": {"label": "Form",
+                              "short": "One or more provinces merged or transferred territory to a new province.",
+                              "descr": """
+                                        
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webform.png"/>',
+                              },
+             "Expand": {"label": "Form",
+                              "short": "One or more provinces merged or transferred territory to an existing province.",
+                              "descr": """
+                                        
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webexpand.png"/>',
+                              },
+             "Begin": {"label": "Begin",
+                              "short": "Marks the earliest known record for this province.",
+                              "descr": """
+                                        
+                                        """,
+                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
+                              },
+               }
+
+
+
+
+
+
+####################################
+# Helpers
 
 def advancedchanges(request):
     bannertitle = "Advanced Change View"
@@ -50,7 +232,318 @@ def advancedchanges(request):
                                                            }
                   )
 
-# Comments
+def slideshow():
+    # from https://codepen.io/anon/pen/RGYPjP
+    html = """
+            //how many images we have
+            $slides: 4;
+
+            // how much we want each slide to show
+            $time_per_slide: 4;
+
+            // total time needed for full animation
+            $total_animation_time: $time_per_slide * $slides;
+
+            body{
+              background:#000;
+            }
+            .container{
+              margin:50px auto;
+              width:500px;
+              height:300px;
+              overflow:hidden;
+              border:10px solid;
+              border-top-color:#856036;
+              border-left-color:#5d4426;
+              border-bottom-color:#856036;
+              border-right-color:#5d4426;
+              position:relative;
+
+            }
+            .photo{
+              position:absolute;
+              animation:round #{$total_animation_time}s infinite;
+              opacity:0;
+              
+            }
+            @keyframes round{   
+              25%{
+                opacity:1;
+              }
+              40%{
+                opacity:0;
+              }
+            } 
+
+            @for $index from 1 to $slides + 1{
+              img:nth-child(#{$index}){
+                animation-delay:#{$total_animation_time - $time_per_slide * $index}s
+              }
+            }
+               
+            <div class="container">
+              <img class='photo'  src="http://farm9.staticflickr.com/8320/8035372009_7075c719d9.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8517/8562729616_35b1384aa1.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8465/8113424031_72048dd887.jpg" alt="" />
+              <img class='photo'  src="http://farm9.staticflickr.com/8241/8562523343_9bb49b7b7b.jpg" alt="" />
+
+            </div>
+            """
+    return html
+
+class Grid:
+    html = ""
+    def add_cell(self, title, content, style="border-style:none", width="30%"):
+        self.html += """
+                    <div class="gridcell" style="float:left; width:{width}; padding-right:3%">
+                            <h4>{title}</h4>
+                            <div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; {style}">
+                            {content}
+                            </div>
+                    </div>
+                    """.format(title=title.encode("utf8"), content=content.encode("utf8"), style=style.encode("utf8"), width=width.encode("utf8"))
+
+def markcountrychange(country, provtext, provcountries):
+    if not isinstance(provcountries,list):
+        provcountries = [provcountries]
+    for provcountry in provcountries:
+        if provcountry and provcountry != country:
+            provtext += ' (<a id="blackbackground" style="color:gray" href="/contribute/view/{countryencode}">{countrytext}</a>)'.format(countryencode=urlquote(provcountry), countrytext=provcountry.encode('utf8'))
+            break
+    return provtext
+
+def model2table(request, title, objects, fields):
+    html = """
+		<table class="modeltable"> 
+		
+			<style>
+			table.modeltable {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th.modeltable, td.modeltable {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr.modeltable:nth-child(even){background-color: #f2f2f2}
+
+			tr.modeltable:nth-child(odd){background-color: white}
+
+			th.modeltable {
+				background-color: orange;
+				color: white;
+			}
+			</style>
+		
+			<tr class="modeltable">
+				<th class="modeltable"> 
+				</th>
+
+				{% for field in fields %}
+                                    <th class="modeltable">
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+
+                        {% if objects %}
+			
+                            {% for obj in objects %}
+                                    <tr class="modeltable">
+                                            <td class="modeltable">
+                                                <a href="{% url 'viewchange' pk=obj.instance.pk %}">View</a>
+                                            </td>
+                                            
+                                            {% for field in obj %}
+                                                <td class="modeltable">{{ field.value }}</td>
+                                            {% endfor %}
+                                            
+                                    </tr>
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr class="modeltable">
+                            <td class="modeltable"></td>
+                            {% for _ in fields %}
+                                <td class="modeltable"> - </td>
+                            {% endfor %}
+                            </tr>
+
+                        {% endif %}
+                            
+		</table>
+                """
+
+    _fields = fields
+    
+    class ProvChangeForm(forms.ModelForm):
+
+        class Meta:
+            model = ProvChange
+            fields = _fields
+            
+    objects = [ProvChangeForm(instance=obj) for obj in objects]
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "objects":objects, "title":title}))
+    return rendered
+
+def lists2table(request, lists, fields, classname="listtable", color='orange'):
+    html = """
+		<table class="{{ classname }}"> 
+		
+			<style>
+			table.{{ classname }} {
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			th.{{ classname }}, td.{{ classname }} {
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr.{{ classname }}:nth-child(even){background-color: #f2f2f2}
+
+			tr.{{ classname }}:nth-child(odd){background-color: white}
+
+			th.{{ classname }} {
+				background-color: {{ color }};
+				color: white;
+			}
+			</style>
+		
+			<tr class="{{ classname }}">
+				<th class="{{ classname }}"> 
+				</th>
+
+				{% for field in fields %}
+                                    <th class="{{ classname }}">
+                                        <b>{{ field }}</b>
+                                    </th>
+                                {% endfor %}
+                                    
+			</tr>
+			</a>
+			
+			{% for url,row in lists %}
+				<tr class="{{ classname }}">
+					<td style="vertical-align:top;" class="{{ classname }}">
+					{% if url %}
+                                            <a href="{{ url }}">View</a>
+                                        {% endif %}
+					</td>
+					
+                                        {% for value in row %}
+                                            <td style="vertical-align:top" class="{{ classname }}">{{ value | safe}}</td>
+                                        {% endfor %}
+					
+				</tr>
+			{% endfor %}
+		</table>
+                """
+    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists, "classname":classname, "color":color}))
+    return rendered
+
+def text_formatted(text):
+    import re
+    val = text
+    
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(map)([0-9]*)', repl, val)
+    def repl(matchobj):
+        id = matchobj.group(2)
+        return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
+    val,n = re.subn('#(source)([0-9]*)', repl, val)
+    return val.encode('utf8')
+    
+
+
+
+
+
+
+
+
+
+
+########################## BASIC OBJECT ACTIONS ###################
+
+
+
+
+
+
+
+
+
+
+
+
+###########
+# Users
+
+def registration(request):
+    
+    if request.method == "POST":
+        fieldnames = [f.name for f in User._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
+        if User.objects.filter(email=request.POST['email']).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
+        obj = User.objects.create_user(**formfieldvalues)
+        print obj
+        obj.save()
+
+        html = redirect("/contribute/countries/")
+
+    elif request.method == "GET":
+        args = {'logininfo': LoginInfoForm(),
+                'userinfo': UserInfoForm(),
+                }
+        html = render(request, 'provchanges/registration.html', args)
+
+    return html
+
+def login(request):
+    
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        print username,password
+        user = authenticate(username=username, password=password)
+        print user
+        if user is not None:
+            auth_login(request, user)
+            html = redirect("/contribute/countries/")
+        else:
+            args = {'login': LoginForm(),
+                    'errormessage': "Could not find that username or password",
+                    }
+            html = render(request, 'provchanges/login.html', args)
+            
+    elif request.method == "GET":
+        print request, request.user
+        args = {'login': LoginForm(),
+                }
+        html = render(request, 'provchanges/login.html', args)
+
+    return html
+
+@login_required
+def logout(request):
+    print request, request.user
+    auth_logout(request)
+    html = render(request, 'provchanges/logout.html')
+    return html
+
+
+############
+# Issues
 
 class IssueForm(forms.ModelForm):
 
@@ -96,67 +589,6 @@ def issues2html(request, issues, commentheadercolor="orange"):
     html = lists2table(request, lists, [''] + fields, classname="topicstable", color=commentheadercolor)
     
     return html
-
-def text_formatted(text):
-    import re
-    val = text
-    
-    def repl(matchobj):
-        id = matchobj.group(2)
-        return '<a target="_blank" href="/viewmap/{id}/"><img height="15px" src="/static/map.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(map)([0-9]*)', repl, val)
-    def repl(matchobj):
-        id = matchobj.group(2)
-        return '<a target="_blank" href="/viewsource/{id}/"><img height="15px" src="/static/source.png">{id}</a>'.format(id=id)
-    val,n = re.subn('#(source)([0-9]*)', repl, val)
-    return val.encode('utf8')
-
-##@login_required
-##def migrate_comments(request):
-##    # clear
-##    Issue.objects.all().delete()
-##    IssueComment.objects.all().delete()
-##    
-##    # general
-##    titles = [c.title for c in Comment.objects.filter(country=None, changeid=None).distinct('title')]
-##    for title in titles:
-##        comments = Comment.objects.filter(title=title, country=None, changeid=None)
-##        first = comments[0]
-##        issue = Issue(user=first.user.username, added=datetime.datetime.now(),
-##                      status=first.status, title=title, text=first.text)
-##        issue.save()
-##        for c in comments[1:]:
-##            comment = Comment(user=first.user.username, added=datetime.datetime.now(),
-##                              status=c.status, issue=issue, text=c.text)
-##            comment.save()
-##
-##    # country comments
-##    groups = [(c.country,c.title) for c in Comment.objects.filter(country__isnull=False, changeid=None).distinct('country','title')]
-##    for country,title in groups:
-##        comments = Comment.objects.filter(title=title, country=country, changeid=None)
-##        first = comments[0]
-##        issue = Issue(user=first.user, added=first.added, status=first.status, 
-##                      country=country, title=title, text=first.text)
-##        issue.save()
-##        for c in comments[1:]:
-##            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
-##                                  issue=issue, text=c.text)
-##            comment.save()
-##
-##    # change comments
-##    groups = [(c.country,c.title,c.changeid) for c in Comment.objects.filter(country__isnull=False, changeid__isnull=False).distinct('country','title','changeid')]
-##    for country,title,changeid in groups:
-##        comments = Comment.objects.filter(title=title, country=country, changeid=changeid)
-##        first = comments[0]
-##        issue = Issue(user=first.user, added=first.added, status=first.status, 
-##                      country=first.country, changeid=changeid, title=title, text=first.text)
-##        issue.save()
-##        for c in comments[1:]:
-##            comment = IssueComment(user=c.user, added=c.added, status=c.status, 
-##                                  issue=issue, text=c.text)
-##            comment.save()
-##
-##    print 'done!'
 
 @login_required
 def addissue(request):
@@ -407,6 +839,7 @@ def dropissuecomment(request, pk):
     return redirect('/viewissue/%s' % comment.issue.pk)
 
 
+###########
 # Vouches
 
 @login_required
@@ -435,6 +868,7 @@ def withdrawvouch(request, pk):
     return redirect(request.META['HTTP_REFERER'])
 
 
+###########
 # Sources
 
 def get_country_sources(country):
@@ -542,6 +976,7 @@ def dropsource(request, pk):
     return redirect("/viewsource/%s" % obj.pk)
 
 
+########
 # Maps
 
 def get_country_maps(country):
@@ -729,7 +1164,8 @@ def dropmap(request, pk):
     return redirect("/viewmap/%s" % obj.pk)
 
 
-# milestones
+################
+# Milestones
 
 # TODO: Not sure, should it only evaluate existing cases,
 # or should it also allow more flexible queries incl nonexisting cases,
@@ -931,583 +1367,312 @@ def dropmilestone(request, pk):
 
 
 
-        
-##################
 
-def slideshow():
-    # from https://codepen.io/anon/pen/RGYPjP
-    html = """
-            //how many images we have
-            $slides: 4;
 
-            // how much we want each slide to show
-            $time_per_slide: 4;
 
-            // total time needed for full animation
-            $total_animation_time: $time_per_slide * $slides;
 
-            body{
-              background:#000;
-            }
-            .container{
-              margin:50px auto;
-              width:500px;
-              height:300px;
-              overflow:hidden;
-              border:10px solid;
-              border-top-color:#856036;
-              border-left-color:#5d4426;
-              border-bottom-color:#856036;
-              border-right-color:#5d4426;
-              position:relative;
 
-            }
-            .photo{
-              position:absolute;
-              animation:round #{$total_animation_time}s infinite;
-              opacity:0;
-              
-            }
-            @keyframes round{   
-              25%{
-                opacity:1;
-              }
-              40%{
-                opacity:0;
-              }
-            } 
 
-            @for $index from 1 to $slides + 1{
-              img:nth-child(#{$index}){
-                animation-delay:#{$total_animation_time - $time_per_slide * $index}s
-              }
-            }
-               
-            <div class="container">
-              <img class='photo'  src="http://farm9.staticflickr.com/8320/8035372009_7075c719d9.jpg" alt="" />
-              <img class='photo'  src="http://farm9.staticflickr.com/8517/8562729616_35b1384aa1.jpg" alt="" />
-              <img class='photo'  src="http://farm9.staticflickr.com/8465/8113424031_72048dd887.jpg" alt="" />
-              <img class='photo'  src="http://farm9.staticflickr.com/8241/8562523343_9bb49b7b7b.jpg" alt="" />
 
-            </div>
-            """
-    return html
+###################### MAIN PAGES ###################
 
-class Grid:
-    html = ""
-    def add_cell(self, title, content, style="border-style:none", width="30%"):
-        self.html += """
-                    <div class="gridcell" style="float:left; width:{width}; padding-right:3%">
-                            <h4>{title}</h4>
-                            <div style="border-style:solid; border-color:black; border-radius:10px; padding:3% 5%; background-size:100% 100%; {style}">
-                            {content}
-                            </div>
-                    </div>
-                    """.format(title=title.encode("utf8"), content=content.encode("utf8"), style=style.encode("utf8"), width=width.encode("utf8"))
 
-def registration(request):
-    
-    if request.method == "POST":
-        fieldnames = [f.name for f in User._meta.get_fields()]
-        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
-        if User.objects.filter(email=request.POST['email']).exists():
+
+
+
+
+
+
+
+
+
+
+
+##########################
+# User pages
+
+from .models import User
+
+class LoginForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["username","password"]
+        widgets = {"password":forms.PasswordInput()}
+
+class LoginInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["username","password"]
+        widgets = {"password":forms.PasswordInput()}
+
+class UserInfoForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ["first_name","last_name","email","affiliation"]
+
+    def __init__(self, *args, **kwargs):
+        super(UserInfoForm, self).__init__(*args, **kwargs)
+
+        self.fields['email'].widget.attrs['required'] = 'true'
+
+    def clean(self):
+        # NOTE: Doesnt get called yet, because form is not used when adding/editing
+        data = self.cleaned_data
+        print 'EMAIL',self.cleaned_data['email'],len(User.objects.filter(email=self.cleaned_data['email']))
+        if User.objects.filter(email=self.cleaned_data['email']).exists():
             raise forms.ValidationError(u'Email addresses must be unique.')
-        obj = User.objects.create_user(**formfieldvalues)
-        print obj
-        obj.save()
-
-        html = redirect("/contribute/countries/")
-
-    elif request.method == "GET":
-        args = {'logininfo': LoginInfoForm(),
-                'userinfo': UserInfoForm(),
-                }
-        html = render(request, 'provchanges/registration.html', args)
-
-    return html
-
-def login(request):
-    
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        print username,password
-        user = authenticate(username=username, password=password)
-        print user
-        if user is not None:
-            auth_login(request, user)
-            html = redirect("/contribute/countries/")
-        else:
-            args = {'login': LoginForm(),
-                    'errormessage': "Could not find that username or password",
-                    }
-            html = render(request, 'provchanges/login.html', args)
-            
-    elif request.method == "GET":
-        print request, request.user
-        args = {'login': LoginForm(),
-                }
-        html = render(request, 'provchanges/login.html', args)
-
-    return html
+        return data
 
 @login_required
-def logout(request):
-    print request, request.user
-    auth_logout(request)
-    html = render(request, 'provchanges/logout.html')
-    return html
+def account_edit(request):
+    userobj = User.objects.get(username=request.user)
+    form = UserInfoForm(instance=userobj)
+    if request.POST:
+        if User.objects.filter(email=request.POST['email']).exists():
+            raise forms.ValidationError(u'Email addresses must be unique.')
+        userobj.first_name = request.POST["first_name"]
+        userobj.last_name = request.POST["last_name"]
+        userobj.email = request.POST["email"]
+        userobj.affiliation = request.POST["affiliation"]
+        print userobj.first_name
+        userobj.save()
+        return redirect("/account/")
+    else:
+        ##form.fields["email"].widget.attrs['readonly'] = "readonly"
+        return render(request, 'provchanges/accountedit.html', {"user":request.user, "userinfoform":form}
+                      )
+class UploadFileForm(forms.Form):
+    file = forms.FileField()
 
-##guidelines_header = """
-##                    <div style="text-align:left">
-##
-##                        <br><br><br><br>
-##                        <b>
-##                        All contributors should read the following guidelines, and refer
-##                        back to them whenever you face a difficult coding decision. 
-##                        </b>
-##
-##                        <style>
-##                            #blackbackground a { color:white }
-##                            #blackbackground a:visited { color:white }
-##                        </style>
-##
-##                        <ul id="blackbackground">
-##                        <li><a href="/guidelines/understanding/">Understanding Pshapes</a></li>
-##                        <li><a href="/guidelines/codingrules/">Coding Rules</a></li>
-##                        <li><a href="/guidelines/mapping/">Mapping</a></li>
-##                        </ul>
-##
-##                    </div>
-##                    """
-##
-##def guidelines_understanding(request):
-##    bannertitle = "Guidelines - Understanding Pshapes:"
-##    
-##    bannerleft = """
-##                    <div style="text-align:center">
-##                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-##		    </div>
-##    """
-##
-##    bannerright = guidelines_header
-##
-##    grids = []
-##
-##    # SUBPAGE: UNDERSTANDING PSHAPES
-##
-##    grids.append(dict(title="How the Algorithm Works",
-##                      content="""
-##                                <p>
-##                                Pshapes is primarily just a dataset of province-related <em>changes</em> and not a boundary dataset per se.
-##                                However, the data collection effort was developed in conjunction with a computer algorithm that was
-##                                designed to use this change information to create a complete historical boundary dataset.
-##                                </p>
-##
-##                                <p>
-##                                The algorithm starts by asking for a
-##                                complete global dataset of province boundaries reflecting how the situation looks like
-##                                on a given (preferably recent) date. This can be any third-party dataset, including the ones listed earlier. 
-##                                It then increments through the events listed in the Pshapes change-data, starting with the
-##                                most recent and going gradually further back in time. 
-##                                </p>
-##
-##                                <p>
-##                                The Pshapes change-events are processed as they are encountedered, and can be boiled down to three basic types.
-##                                </p>
-##
-##                                <ol>
-##
-##                                <li>
-##                                <b>NewInfo</b>
-##                                Most changes simply involve changes to a province name or code. These events are handled
-##                                by simply noting the start-date of the existing modern province, and then adding a new province
-##                                that ends on that same date. Any subsequent changes involving that province will in turn result in
-##                                registering its start-date, before again adding the next historical iteration of that province.
-##                                <br><br>
-##                                </li>
-##
-##                                <li>
-##                                <b>Splits</b>
-##                                If on a given date a split event was registered, this means that the current state of our boundary
-##                                dataset contains all the resulting breakaway
-##                                provinces and that these used to belong to a single large province. To
-##                                recreate this older province all we have to do is glue together the geometries of the provinces
-##                                that were registered as splitting away (incl. the remnants of the original province in case
-##                                the split was incomplete).
-##                                <br><br>
-##                                </li>
-##                                
-##                                <li>
-##                                <b>Transfers and Mergers</b>
-##                                The last type of change include events where a province receives territory from one or
-##                                more other provinces. 
-##                                If the receiving province was pre-existing then we are talking about a partial transfer of
-##                                territory. Since our boundary data represents the larger version of the province after it
-##                                received the territory, all that is needed is to cut off the piece that was received (based on a
-##                                cookie-cutter polygon that users draw when encountering such events) and glue it
-##                                back together to the province that originally gave away the territory.
-##                                The same principle applies if the receiving province did not previously exist but instead came
-##                                into existence as a result of two or more such transfers.
-##                                Finally, transfers can also involve the full transfer of entire provinces that afterwards cease to exist.
-##                                These are often known as mergers or annexations, but they are handled in the same way as other transfers
-##                                of territories: cut it off and give it back to its previous owner.
-##                                <br><br>
-##                                </li>
-##
-##                                </ol>
-##
-##                                <p>
-##                                Multiple complex configuratios of these changes can occur in a single event,
-##                                and when processed in this way, the jigzaw puzzle of broken off parts and changing
-##                                ownerships will reorganize itself to recreate how the provinces
-##                                looked prior to the event. 
-##
-##                                <p>
-##                                Through this process we can reverse geocode our
-##                                way back in time for as long as we have a continuous list of changes. 
-##                                </p>
-##                            """,
-##                      width="98%",
-##                      ))
-##
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
-##
-##def guidelines_codingrules(request):
-##    bannertitle = "Guidelines - Coding Rules:"
-##    
-##    bannerleft = """
-##                    <div style="text-align:center">
-##                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-##		    </div>
-##    """
-##
-##    bannerright = guidelines_header
-##
-##    grids = []
-##
-##
-##    content = """
-##                <h4>Disputed Countries/Territories</h4>
-##                <p>
-##                What defines a country? At all times follow the most internationally recognized country-units and names.
-##                For territories under foreign colonial rule, these should be coded as separate from the ruling
-##                power. For countries simply achieving independence or countries with only minor changes in their official name,
-##                avoid changing the country name. 
-##                </p>
-##                
-##                <h4>Historical Countries</h4>
-##                <p>
-##                One of the advantages of the Pshapes project is that we should be able to go back in time as far back
-##                as we have information. So when encountering historic countries that don't exist anymore, the way to go
-##                about this is to register the event as usual, and then change the from-country field.
-##                For instance, for each of the ex-Soviet
-##                countries all of their provinces must be registered as changing info from the Soviet Union. The new country
-##                name as you have written it will appear in the list of countries, so you can keep tracking it further back
-##                in time.
-##                </p>
-##                """
-##
-##    grids.append(dict(title="Defining Countries",
-##                      content=content,
-##                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-##                      width="98%",
-##                      ))
-##
-##    content = """
-##                <h4>Admin Levels</h4>
-##                <p>
-##                In its first run, the Pshapes project is only collecting data on the first-level
-##                administrative areas, the highest level in a country. Typically they are given names
-##                like "province", "state", "district", or a local language equivalent. 
-##
-##                Some countries have a special administrative level between the national and 1st level,
-##                often referred to as "regions".
-##                These tend to be so big that sometimes there are only two of them. 
-##                In Pshapes we prefer to ignore these regions and instead focus on the level below. 
-##                When in doubt follow a rule that they should be small enough to provide good variation within
-##                the country and big enough that it is feasible to get complete information on all of its changes.
-##                </p>
-##                
-##                <h4>Cross-Country Changes</h4>
-##                <p>
-##                Sometimes you will come across cases where a change involves more than one country name. Territory
-##                might be transferred to or change ownership from one country to another. In those cases, register as
-##                usual, and then change the from-country field.
-##                </p>
-##
-##                <h4>Minor Transfers</h4>
-##                <p>
-##                In some countries, some transfers of territory may be listed with the names of level-2 areas, and these
-##                should just be listed as partial territorial transfers and drawn roughly by hand. 
-##                However, if the change seems very small, or if there are too many of these types of minor changes,
-##                it is okay to ignore most of them and only focus on the big changes. 
-##                </p>
-##                """
-##
-##    grids.append(dict(title="Coding Rules",
-##                      content=content,
-##                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-##                      width="98%",
-##                      ))
-##
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
-##
-##def guidelines_mapping(request):
-##    bannertitle = "Guidelines - Mapping:"
-##    
-##    bannerleft = """
-##                    <div style="text-align:center">
-##                        <img width="100%" border="0" src="http://r.hswstatic.com/w_404/gif/reading-topographic-map-quiz-558947465.jpg">
-##		    </div>
-##    """
-##
-##    bannerright = guidelines_header
-##
-##    grids = []
-##
-##    # SUBPAGE: MAPPING CHANGES
-##
-##    # Map Finder app
-##    # NOTE: Map finder brings to screen where also lists websites to find maps, and then the map finder forum...
-##    # alt img http://cdn.wallpapersafari.com/7/88/QGsTDo.jpg
-##
-##    content = """
-##            <b>
-##            <img width="50%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
-##
-##            <style>
-##                #blackbackground a { color:white }
-##                #blackbackground a:visited { color:white }
-##            </style>
-##
-##            <p>
-##            One of the great things about the Pshapes project is that for the vast majority of province
-##            changes we do not need to consult historical maps or use valuable time on geocoding. 
-##            </p>
-##
-##            <p>
-##            For some types of changes however there is simply no way around it. In these situations,
-##            namely mergers and partial transfers of territory, Pshapes will ask you to draw the spatial extent of a change. 
-##            To do this you will need to locate an image file of a historical map and to georeference it at the
-##            <a target="_blank" href="http://mapwarper.net/">MapWarper</a> website.
-##            Here are some useful sources:
-##
-##            <ul>
-##                <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-##                <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-##                <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-##                <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
-##                <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
-##                <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-##                <li><a target="_blank" href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-##                <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-##                <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-##                <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-##                <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-##                <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&lpg=PA25&ots=qM9PapNLCF&dq=world%20mapping%20today%20parry&hl=no&pg=PA320#v=onepage&q=world%20mapping%20today%20parry&f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
-##            </ul>
-##
-##            <em>Note: Make sure the map doesn't have a license that restricts sharing or derivative work.</em>
-##
-##            </p>
-##            </b>
-##            """
-##
-##    grids.append(dict(title="Finding a Map",
-##                      content=content,
-##                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-##                      width="98%",
-##                      ))
-##
-##    content = """
-##            <b>
-##            <img width="50%" src="http://image.slidesharecdn.com/06-clipping-130211003001-phpapp01/95/06-clipping-25-638.jpg?cb=1360542662">
-##                <p>
-##                Once you have found a map and georeferenced it on MapWarper.org, then it is time
-##                to draw to indicate the areas of an existing province that used to belong to an older province. 
-##                </p>
-##
-##                <br>
-##                Follow these steps when drawing: 
-##                <br>
-##                <ol>
-##                    <li>
-##                    Guided by the map, draw a clipping polygon that encircles the province that gave away territory.
-##                    Since we do not know which exact third-party dataset will be used to recreate the final
-##                    historical dataset, we need to make sure our clipping polygon is always big enough to include all
-##                    parts by drawing with a significant error-margin around the province boundaries.
-##                    <br><br>
-##                    </li>
-##                    <li>
-##                    If the giving province only gave away parts of its territory
-##                    it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
-##                    or a series of islands).
-##                    <br><br>
-##                    </li>
-##                    <li>
-##                    Where the giving province shares a border with the
-##                    receiving province or any other giving provinces you should follow that border exactly.
-##                    <br><br>
-##                    </li>
-##                    <li>
-##                    The clipping polygon will be snapped to any previously drawn giving provinces (shown in gray), so just make
-##                    sure it covers every part of that border so that there is no gap in between.
-##                    <br><br>
-##                    </li>
-##                    <li>
-##                    Draw multiple polygons if necessary.
-##                    <br><br>
-##                    </li>
-##                </ol>
-##                
-##            </b>
-##            """
-##
-##    grids.append(dict(title="How to Draw Boundary Changes",
-##                      content=content,
-##                      #style="background-color:orange; margins:0 0; padding: 0 0; border-style:none",
-##                      width="98%",
-##                      ))
-##
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(UploadFileForm, self).__init__(*args, **kwargs)
+
+    def as_p(self):
+        templ = """
+                    <form method="post" action="/update/" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <table>
+                        {{ form }}
+                        </table>
+                        <br>
+                        <input type="submit" value="Update Boundary Data" onClick="alert('The website boundary data will now be updated, this may take a while.');" style="font-weight:bold; background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
+                        </input>
+                    </form>
+                """
+        rendered = Template(templ).render(RequestContext(self.request, {'form':self}))
+        return rendered
+
+@login_required
+def account(request):
+    userobj = User.objects.get(username=request.user)
+    userform = UserInfoForm(instance=userobj)
+
+    changes = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
+    pending = ProvChange.objects.filter(user=request.user.username, status="Pending")
+    comments = Comment.objects.filter(user=request.user.username, status="Active").order_by("-added") # the dash reverses the order
+    
+    grids = []
+    bannertitle = "User Settings for '%s'" % request.user
+    
+    for field in userform.fields.values():
+        field.widget.attrs['readonly'] = "readonly"
+        field.widget.attrs["style"] = 'background-color:black; color:white'
+    bannerleft = """
+                <table style="text-align:right; padding-left:20%; padding-bottom:3%;">
+                    {userinfoform}
+                </table>
+                
+                <div style="text-align:center">
+                    <a href="/account/edit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
+                        Edit
+                    </a>                    
+                </div>
+                <br>
+                """.format(userinfoform=userform.as_table(),
+                           )
+
+    if request.user.is_staff:
+        uploadform = UploadFileForm(request=request).as_p()
+        bannerright = """
+                        {uploadform}
+                        
+                        <br><br>
+                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                        </a>
+                        """.format(uploadform=uploadform)
+    else:
+        bannerright = """
+                        <br><br>
+                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
+                            <b>Logout</b>
+                        </a>
+                        """
+
+    custombanner = """
+                    <div style="padding-top:20px">
+                    <h2>{bannertitle}</h2>
+                    
+                        <table width="99%" style="clear:both; padding:0px; margin:0px">
+                        <tr>
+
+                        <td style="width:20%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
+                            <img width="80%" src="/static/user.png">
+                        </td>
+                        
+                        <td style="width:60%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
+                        {left}
+                        </td>
+                        
+                        <td style="width:20%; padding:1%; padding:0px; margin:0px; vertical-align:top; text-align:center">
+                        {right}
+                        </td>
+
+                        </tr>
+                        </table>
+
+                    <br><br>
+                    </div>
+                        """.format(left=bannerleft, right=bannerright, bannertitle=bannertitle)
+
+    # stats
+    fields = ['','user','added','fromcountry','fromname','type','status']
+    lists = []
+    for o in changes[:50]:
+        link = "/provchange/%s/view" % o.pk
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/typechange.png" height="25px"></a>' % link
+        row = [linkimg, o.user, o.added.strftime('%b %#d, %Y, %H:%M'), o.fromcountry.encode('utf8'), o.fromname.encode('utf8'), o.type, o.status]
+        lists.append((None,row))
+        
+    content = lists2table(request, lists=lists, fields=fields,
+                          classname="recentadds", color='orange')
+
+
+    grids.append(dict(title="Your Contributions (last 50 only):", #most recent, 1-%s of %s):" % (min(changes.count(),50), changes.count()),
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="100%",
+                      ))
+
+    # comments
+    issues = Issue.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    comments = IssueComment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
+    objects = sorted(list(issues[:10]) + list(comments[:10]),
+                     key=lambda d: d.added, reverse=True)
+    fields = ["added","country","title","user","text"]
+    lists = []
+    for o in objects[:10]:
+        if isinstance(o, Issue):
+            pk = o.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.country, title=o.title)
+        elif isinstance(o, IssueComment):
+            pk = o.issue.pk
+            rowdict = dict(added=o.added, user=o.user, text=o.text,
+                           country=o.issue.country, title=o.issue.title)
+        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y, %H:%M')
+        rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
+        rowdict['title'] = rowdict['title'].encode('utf8')
+        rowdict['country'] = rowdict['country'].encode('utf8')
+        link = "/viewissue/%s" % pk
+        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/comment.png" height="25px"></a>' % link
+        row = [linkimg] + [rowdict[f] for f in fields]
+        lists.append((None,row))
+        
+    content = lists2table(request, lists=lists, fields=["","Added","Country","Title","User","Comment"],
+                          classname='yourcomments', color='rgb(27,138,204)')
+
+    grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="93%",
+                      ))
+    
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
+                                                           "custombanner":custombanner}
+                  )
 
 
 
 
-##@login_required
-##def community(request):
-##    print request, request.user
-##    changelist = ProvChange.objects.all()
-##    pages = Paginator(changelist, 10)
-##
-##    page = request.GET.get("page", 1)
-##    if page:
-##        changelist = pages.page(page)
-##    
-##    html = render(request, 'provchanges/community.html', {'changelist': changelist})
-##    return html
-##
-##def community(request):
-##    changes = ProvChange.objects.all()
-##    accepted = ProvChange.objects.filter(status="Accepted")
-##    pending = ProvChange.objects.filter(status="Pending")
-##    users = User.objects.all()
-##    
-##    if request.user.is_authenticated():
-##        bannertitle = "Welcome to the Pshapes Community Pages"
-##        bannerleft = """
-##                    <div style="text-align:left">
-##                        Here you can check on the progress made and activities of the community, and
-##                        help expand the data.
-##
-##                        <br><br>
-##                        <b>Community Stats:</b>
-##                            <div style="color:white;">
-##                                Total Contributions:
-##                                {changes}
-##
-##                                <br>
-##                                Accepted:
-##                                {accepted}
-##
-##                                <br>
-##                                Pending:
-##                                {pending}
-##                                
-##                                <br>
-##                                Registered Users:
-##                                {users}
-##                            </div>
-##                    </div>
-##                            """.format(changes=len(changes), users=len(users),
-##                                       accepted=len(accepted), pending=len(pending))
-##        bannerright = """
-##                    <div style="text-align:left">
-##                        <br>
-##                        <b>Your most recent notifications:</b>
-##                        <br>
-##                        <ul>
-##                            <li>...</li>
-##                            <li>...</li>
-##                        </ul>
-##                    </div>
-##                        """
-##        
-##    else:
-##        bannertitle = "Welcome to the Pshapes Community Pages:"
-##        bannerleft = """
-##                        <div style="text-align:left">
-##                            This is where the Pshapes community can contribute, discuss, and collaborate.
-##                            Here you can check on the progress made and activities of the community, and
-##                            help expand the data.
-##
-##                            <br><br>
-##                            <b>How Does It Work?</b>
-##                            <br>
-##                            Users submit contributions, and after a vetting process
-##                            the change will be included in the next version of the data available from the website.
-##                            You can also browse, quality check, and suggest edits to existing province changes already
-##                            submitted by other users.
-##
-##                            <br><br>
-##                            <b>Who is it for?</b>
-##                            <br>
-##                            Whether you just want to track a recent change in your province, or map out the changes
-##                            for an entire country, all contributions count!
-##
-##                        </div>
-##        """
-##        bannerright = """
-##                        <br><br><br><br>
-##                        Help keep track of our changing world.
-##                        <br>
-##                        <br>
-##                        <br>
-##                        <a href="/registration" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-##                        Sign Up
-##                        </a>
-##                        or
-##                        <a href="/login" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-##                        Login
-##                        </a>
-##        """
-##    grids = []
-##
-##    grids.append(dict(title="Recent discussions:",
-##                      content="""
-##                            ...
-##                            """,
-##                      ))
-##
-####    grids.append(dict(title="Submit Change:",
-####                      content="""
-####                            <a href="/contribute/submitchange" style="color:white;>
-####                            <p style="color:black;">
-####                            Help expand the data by submitting a new province change.
-####                            </p>
-####                            </a>
-####                            """,
-####                      ))
-####    grids.append(dict(title="Quality Check:",
-####                      content="""
-####                            <a href="/contribute/browse" style="color:white;>
-####                            <p style="color:black;">
-####                            Browse, quality check, or suggest edits to
-####                            existing province changes already registered by other users.
-####                            </p>
-####                            </a>
-####                            """,
-####                      ))
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
+
+
+
+
+
+
+
+
+
+
+####################
+# Issues pages
+
+def contribute_discuss(request):
+    bannertitle = "Contribute"
+
+    custombanner = ""
+
+    grids = []
+
+    # discussion list
+    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+    
+    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+
+    content = """
+                <div style="margin-left:22px">{issuetable}</div>
+                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(issuetable=issuetable)
+
+    grids.append(dict(title='''<br><hr>
+                                <img src="/static/comment.png" height="37px" style="display:inline-block">
+                                Ask questions or suggest improvements to the website:''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           'custombanner':custombanner,
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
+                  )
+
+
+
+
+
+
+
+
+
+
+
+
+####################
+# Map pages
+# ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################
+# Contribution pages
 
 ##def contribute_browse(request):
 ##    status = request.GET.get("status", "Accepted")
@@ -1553,118 +1718,6 @@ def logout(request):
 ##    
 ##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"nomainbanner":True}
 ##                  )
-
-##def contribute(request):
-##    bannertitle = "Contributions at a Glance:"
-##
-##    from django.db.models import Count
-##    changes = ProvChange.objects.all()
-##    pending = ProvChange.objects.filter(status="Pending")
-##    countrycount = ProvChange.objects.filter(status="Pending").values("fromcountry").distinct().count()
-##    users = User.objects.all()
-##
-##    #<img style="width:70%" src="https://content.linkedin.com/content/dam/blog/en-us/corporate/blog/2011/11/summary.png">
-##    bannerleft = """
-##                <div>
-##                        <div style="text-align:center">
-##                            <svg width="100" height="100">
-##                              <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
-##                            </svg>
-##                        </div>
-##		    
-##                        <b>
-##                        <ul style="text-align:left; list-style-type: none; line-height: 30px;">
-##                            <li>
-##                            Province changes:
-##                            {changes}
-##                            </li>
-##
-##                            <li>
-##                            Edits made:
-##                            {modifs}
-##                            </li>
-##
-##                            <li>
-##                            Countries coded:
-##                            {countrycount}
-##                            </li>   
-##                        </ul>
-##                        </b>
-##                </div>
-##                        """.format(users=len(users),
-##                                   changes=len(pending),
-##                                   modifs=len(changes)-len(pending),
-##                                   countrycount=countrycount,
-##                                   )
-##
-##    #QUOTE
-##    #Anyone who has an interest in coding some changes for one or more countries,
-##    #should have the ability to do so themselves, regardless of skills or background. 
-##
-##    bannerright = """
-##                    <div style="text-align:left">
-##
-##                        <br><br>
-##                        <h4>Help Collect the Data</h4>
-##                        Creating a global dataset of province changes is a tremendous task for any one stakeholder to undertake. 
-##                        The Pshapes project is based on the idea that we can collect and maintain province change data more efficiently
-##                        and transparently as a community. The idea is that anyone who has an interest in coding some changes for one or more countries,
-##                        should have the ability to do so themselves.
-##                        Most of the information is already available from our list of online sources, 
-##                        making it easy to jump straight into it with little or no background-knowledge. 
-##                        In most cases all that is required is filling out some forms. 
-##
-##                        <br><br>
-##                        <a href="/contribute/countries" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-##                        Get Started
-##                        </a>
-##
-##
-##                    </div>
-##    """
-##
-##    grids = []
-##    
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
-
-
-
-##                                <p>
-##                                Are you someone who loves working with geographic and historical data? 
-##                                Do you need historical boundaries for a particular project?
-##                                Maybe you have a rare historical document or map and want to extend
-##                                the historical coverage?
-##                                Or perhaps you are a historian or expert on a country or region
-##                                and want to quality check what others have already contributed? 
-##                                </p>
-
-# MAYBE USE TEXT:
-##                                <p>
-##                                Do you need historical boundaries for a particular project?<br>
-##                                Perhaps you are a historian or expert on a country or region
-##                                and want to quality check what others have already contributed?<br>
-##                                Or maybe you just love working with geographic and historical data,
-##                                and want to help out? 
-##                                </p>
-
-map_resources = """
-                                    <li><a target="_blank" href="http://mapwarper.net/">MapWarper</a></li>
-                                    <li><a target="_blank" href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-                                    <li><a target="_blank" href="http://www.vidiani.com/tag/administrative-maps/">Vidiani</a></li>
-                                    <li><a target="_blank" href="http://www.mapsopensource.com">MapsOpenSource.com</a></li>
-                                    <li><a target="_blank" href="http://www.ezilon.com">Ezilon.com</a></li>
-                                    <li><a target="_blank" href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-                                    <li><a target="_blank" href="https://legacy.lib.utexas.edu/maps/map_sites/country_sites.html">The Perry-Castaneda Library Map Collection</a></li>
-                                    <li><a target="_blank" href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-                                    <li><a target="_blank" href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-                                    <li><a target="_blank" href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-                                    <li><a target="_blank" href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-                                    <li><a target="_blank" href="https://www.euratlas.net/history/hisatlas/index.html">EurAtlas Historical Maps</a></li>
-                                    <li><a target="_blank" href="https://books.google.no/books?id=n-xZp-QMKCcC&amp;lpg=PA25&amp;ots=qM9PapNLCF&amp;dq=world%20mapping%20today%20parry&amp;hl=no&amp;pg=PA320#v=onepage&amp;q=world%20mapping%20today%20parry&amp;f=false">"World Mapping Today", by Bob Parry and Chris Perkins</a></li>
-                """
-
 
 def contribute_countries(request):
     bannertitle = "Contribute"
@@ -1908,7 +1961,6 @@ def contribute_countries(request):
                                                            }
                   )
 
-
 def contribute_regions(request):
     bannertitle = "Contribute"
 
@@ -2068,72 +2120,7 @@ def contribute_regions(request):
                         .blackbackground a:visited { color:grey }
                     </style>
                     """
-##    custombanner += """
-##                    <div class="blackbackground" style="width:95%">
-##                        <br>
-##                        <h2 style="text-align:center">{bannertitle}</h2>
-##                    </div>
-##                    """
-    
-##    custombanner += """<br><br>
-##                            <table align="center" width="80%" style="table-layout: fixed">
-##
-##                                <tr>
-##                                    <td>
-##                                    <img src="/static/globe.png" height="40px" style="display:inline-block; filter:invert(100%)">
-##                                    <h2 style="display:inline-block">
-##                                    Data
-##                                    </h2>
-##                                    </td>
-##
-##                                    <td>
-##                                    <img src="/static/map.png" height="30px" style="display:inline-block; filter:invert(100%)">
-##                                    <h2 style="display:inline-block">
-##                                    Maps
-##                                    </h2>
-##                                    </td>
-##
-##                                    <td>
-##                                    <img src="/static/comment.png" height="30px" style="display:inline-block; filter:invert(100%)">
-##                                    <h2 style="display:inline-block">
-##                                    Discussions
-##                                    </h2>
-##                                    </td>
-##                                </tr>
-##
-##                            </table>
-##                    """.format(bannertitle=bannertitle)
 
-##    custombanner += """<br>
-##                        <h2 style="display:inline-block; vertical-align:top; padding-right:10%">Contributions:</h2>
-##                            <table align="center" width="70%" style="display:inline-table; table-layout: fixed">
-##
-##                                <tr>                                    
-##                                    <td>
-##                                    <img src="/static/globe.png" height="40px" style="display:inline-block; filter:invert(100%)">
-##                                    <h3 style="display:inline-block">
-##                                    Data
-##                                    </h3>
-##                                    </td>
-##
-##                                    <td>
-##                                    <img src="/static/map.png" height="30px" style="display:inline-block; filter:invert(100%)">
-##                                    <h3 style="display:inline-block">
-##                                    Maps
-##                                    </h3>
-##                                    </td>
-##
-##                                    <td>
-##                                    <img src="/static/comment.png" height="30px" style="display:inline-block; filter:invert(100%)">
-##                                    <h3 style="display:inline-block">
-##                                    Discussions
-##                                    </h3>
-##                                    </td>
-##                                </tr>
-##
-##                            </table>
-##                    """.format(bannertitle=bannertitle)
-##    
     custombanner += """
                     <br>
                     <div class="blackbackground" style="width:95%">
@@ -2337,65 +2324,6 @@ def contribute_regions(request):
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
-
-    # comments
-##    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
-##    
-##    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
-##
-##    content = """
-##                <div style="margin-left:22px">{issuetable}</div>
-##                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-##                """.format(issuetable=issuetable)
-##
-##    grids.append(dict(title='''<br><hr>
-##                                <img src="/static/comment.png" height="37px" style="display:inline-block">
-##                                Ask questions or suggest improvements to the website:''',
-##                      content=content,
-##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="99%",
-##                      ))
-
-##    # maps
-##    color = 'rgb(58,177,73)'
-##
-##    maps = list(Map.objects.filter(status='Active')[:10])
-##
-##    fields = ['', 'year', 'title', 'note', 'external link']
-##    lists = []
-##    for mapp in maps:
-##        wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
-##        if wms:
-##            try:
-##                wmslink = WMS_Helper(wms).image_url(height=50)
-##                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-##            except:
-##                wmslink = "/static/map.png"
-##                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-##        else:
-##            wmslink = "/static/map.png"
-##            imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
-##        urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
-##        row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
-##        lists.append((None,row))
-##
-##    table = lists2table(request, lists, fields, 'maptable', color)
-##
-##    content = '''<div style="margin-left:2%">
-##                    {table}
-##                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-##                </div>
-##                '''.format(table=table.encode('utf8'), color=color)
-##        
-##    grids.append(dict(title='''
-##                            <br><hr>
-##                                 <img src="/static/map.png" height="40px">
-##                                 Add useful maps to the map collection:
-##                            ''',
-##                      content=content,
-##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="95%",
-##                      ))
     
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
                                                            'custombanner':custombanner,
@@ -2403,37 +2331,6 @@ def contribute_regions(request):
                                                            }
                   )
 
-
-def contribute_discuss(request):
-    bannertitle = "Contribute"
-
-    custombanner = ""
-
-    grids = []
-
-    # discussion list
-    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
-    
-    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
-
-    content = """
-                <div style="margin-left:22px">{issuetable}</div>
-                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(issuetable=issuetable)
-
-    grids.append(dict(title='''<br><hr>
-                                <img src="/static/comment.png" height="37px" style="display:inline-block">
-                                Ask questions or suggest improvements to the website:''',
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
-
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
-                                                           'custombanner':custombanner,
-                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
-                                                           }
-                  )
 
 def contribute_region(request, region):
     bannertitle = region
@@ -2693,211 +2590,6 @@ def contribute_region(request, region):
                                                            }
                   )
 
-
-##def contribute_country(request, country):
-##    status = request.GET.get("status", "Accepted")
-##    bannertitle = "%s:"%country
-##    bannerleft = """
-##                    <div style="text-align:left">
-##                        [INSERT MAP HERE]
-##		    </div>
-##    """
-##    bannerright = """
-##			Maybe some country stats...
-##    """
-##
-##    changes = ProvChange.objects.filter(country=country,status=status).order_by("-added") # the dash reverses the order
-##    changestable = model2table(request, title="", objects=changes,
-##                              fields=["date","type","fromname","toname","country","user","added","status"])
-##
-##    tabstyle = """
-##            <style>
-##            .curtab {
-##                display:table-cell;
-##                background-color:orange;
-##                color:white;
-##                border-radius:10px;
-##                padding:10px; 
-##                }
-##            .tab {
-##                display:table-cell;
-##                background-color:null;
-##                color:black;
-##                border-radius:10px;
-##                padding:10px;
-##                }
-##            </style>
-##            """
-##    
-##    tabs = """
-##            <div class="{Accepted}"><h4><a href="/contribute/countries/{country}?status=Accepted" style="color:inherit">Accepted</a></h4></div>
-##            <div class="{Pending}"><h4><a href="/contribute/countries/{country}?status=Pending" style="color:inherit">Pending</a></h4></div>
-##
-##            <br>
-##            <br>
-##            
-##            """.format(Accepted="curtab" if status=="Accepted" else "tab",
-##                        Pending="curtab" if status=="Pending" else "tab",
-##                       country=country)
-##    content = tabstyle + tabs + changestable
-##    
-##    grids = []
-##    grids.append(dict(title="Browse province changes:",
-##                      content=content,
-##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="99%",
-##                      ))
-##    
-##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                           "bannerleft":bannerleft, "bannerright":bannerright}
-##                  )
-
-
-##def viewcountry(request, country):
-##
-##    if "date" in request.GET:
-##        # date given, show all events on that date
-##        date = request.GET["date"]
-##        bannertitle = "{country}, {date}:".format(country=country.encode("utf8"),
-##                                                date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
-##        bannerleft = """
-##                        <div style="text-align:left">
-##                            [INSERT MAP HERE]
-##                        </div>
-##        """
-##        bannerright = """
-##                        Insert something...
-##        """
-##        
-##        changes = ProvChange.objects.filter(country=country, date=date).order_by("-added") # the dash reverses the order
-##        import itertools
-##        
-##        def typeprov(obj):
-##            typ = obj.type
-##            if "Transfer" in typ:
-##                prov = obj.toname
-##                return "Expansion",prov
-##            elif typ == "Breakaway":
-##                prov = obj.fromname
-##                return "Split",prov
-##            elif typ == "NewInfo":
-##                prov = obj.toname
-##                return typ,prov
-##        def events():
-##            dategroup = list(changes)
-##            #splits
-##            subkey = lambda o: o.fromname
-##            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                splitgroup = list(splitgroup)
-##                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
-##                if splits:
-##                    yield (date,("Split",splitfrom)), splits
-##            # mergers
-##            subkey = lambda o: o.toname
-##            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                mergegroup = list(mergegroup)
-##                mergers = [ch for ch in mergegroup if "Transfer" in ch.type]
-##                if mergers:
-##                    yield (date,("Expansion",mergeto)), mergers
-##            # newinfos
-##            subkey = lambda o: o.fromname
-##            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
-##                if newinfos:
-##                    yield (date,("NewInfo",fromname)), newinfos
-##
-##        events = events()
-##        
-##    ##    sortkey = lambda o:(o.date,typeprov(o))
-##    ##    events = itertools.groupby(sorted(changes,key=sortkey), key=sortkey)
-##        
-##        def getlinkrow(date,prov,typ,items):
-##            items = list(items)
-##            firstitem = items[0]
-##            if typ == "NewInfo":
-##                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
-##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="NewInfo"'
-##            elif typ == "Split":
-##                fields = ["country","source","date","fromname","fromtype","fromhasc","fromiso","fromfips","fromcapital"]
-##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Split"'
-##            elif typ == "Expansion":
-##                fields = ["country","source","date","toname","totype","tohasc","toiso","tofips","tocapital"]
-##                params = urlencode(dict([(field,getattr(firstitem,field)) for field in fields]))
-##                link = "/contribute/view/{country}/{prov}?".format(country=urlquote(country), prov=urlquote(prov)) + params + '&type="Expansion"'
-##            return link,(prov,typ)
-##        events = [getlinkrow(date,prov,typ,items) for (date,(typ,prov)),items in events]
-##        eventstable = lists2table(request, events, ["Province", "EventType"])
-##
-##        content = eventstable
-##        
-##        grids = []
-##        grids.append(dict(title='Events: <a href="/contribute/add/{country}?date={date}">Add new</a>'.format(country=urlquote(country), date=urlquote(date)),
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                          width="99%",
-##                          ))
-##        
-##        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                               "bannerleft":bannerleft, "bannerright":bannerright}
-##                      )
-##
-##    else:
-##        bannertitle = "Timeline for %s" % country.encode("utf8")
-##        bannerleft = """
-##                        <div style="text-align:left">
-##                            [INSERT MAP HERE]
-##                        </div>
-##        """
-##        bannerright = """
-##                        <div style="background-color:rgb(248,234,150); outline: black solid thick;">
-##                        <p style="font-size:large; font-weight:bold">Note:</p>
-##                        <p style="font-size:medium; font-style:italic">
-##                        There are several types of sources you can use:
-##                        <ul>
-##                            <li>
-##                            <a target="_blank" href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-##                            in great detail, and should be the first place to look.
-##                            </li>
-##
-##                            <li>
-##                            The <a target="_blank" href="https://en.wikipedia.org/wiki/Table_of_administrative_divisions_by_country">Wikipedia entries for administrative units</a>
-##                            can sometimes also be a useful reference.
-##                            </li>
-##
-##                            <li>
-##                            You can also use offline sources such as a book or an article.
-##                            </li>
-##                        </ul>
-##                        </p>
-##                        </div>
-##        """
-##
-##
-##        dates = [d["date"].isoformat() for d in ProvChange.objects.filter(country=country).order_by("date").values('date').distinct()]
-##        print dates
-##
-##        def getlinkrow(date):
-##            link = "/contribute/view/{country}/?".format(country=urlquote(country)) + "date=" + date
-##            return link, (date,)
-##
-##        daterows = [getlinkrow(date) for date in dates]
-##        datestable = lists2table(request, daterows, ["Date"])
-##
-##        content = datestable
-##        
-##        grids = []
-##        grids.append(dict(title='Dates: <a href="/contribute/add/%s">Add new</a>' % urlquote(country),
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                          width="99%",
-##                          ))
-##        
-##        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-##                                                               "bannerleft":bannerleft, "bannerright":bannerright}
-##                      )
-
 def viewcountry(request, country):
 
     def getdateeventstable(date):
@@ -2929,34 +2621,6 @@ def viewcountry(request, country):
             subkey = typeprov
             for typprov,subevents in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
                 yield (date,typprov),subevents
-                
-##            #splits
-##            subkey = lambda o: o.fromname
-##            for splitfrom,splitgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                splitgroup = list(splitgroup)
-##                splits = [ch for ch in splitgroup if ch.type == "Breakaway"]
-##                if splits:
-##                    yield (date,("Split",splitfrom)), splits
-##            # mergers
-##            subkey = lambda o: o.toname
-##            for mergeto,mergegroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                mergegroup = list(mergegroup)
-##                mergers = [ch for ch in mergegroup if ch.type == "FullTransfer"]
-##                if mergers:
-##                    yield (date,("Merge",mergeto)), mergers
-##            # transfers
-##            subkey = lambda o: o.fromname
-##            for transfrom,transgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                transgroup = list(transgroup)
-##                transfers = [ch for ch in transgroup if ch.type == "PartTransfer"]
-##                if transfers:
-##                    yield (date,("Transfer",transfrom)), transfers
-##            # newinfos
-##            subkey = lambda o: o.fromname
-##            for fromname,newgroup in itertools.groupby(sorted(dategroup,key=subkey), key=subkey):
-##                newinfos = [ch for ch in newgroup if "NewInfo" == ch.type]
-##                if newinfos:
-##                    yield (date,("NewInfo",fromname)), newinfos
 
         events = events()
         
@@ -3060,53 +2724,6 @@ def viewcountry(request, country):
 
     if "date" in request.GET:
         raise Exception()
-    
-##        # date given, show all events on that date
-##        date = request.GET["date"]
-##        top = """
-##                        <a href="/contribute/view/{country}" style="float:left; background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-##                        Back to {countrytext}
-##                        </a>
-##                        """.format(country=urlquote(country), countrytext=country.encode("utf8"))
-##        left = """
-##                        <h3 style="clear:both">{country} events for {date}:</h3>
-##                        <div style="">
-##                            <img style="width:200px;" src="http://www.freeiconspng.com/uploads/clock-event-history-schedule-time-icon--19.png">
-##                        </div>
-##        """.format(country=country.encode("utf8"), date=datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'))
-##        right = """
-##                        Insert something...
-##        """
-##
-##        custombanner = """
-##
-##                        {top}
-##                        
-##                        <table width="99%" style="clear:both; padding:0px; margin:0px">
-##                        <tr>
-##                        
-##                        <td style="width:48%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:top">
-##                        {left}
-##                        </td>
-##                        
-##                        <td style="width:48%; padding:1%; padding:0px; margin:0px; vertical-align:top; text-align:center">
-##                        {right}
-##                        </td>
-##
-##                        </tr>
-##                        </table>
-##                        """.format(top=top, left=left, right=right)
-##    
-##        grids = []
-##        content = getdateeventstable(date)
-##        grids.append(dict(title='Events: <a href="/contribute/add/{country}?date={date}">Add new</a>'.format(country=urlquote(country), date=urlquote(date)),
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                          width="99%",
-##                          ))
-##        
-##        return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
-##                      )
 
     else:
         bannertitle = "" #"Timeline for %s" % country.encode("utf8")
@@ -3160,13 +2777,6 @@ def viewcountry(request, country):
 
         # issues
         issues = Issue.objects.filter(country=country, changeid__isnull=False, status="Active")
-##        content = '<br><br><hr><h3 id="issues"><img src="/static/issue.png" style="padding-right:5px" height="40px">Issues:</h3>'
-##        content += '<div style="margin-left:2%%"> %s </div>' % issues2html(request, issues, 'rgb(27,138,204)')
-##        grids.append(dict(title="",
-##                          content=content,
-##                          style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                          width="99%",
-##                          ))
 
         # discussions
         discussions = Issue.objects.filter(country=country, changeid=None, status="Active").order_by('-added')
@@ -3183,31 +2793,6 @@ def viewcountry(request, country):
         color = 'rgb(58,177,73)'
 
         maps = list(get_country_maps(country))
-        
-##        for mapp in maps:
-##            #http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png
-##            #https://mapwarper.net/maps/wms/19956
-##            griditem = """
-##                    <a href="/viewmap/{pk}/" style="text-decoration:none; color:inherit;">
-##                        <div class="griditem" style="float:left; width:200px; margin:10px">
-##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
-##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-##                                <h4 style="display:inline-block">{year}</h4>
-##                            </div>
-##                            
-##                            <div class="gridcontent">
-##                                <img width="100%" src="http://sampleserver1.arcgisonline.com/ArcGIS/services/Specialty/ESRI_StatesCitiesRivers_USA/MapServer/WMSServer?version=1.3.0&request=GetMap&CRS=CRS:84&bbox=-178.217598,18.924782,-66.969271,71.406235&width=760&height=360&layers=0&styles=default&format=image/png">
-##                                <p>{title}</p>
-##                            </div>
-##                        </div>
-##                    </a>
-##                        """.format(color=color, year=mapp.year, title=mapp.title, note=mapp.note, wms=mapp.wms, pk=mapp.pk)
-##            html = """
-##                    <div style="margin-left:2%">
-##                    {griditem}
-##                    </div>
-##                    """.format(country=urlquote(country), griditem=griditem)
-##            content += html
 
         fields = ['', 'year', 'title', 'note', 'external link']
         lists = []
@@ -3251,35 +2836,6 @@ def viewcountry(request, country):
         color = "rgb(60,60,60)"
 
         sources = list(get_country_sources(country))
-
-##        content = '''<hr>
-##                     <h3>
-##                         Sources:
-##                         <a style="background-color:{color}; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:medium; font-weight:bold; text-decoration:underline; margin:10px;" href="/addsource/">New Source</a>
-##                    </h3>
-##                    '''.format(color=color)
-##        
-##        for source in sources:
-##            griditem = """
-##                    <a href="/viewsource/{pk}/" style="text-decoration:none; color:inherit;">
-##                        <div class="griditem" style="float:left; width:200px; margin:10px">
-##                            <div class="gridheader" style="background-color:{color}; padding-top:10px">
-##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-##                                <h4 style="display:inline-block">{title}</h4>
-##                            </div>
-##                            
-##                            <div class="gridcontent">
-##                                <p>{citation}</p>
-##                            </div>
-##                        </div>
-##                    </a>
-##                        """.format(color=color, title=source.title, citation=source.citation, pk=source.pk)
-##            html = """
-##                    <div style="margin-left:2%">
-##                    {griditem}
-##                    </div>
-##                    """.format(griditem=griditem)
-##            content += html
 
         fields = ['', 'title', 'note', 'external link']
         lists = []
@@ -3483,40 +3039,6 @@ def viewcountry(request, country):
                            issues=issues.count(),
                            )
 
-##        bottom = """	
-##                        <div style="margin-left:20%; margin-bottom:80px">
-##
-##                            <div style="float:left; background-color:orange; border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#timeline" style="text-decoration:none; color:inherit">
-##                                <img src="https://image.flaticon.com/icons/svg/55/55191.svg" height="40px">
-##                                <h3 style="display:inline">Timeline</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="float:left; background-color:rgb(122,122,122); border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#sources" style="text-decoration:none; color:inherit">
-##                                <img src="http://www.pvhc.net/img28/hgicvxtrvbwmfpuozczo.png" height="40px">
-##                                <h3 style="display:inline">Sources</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="float:left; background-color:rgb(58,177,73); border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#maps" style="text-decoration:none; color:inherit">
-##                                <img src="http://icons.iconarchive.com/icons/icons8/android/512/Maps-Map-Marker-icon.png" height="40px">
-##                                <h3 style="display:inline">Maps</h3>
-##                                </a>
-##                            </div>
-##
-##                            <div style="float:left; background-color:rgb(27,138,204); border-radius:5px; text-align:left; padding:5px; margin:5px">
-##                                <a href="#comments" style="text-decoration:none; color:inherit">
-##                                <img src="https://png.icons8.com/metro/540/comments.png" style="padding-right:5px" height="40px">
-##                                <h3 style="display:inline">Comments</h3>
-##                                </a>
-##                            </div>
-##                            
-##                        </div>
-##        """.format(countrytext=country.encode("utf8"), country=urlquote(country))
-
         custombanner = """
 
                         {top}
@@ -3538,7 +3060,6 @@ def viewcountry(request, country):
         
         return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"custombanner":custombanner}
                       )
-
 
 def editcountry(request):
     pass
@@ -3590,6 +3111,22 @@ def addcountry(request):
                       )
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################
+# Event/date pages
+
 # TODO: RENAME THESE TO 'event'
 
 def viewprov(request, country, province):
@@ -3625,95 +3162,6 @@ def addprov(request, country, province=None):
 def adddate(request, country):
     func = AddDateWizard.as_view(country=country)
     return func(request)
-
-def markcountrychange(country, provtext, provcountries):
-    if not isinstance(provcountries,list):
-        provcountries = [provcountries]
-    for provcountry in provcountries:
-        if provcountry and provcountry != country:
-            provtext += ' (<a id="blackbackground" style="color:gray" href="/contribute/view/{countryencode}">{countrytext}</a>)'.format(countryencode=urlquote(provcountry), countrytext=provcountry.encode('utf8'))
-            break
-    return provtext
-
-##def proveventtable(request, objects):
-##    html = """
-##		<table class="proveventtable"> 
-##		
-##			<style>
-##			table.proveventtable {
-##				border-collapse: collapse;
-##				width: 100%;
-##			}
-##
-##			th.proveventtable, td.proveventtable {
-##				text-align: left;
-##				padding: 8px;
-##			}
-##
-##			tr.proveventtable:nth-child(even){background-color: #f2f2f2}
-##
-##			tr.proveventtable:nth-child(odd){background-color: white}
-##
-##			th.proveventtable {
-##				background-color: orange;
-##				color: white;
-##			}
-##			</style>
-##		
-##			<tr class="proveventtable">
-##				<th class="proveventtable"> 
-##				</th>
-##
-##				{% if typ == 'Split' %}
-##                                    <th class="proveventtable">
-##                                        <b>Province</b>
-##                                    </th>
-##                                {% endif %}
-##                                    
-##			</tr>
-##			</a>
-##
-##                        {% if objects %}
-##			
-##                            {% for obj in objects %}
-##                                    <tr class="proveventtable">
-##                                            <td class="proveventtable">
-##                                                <a href="{% url 'viewchange' pk=obj.instance.pk %}">View</a>
-##                                            </td>
-##                                            
-##                                            {% for field in obj %}
-##                                                <td class="proveventtable">{{ field.value }}</td>
-##                                            {% endfor %}
-##                                            
-##                                    </tr>
-##                            {% endfor %}
-##
-##                        {% else %}
-##
-##                            <tr class="proveventtable">
-##                            <td class="proveventtable"></td>
-##                            {% for _ in fields %}
-##                                <td class="proveventtable"> - </td>
-##                            {% endfor %}
-##                            </tr>
-##
-##                        {% endif %}
-##                            
-##		</table>
-##                """
-##
-##    if changes[0].type == 'Split':
-##        formfields = 'source fromname fromalterns fromiso fromfips fromhasc fromcapital fromtype'
-##    
-##    class ProvChangeForm(forms.ModelForm):
-##
-##        class Meta:
-##            model = ProvChange
-##            fields = formfields
-##            
-##    objects = [ProvChangeForm(instance=obj) for obj in objects]
-##    rendered = Template(html).render(Context({"request":request, "objects":objects, "title":title}))
-##    return rendered
 
 def viewevent(request, country, province, editmode=False):
     # TODO: add "edit-event" button in main banner
@@ -4688,6 +4136,20 @@ def addevent(request, country):
     return func(request)
     
 
+
+
+
+
+
+
+
+
+
+
+
+#################
+# Change pages
+
 @login_required
 def addchange(request, country, province):
     if request.GET["type"].lower().strip('"') == "split":
@@ -4740,170 +4202,6 @@ def addchange(request, country, province):
         return redirect(eventlink)
     
     return func(request)
-
-##    if request.method == "POST":
-##        print "data",request.POST
-##        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-##        formfieldvalues = dict(((k,v) for k,v in request.POST.items() if k in fieldnames))
-##        formfieldvalues["user"] = request.user.username
-##        formfieldvalues["added"] = datetime.date.today()
-##        formfieldvalues["bestversion"] = True
-##        print formfieldvalues
-##        obj = ProvChange.objects.create(**formfieldvalues)
-##        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-##        print obj
-##        obj.save()
-##
-##        # hmmmm # need to make get request to editchange to just return basic html of the get
-##
-##        html = redirect("/provchanges/%s/view/" % obj.pk)
-##
-##    elif request.method == "GET":
-##        args = {'typechange': TypeChangeForm(),
-##                'generalchange': GeneralChangeForm(),
-##                'fromchange': FromChangeForm(),
-##                'geochange': GeoChangeForm(),
-##                'tochange': ToChangeForm(),}
-##        html = render(request, 'provchanges/submitchange.html', args)
-##        
-##    return html
-
-def model2table(request, title, objects, fields):
-    html = """
-		<table class="modeltable"> 
-		
-			<style>
-			table.modeltable {
-				border-collapse: collapse;
-				width: 100%;
-			}
-
-			th.modeltable, td.modeltable {
-				text-align: left;
-				padding: 8px;
-			}
-
-			tr.modeltable:nth-child(even){background-color: #f2f2f2}
-
-			tr.modeltable:nth-child(odd){background-color: white}
-
-			th.modeltable {
-				background-color: orange;
-				color: white;
-			}
-			</style>
-		
-			<tr class="modeltable">
-				<th class="modeltable"> 
-				</th>
-
-				{% for field in fields %}
-                                    <th class="modeltable">
-                                        <b>{{ field }}</b>
-                                    </th>
-                                {% endfor %}
-                                    
-			</tr>
-			</a>
-
-                        {% if objects %}
-			
-                            {% for obj in objects %}
-                                    <tr class="modeltable">
-                                            <td class="modeltable">
-                                                <a href="{% url 'viewchange' pk=obj.instance.pk %}">View</a>
-                                            </td>
-                                            
-                                            {% for field in obj %}
-                                                <td class="modeltable">{{ field.value }}</td>
-                                            {% endfor %}
-                                            
-                                    </tr>
-                            {% endfor %}
-
-                        {% else %}
-
-                            <tr class="modeltable">
-                            <td class="modeltable"></td>
-                            {% for _ in fields %}
-                                <td class="modeltable"> - </td>
-                            {% endfor %}
-                            </tr>
-
-                        {% endif %}
-                            
-		</table>
-                """
-
-    _fields = fields
-    
-    class ProvChangeForm(forms.ModelForm):
-
-        class Meta:
-            model = ProvChange
-            fields = _fields
-            
-    objects = [ProvChangeForm(instance=obj) for obj in objects]
-    rendered = Template(html).render(Context({"request":request, "fields":fields, "objects":objects, "title":title}))
-    return rendered
-
-
-def lists2table(request, lists, fields, classname="listtable", color='orange'):
-    html = """
-		<table class="{{ classname }}"> 
-		
-			<style>
-			table.{{ classname }} {
-				border-collapse: collapse;
-				width: 100%;
-			}
-
-			th.{{ classname }}, td.{{ classname }} {
-				text-align: left;
-				padding: 8px;
-			}
-
-			tr.{{ classname }}:nth-child(even){background-color: #f2f2f2}
-
-			tr.{{ classname }}:nth-child(odd){background-color: white}
-
-			th.{{ classname }} {
-				background-color: {{ color }};
-				color: white;
-			}
-			</style>
-		
-			<tr class="{{ classname }}">
-				<th class="{{ classname }}"> 
-				</th>
-
-				{% for field in fields %}
-                                    <th class="{{ classname }}">
-                                        <b>{{ field }}</b>
-                                    </th>
-                                {% endfor %}
-                                    
-			</tr>
-			</a>
-			
-			{% for url,row in lists %}
-				<tr class="{{ classname }}">
-					<td style="vertical-align:top;" class="{{ classname }}">
-					{% if url %}
-                                            <a href="{{ url }}">View</a>
-                                        {% endif %}
-					</td>
-					
-                                        {% for value in row %}
-                                            <td style="vertical-align:top" class="{{ classname }}">{{ value | safe}}</td>
-                                        {% endfor %}
-					
-				</tr>
-			{% endfor %}
-		</table>
-                """
-    rendered = Template(html).render(Context({"request":request, "fields":fields, "lists":lists, "classname":classname, "color":color}))
-    return rendered
 
 def withdrawchange(request, pk):
     change = get_object_or_404(ProvChange, pk=pk)
@@ -5263,303 +4561,18 @@ def editchange(request, pk):
 
 
 
-# Date...
-
-class CustomDateWidget(forms.TextInput):
-
-    ### WARNING: id_1-date is hacky for now, may not always work...
-    
-    def render(self, name, value, attrs = None):
-        output = super(CustomDateWidget, self).render(name, value, attrs)
-        output += """
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-<script>
-$('#id_0-date').datepicker({
-    changeMonth: true,
-    changeYear: true,
-    dateFormat: "yy-mm-dd",
-    defaultDate: "2014-12-31",
-    yearRange: '1946:2014',
-    showOn: "both",
-    buttonImage: 'http://jqueryui.com/resources/demos/datepicker/images/calendar.gif',
-    buttonImageOnly: true,
-});
-$(".ui-datepicker-trigger").css("margin-bottom","-3px");
-</script>
-"""
-        return output
-
-    
 
 
-# Auth forms
-
-from .models import User
-
-class LoginForm(forms.ModelForm):
-
-    class Meta:
-        model = User
-        fields = ["username","password"]
-        widgets = {"password":forms.PasswordInput()}
-
-class LoginInfoForm(forms.ModelForm):
-
-    class Meta:
-        model = User
-        fields = ["username","password"]
-        widgets = {"password":forms.PasswordInput()}
-
-class UserInfoForm(forms.ModelForm):
-
-    class Meta:
-        model = User
-        fields = ["first_name","last_name","email","affiliation"]
-
-    def __init__(self, *args, **kwargs):
-        super(UserInfoForm, self).__init__(*args, **kwargs)
-
-        self.fields['email'].widget.attrs['required'] = 'true'
-
-    def clean(self):
-        # NOTE: Doesnt get called yet, because form is not used when adding/editing
-        data = self.cleaned_data
-        print 'EMAIL',self.cleaned_data['email'],len(User.objects.filter(email=self.cleaned_data['email']))
-        if User.objects.filter(email=self.cleaned_data['email']).exists():
-            raise forms.ValidationError(u'Email addresses must be unique.')
-        return data
-
-@login_required
-def account_edit(request):
-    userobj = User.objects.get(username=request.user)
-    form = UserInfoForm(instance=userobj)
-    if request.POST:
-        if User.objects.filter(email=request.POST['email']).exists():
-            raise forms.ValidationError(u'Email addresses must be unique.')
-        userobj.first_name = request.POST["first_name"]
-        userobj.last_name = request.POST["last_name"]
-        userobj.email = request.POST["email"]
-        userobj.affiliation = request.POST["affiliation"]
-        print userobj.first_name
-        userobj.save()
-        return redirect("/account/")
-    else:
-        ##form.fields["email"].widget.attrs['readonly'] = "readonly"
-        return render(request, 'provchanges/accountedit.html', {"user":request.user, "userinfoform":form}
-                      )
-
-class UploadFileForm(forms.Form):
-    file = forms.FileField()
-
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super(UploadFileForm, self).__init__(*args, **kwargs)
-
-    def as_p(self):
-        templ = """
-                    <form method="post" action="/update/" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <table>
-                        {{ form }}
-                        </table>
-                        <br>
-                        <input type="submit" value="Update Boundary Data" onClick="alert('The website boundary data will now be updated, this may take a while.');" style="font-weight:bold; background-color:rgb(7,118,183); color:white; border-radius:5px; padding:5px">
-                        </input>
-                    </form>
-                """
-        rendered = Template(templ).render(RequestContext(self.request, {'form':self}))
-        return rendered
-
-@login_required
-def account(request):
-    userobj = User.objects.get(username=request.user)
-    userform = UserInfoForm(instance=userobj)
-
-    changes = ProvChange.objects.filter(user=request.user.username).order_by("-added")   # the dash reverses the order
-    pending = ProvChange.objects.filter(user=request.user.username, status="Pending")
-    comments = Comment.objects.filter(user=request.user.username, status="Active").order_by("-added") # the dash reverses the order
-    
-    grids = []
-    bannertitle = "User Settings for '%s'" % request.user
-    
-##    if edit:
-##        bannerleft = """
-##                    <form action="/account/edit/" method="post">
-##                    
-##                    <div style="text-align:center">
-##                            {userinfoform}
-##                    </div>
-##                    
-##                    <div style="text-align:center">
-##                        <input type="submit" value="Submit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; float:right; margin:10px;">
-##                    </div>
-##                    <br>
-##
-##                    </form>
-##                    """.format(userinfoform=userform.as_p())
-##    else:
-    
-    for field in userform.fields.values():
-        field.widget.attrs['readonly'] = "readonly"
-        field.widget.attrs["style"] = 'background-color:black; color:white'
-    bannerleft = """
-                <table style="text-align:right; padding-left:20%; padding-bottom:3%;">
-                    {userinfoform}
-                </table>
-                
-                <div style="text-align:center">
-                    <a href="/account/edit" style="background-color:orange; color:white; border-radius:10px; padding:10px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:10px;">
-                        Edit
-                    </a>                    
-                </div>
-                <br>
-                """.format(userinfoform=userform.as_table(),
-                           )
-
-##    for field in userform.fields.values():
-##        field.widget.attrs['readonly'] = "readonly"
-##        field.widget.attrs["style"] = 'background-color:black'
-##    bannertitle = "User Settings for '%s'" % request.user
-##    bannerleft = """
-##                <div style="text-align:center">
-##                    {userinfoform}
-##                </div>
-##                <br>
-##                """.format(userinfoform=userform.as_p())
-
-    if request.user.is_staff:
-        uploadform = UploadFileForm(request=request).as_p()
-        bannerright = """
-                        {uploadform}
-                        
-                        <br><br>
-                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Logout</b>
-                        </a>
-                        """.format(uploadform=uploadform)
-    else:
-        bannerright = """
-                        <br><br>
-                        <a href="/logout" style="background-color:orange; color:white; border-radius:5px; padding:5px">
-                            <b>Logout</b>
-                        </a>
-                        """
-
-    custombanner = """
-                    <div style="padding-top:20px">
-                    <h2>{bannertitle}</h2>
-                    
-                        <table width="99%" style="clear:both; padding:0px; margin:0px">
-                        <tr>
-
-                        <td style="width:20%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
-                            <img width="80%" src="/static/user.png">
-                        </td>
-                        
-                        <td style="width:60%; padding:1%; text-align:center; padding:0px; margin:0px; vertical-align:middle">
-                        {left}
-                        </td>
-                        
-                        <td style="width:20%; padding:1%; padding:0px; margin:0px; vertical-align:top; text-align:center">
-                        {right}
-                        </td>
-
-                        </tr>
-                        </table>
-
-                    <br><br>
-                    </div>
-                        """.format(left=bannerleft, right=bannerright, bannertitle=bannertitle)
-
-    # stats
-##    qstats = """
-##                    <b>
-##                    <table style="font-size:small">
-##                    <tr style="vertical-align:text-top">
-##                        <td>
-##                        <h2>{changes}</h2>
-##                        Total Contributions
-##                        </td>
-##                        <td>
-##                        <h2>{modifs}</h2>
-##                        Edits Made
-##                        </td>
-##                        <td>
-##                        <h2>{comments}</h2>
-##                        Comments
-##                        </td>
-##                    </tr>
-##                    </table>
-##                    </b>
-##            """.format(changes=changes.count(),
-##                       modifs=changes.count() - pending.count(),
-##                       comments=comments.count())
-##    grids.append(dict(title="Overview:",
-##                      content=qstats,
-##                      style="padding:0; margins:0",#background-color:white; margins:0 0; padding: 0 0; border-style:none",
-##                      width="100%",
-##                      ))    
-
-    # user contribs
-    #rendered = model2table(request, '', changes[:50], ['user','added','fromcountry','fromname','type','status'])
-
-    fields = ['','user','added','fromcountry','fromname','type','status']
-    lists = []
-    for o in changes[:50]:
-        link = "/provchange/%s/view" % o.pk
-        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/typechange.png" height="25px"></a>' % link
-        row = [linkimg, o.user, o.added.strftime('%b %#d, %Y, %H:%M'), o.fromcountry.encode('utf8'), o.fromname.encode('utf8'), o.type, o.status]
-        lists.append((None,row))
-        
-    content = lists2table(request, lists=lists, fields=fields,
-                          classname="recentadds", color='orange')
 
 
-    grids.append(dict(title="Your Contributions (last 50 only):", #most recent, 1-%s of %s):" % (min(changes.count(),50), changes.count()),
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="100%",
-                      ))
 
-    # comments
-    issues = Issue.objects.filter(status="Active").order_by("-added") # the dash reverses the order
-    comments = IssueComment.objects.filter(status="Active").order_by("-added") # the dash reverses the order
-    objects = sorted(list(issues[:10]) + list(comments[:10]),
-                     key=lambda d: d.added, reverse=True)
-    fields = ["added","country","title","user","text"]
-    lists = []
-    for o in objects[:10]:
-        if isinstance(o, Issue):
-            pk = o.pk
-            rowdict = dict(added=o.added, user=o.user, text=o.text,
-                           country=o.country, title=o.title)
-        elif isinstance(o, IssueComment):
-            pk = o.issue.pk
-            rowdict = dict(added=o.added, user=o.user, text=o.text,
-                           country=o.issue.country, title=o.issue.title)
-        rowdict['added'] = rowdict['added'].strftime('%b %#d, %Y, %H:%M')
-        rowdict['text'] = text_formatted(rowdict['text'][:300]+'...' if len(rowdict['text']) > 300 else rowdict['text'])
-        rowdict['title'] = rowdict['title'].encode('utf8')
-        rowdict['country'] = rowdict['country'].encode('utf8')
-        link = "/viewissue/%s" % pk
-        linkimg = '<a href="%s"><img style="opacity:0.9" src="/static/comment.png" height="25px"></a>' % link
-        row = [linkimg] + [rowdict[f] for f in fields]
-        lists.append((None,row))
-        
-    content = lists2table(request, lists=lists, fields=["","Added","Country","Title","User","Comment"],
-                          classname='yourcomments', color='rgb(27,138,204)')
 
-    grids.append(dict(title="Your Comments (last 10 only):", #most recent, 1-%s of %s):" % (min(comments.count(),10), comments.count()),
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="93%",
-                      ))
-    
-    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":bannertitle,
-                                                           "custombanner":custombanner}
-                  )
+
+
+
+
+########################### FORMS AND WIZARDS ##########################
+
 
 
 
@@ -5573,44 +4586,6 @@ def account(request):
 
 
 # Event forms
-
-##class GridSelectMultipleWidget(forms.CheckboxSelectMultiple):
-##
-##    def render(self, name, value, attrs=None):
-##        choices = [(value,decor) for value,decor in self.choices]
-##        html = """
-##            <div style="width:98%;" class="gridselectmultiple">
-##            {% for value,decor in choices %}
-##                <div style="float:left; width:25%">
-##                    <input type="checkbox" value="{{ value }}" name="{{ name }}" style="float:left">
-##                    <div style="float:left">{{ decor|safe }}</div>
-##                </div>
-##            {% endfor %}
-##            </div>
-##
-##            <div style="clear:both;"></div>
-##            """
-##        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
-##        return rendered
-##
-##class GridSelectOneWidget(forms.RadioSelect):
-##
-##    def render(self, name, value, attrs=None):
-##        choices = [(value,decor) for value,decor in self.choices]
-##        html = """
-##            <div style="width:98%;" class="gridselectone">
-##            {% for value,decor in choices %}
-##                <div style="float:left; width:25%">
-##                    <input type="radio" value="{{ value }}" name="{{ name }}" style="float:left">
-##                    <div style="float:left">{{ decor|safe }}</div>
-##                </div>
-##            {% endfor %}
-##            </div>
-##
-##            <div style="clear:both;"></div>
-##            """
-##        rendered = Template(html).render(Context({"choices":choices, 'name':name, 'value':value}))
-##        return rendered
 
 class ListTextWidget(forms.TextInput):
     # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
@@ -5730,50 +4705,6 @@ class SourceEventForm(forms.ModelForm):
         return rendered
         
 from django.forms.widgets import RadioFieldRenderer
-
-EVENTTYPEINFO = {"NewInfo": {"label": "NewInfo",
-                         "short": "A change was made to a province's name, codes, or capital.",
-                          "descr": """
-                                    
-                                    """,
-                          "img": '<img style="width:100px" src="/static/webnewinfo.png"/>',
-                          },
-              "Breakaway": {"label": "Breakaway",
-                               "short": "A province lost territory to one or more breakaway regions.",
-                              "descr": """
-                                        
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webbreakaway.png"/>',
-                              },
-              "Split": {"label": "Split",
-                               "short": "A province split into multiple new ones.",
-                              "descr": """
-                                        
-                                        """,
-                              "img": '<img style="width:100px" src="/static/websplit.png"/>',
-                              },
-             "Form": {"label": "Form",
-                              "short": "One or more provinces merged or transferred territory to a new province.",
-                              "descr": """
-                                        
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webform.png"/>',
-                              },
-             "Expand": {"label": "Form",
-                              "short": "One or more provinces merged or transferred territory to an existing province.",
-                              "descr": """
-                                        
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webexpand.png"/>',
-                              },
-             "Begin": {"label": "Begin",
-                              "short": "Marks the earliest known record for this province.",
-                              "descr": """
-                                        
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
-                              },
-               }
 
 class TypeEventRenderer(RadioFieldRenderer):
 
@@ -6029,87 +4960,7 @@ class MetaChangeForm(forms.ModelForm):
         model = ProvChange
         fields = ['user','added','status']
 
-##class SourceForm(forms.ModelForm):
-##
-##    step_title = "Source"
-##    step_descr = """
-##                    Find a documented third-party sources to base your submission on.
-##                    <a href="http://www.statoids.com">The Statoids website</a> traces historical province changes
-##                    in great detail, and should be the first place to look. Go to the primary divisions page for a country of
-##                    choice and insert the url into the field below.
-##                   """
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ['source']
-
 from django.forms.widgets import RadioFieldRenderer
-
-TYPEINFO = {"NewInfo": {"label": "NewInfo",
-                         "short": "A change was made to a province's name, codes, or capital.",
-                          "descr": """
-                                    The province experienced a change in its basic information. In addition, provinces splitting up, 
-                                    merging together, or experiencing other major territorial changes are sometimes accompanied by changes
-                                    to their name and codes as well. 
-                                    """,
-                          "img": '<img style="width:100px" src="/static/webnewinfo.png"/>',
-                          },
-              "Breakaway": {"label": "Breakaway",
-                            "short": "A new province was created by breaking away from an existing province.",
-                              "descr": """
-                                        This province is the result of breaking away or seceding from a province,
-                                        one which continues to exist afterwards. 
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webbreakaway.png"/>',
-                              },
-              "SplitPart": {"label": "SplitPart",
-                            "short": "A new province was created as part of the splitting and dissolution of an existing province.",
-                              "descr": """
-                                        This is one of several parts created after the dissolution of a now defunct province.
-                                        """,
-                              "img": '<img style="width:100px" src="/static/websplit.png"/>',
-                              },
-              "TransferExisting": {"label": "TransferExisting",
-                               "short": "Part of a province's territory was transferred to another province.",
-                              "descr": """
-                                        The transferred territory is sent to an existing province.
-                                        (Requires a map showing the now defunct province) 
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webtransferexisting.png"/>',
-                              },
-             "MergeExisting": {"label": "MergeExisting",
-                              "short": "An entire province ceased to exist and became part of another province.",
-                              "descr": """
-                                        An entire province is merged into an existing province.
-                                        (Requires a map showing the now defunct province) 
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webmergeexisting.png"/>',
-                              },
-              "TransferNew": {"label": "TransferNew",
-                               "short": "Part of a province's territory was transferred to form part of a new province.",
-                              "descr": """
-                                        The transferred territory is used to serve as part of the foundation for an entirely new province.
-                                        (Requires a map showing the province outline prior to the transfer of territory)
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webtransfernew.png"/>',
-                              },
-             "MergeNew": {"label": "MergeNew",
-                              "short": "An entire province ceased to exist and merged to form part of a new province.",
-                              "descr": """
-                                        An entire province is merged to form part of the foundation for an entirely new province.
-                                        (Requires a map showing the now defunct province) 
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webmergenew.png"/>',
-                              },
-             "Begin": {"label": "Begin",
-                              "short": "Marks the earliest known record for this province.",
-                              "descr": """
-                                        Typically used for entire country to say more information is needed
-                                        beyond this point. 
-                                        """,
-                              "img": '<img style="width:100px" src="/static/webbegin.png"/>',
-                              },
-               }
 
 class TypeChangeRenderer(RadioFieldRenderer):
 
@@ -6630,19 +5481,317 @@ def as_readonly(form):
     return rendered
 
 
+class AddChangeWizard(SessionWizardView):
+
+    def __iter__(self):
+        for step in self.get_form_list():
+            yield self.get_form(step=step)
+ 
+    def get_context_data(self, form, **kwargs):
+        context = super(AddChangeWizard, self).get_context_data(form=form, **kwargs)
+        context.update({'wizard_subclass': self})
+        return context
+
+    def get_template_names(self):
+        return ["provchanges/addchange.html"]
+
+    def done(self, form_list, form_dict, **kwargs):
+        # NOT YET DONE...
+        print "DONE!", form_list, form_dict, kwargs
+        
+        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
+        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
+        formfieldvalues["user"] = self.request.user.username
+        formfieldvalues["added"] = datetime.datetime.now()
+        formfieldvalues["bestversion"] = True
+        print formfieldvalues
+
+        eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
+        print eventvalues
+
+        if eventvalues["type"].strip('"') in "Form Expand" and formfieldvalues["type"].strip('"') == "NewInfo":
+            # all tos become froms when newinfo for merge event
+            # ACTUALLY: shouldnt happen anymore
+            raise Exception()
+            #trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
+            #eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
+            #eventvalues.update(trans)
+
+        objvalues = dict(eventvalues)
+        objvalues.update(formfieldvalues)
+
+        objvalues.pop('sources',None)
+        objvalues.pop('mapsources',None)
+        #sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
+        #mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
+        print objvalues
+        
+        obj = ProvChange.objects.create(**objvalues)
+        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
+        print obj
+        
+        obj.save()
+##        for s in sources:
+##            obj.sources.add(s)
+##        for m in mapsources:
+##            obj.mapsources.add(m)
+##        obj.save()
+        
+        html = self.done_redirect(obj)
+
+        return html
+
+class AddNewInfoChangeWizard(AddChangeWizard):
+
+    form_list = [   
+                    ToChangeForm,
+                      ]
+
+    country = None
+    province = None
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "0": # from or to form
+            kwargs["step_descr"] = "Fill in the province information after the change. Only the parts that have changed will be registered." 
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "0":
+            data["tocountry"] = self.request.GET["fromcountry"]
+            data["toname"] = self.request.GET["fromname"]
+            data["toalterns"] = self.request.GET["fromalterns"]
+            data["toiso"] = self.request.GET["fromiso"]
+            data["tofips"] = self.request.GET["fromfips"]
+            data["tohasc"] = self.request.GET["fromhasc"]
+            data["totype"] = self.request.GET["fromtype"]
+            data["tocapital"] = self.request.GET["fromcapital"]
+            data["tocapitalname"] = self.request.GET["fromcapitalname"]
+        return data  
+
+    def done_redirect(self, obj):
+        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
+        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+
+class AddBreakawayChangeWizard(AddChangeWizard):
+
+    form_list = [   BreakawayTypeChangeForm,
+                    ToChangeForm,
+                      ]
+
+    country = None
+    province = None
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that broke away?"
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["tocountry"] = self.country
+        return data  
+
+    def done_redirect(self, obj):
+        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
+        eventlink = "/contribute/view/{country}/{prov}/?type=Breakaway&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+
+class AddSplitChangeWizard(AddChangeWizard):
+
+    form_list = [   SplitTypeChangeForm,
+                    ToChangeForm,
+                      ]
+
+    country = None
+    province = None
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that broke away?"
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["tocountry"] = self.country
+        return data  
+
+    def done_redirect(self, obj):
+        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
+        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
+        html = redirect(eventlink)
+        return html
+    
+class AddExpandChangeWizard(AddChangeWizard):
+
+    form_list = [   ExpandTypeChangeForm,
+                    FromChangeForm,
+                    ToChangeForm,
+##                     HistoMapForm,
+##                     GeorefForm,
+                      GeoChangeForm,
+                      ]
+    
+    def _geomode(wiz):
+        typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+        print wiz.get_cleaned_data_for_step("0")
+        return typeformdata["type"] in "TransferExisting MergeExisting FullTransfer PartTransfer"
+
+    condition_dict = {"0": lambda wiz: True,
+                      "1": lambda wiz: True,
+                      "2": lambda wiz: False,
+                      "3": _geomode,}
+
+    country = None
+    province = None
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that merged or transferred territory?"
+        elif step == "3":
+            kwargs["country"] = self.country
+            kwargs["province"] = self.province
+            kwargs["date"] = self.request.GET["date"]
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["fromcountry"] = self.country
+        elif step == "3":
+            data["country"] = self.country
+        return data
+    
+    def done_redirect(self, obj):
+        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
+        eventlink = "/contribute/view/{country}/{prov}/?type=Expand&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
+        html = redirect(eventlink)
+        return html
+
+class AddFormChangeWizard(AddChangeWizard):
+
+    form_list = [   FormTypeChangeForm,
+                    FromChangeForm,
+                    ToChangeForm,
+##                     HistoMapForm,
+##                     GeorefForm,
+                      GeoChangeForm,
+                      ]
+    
+    def _geomode(wiz):
+        typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
+        print wiz.get_cleaned_data_for_step("0")
+        return typeformdata["type"] in "TransferNew MergeNew"
+
+    condition_dict = {"0": lambda wiz: True,
+                      "1": lambda wiz: True,
+                      "2": lambda wiz: False,
+                      "3": _geomode,}
+
+    country = None
+    province = None
+
+    def get_form_kwargs(self, step=None):
+        kwargs = {}
+        if step == "1": # from or to form
+            kwargs["step_descr"] = "Please identify the province that merged or transferred territory?"
+        elif step == "3":
+            kwargs["country"] = self.country
+            kwargs["province"] = self.province
+            kwargs["date"] = self.request.GET["date"]
+        return kwargs
+
+    def get_form_initial(self, step=None):
+        data = dict()
+        if step == "1":
+            data["fromcountry"] = self.country
+        elif step == "3":
+            data["country"] = self.country
+        return data
+    
+    def done_redirect(self, obj):
+        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
+        params = dict([(field,getattr(obj,field)) for field in fields])
+        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
+        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
+        params = urlencode(params)
+        eventlink = "/contribute/view/{country}/{prov}/?type=Form&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
+        html = redirect(eventlink)
+        return html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #################################################
-# BUILTIN
+# Builtin widgets etc
 
 from django.contrib.gis.forms.widgets import OpenLayersWidget
 
-##class GeoChangeForm(forms.ModelForm):
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ["transfer_source","transfer_geom"]
-##        widgets = {'transfer_geom': OpenLayersWidget()}
+class CustomDateWidget(forms.TextInput):
+
+    ### WARNING: id_1-date is hacky for now, may not always work...
+    
+    def render(self, name, value, attrs = None):
+        output = super(CustomDateWidget, self).render(name, value, attrs)
+        output += """
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<script>
+$('#id_0-date').datepicker({
+    changeMonth: true,
+    changeYear: true,
+    dateFormat: "yy-mm-dd",
+    defaultDate: "2014-12-31",
+    yearRange: '1946:2014',
+    showOn: "both",
+    buttonImage: 'http://jqueryui.com/resources/demos/datepicker/images/calendar.gif',
+    buttonImageOnly: true,
+});
+$(".ui-datepicker-trigger").css("margin-bottom","-3px");
+</script>
+"""
+        return output
 
 class CustomOLWidget(OpenLayersWidget):
     default_zoom = 1
@@ -6741,156 +5890,8 @@ setupmap();
 </script>
 """ % self.attrs["jsmapname"]
         
-##        output += """
-##<script>
-##function syncwms() {
-##var wmsurl = document.getElementById('id_3-transfer_source').value;
-##if (wmsurl.trim() != "") {
-##    var layerlist = geodjango_3_transfer_geom.map.getLayersByName('Custom WMS');
-##    if (layerlist.length >= 1) 
-##        {
-##        // replace existing
-##        geodjango_3_transfer_geom.map.removeLayer(layerlist[0]);
-##        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
-##        customwms.isBaseLayer = false;
-##        geodjango_3_transfer_geom.map.addLayer(customwms);
-##        } 
-##    else {
-##        // add as new
-##        customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );
-##        customwms.isBaseLayer = false;
-##        geodjango_3_transfer_geom.map.addLayer(customwms);
-##        };
-##};
-##};
-##
-##// at startup
-##syncwms();
-##
-##</script>
-##"""
         return output
 
-
-##class HistoMapForm(forms.ModelForm):
-##
-##    step_title = "Historical Map"
-##    step_descr = """
-##                    Find a historical map from before the change. 
-##                   """
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ["transfer_reference"]
-##        widgets = {"transfer_reference": forms.Textarea(attrs=dict(cols=90,rows=5)) }
-##
-##    def as_p(self):
-##        html = """
-##                        The map should show the giving province as it was prior to the change.
-##                        Here are some useful places to start:
-##
-##                        <ul>
-##                            <li><a href="http://mapwarper.net/">MapWarper</a></li>
-##                            <li><a href="http://www.oldmapsonline.org/">OldMapsOnline</a></li>
-##                            <li><a href="https://www.loc.gov/maps/?q=administrative%20divisions">The Library of Congress Map Collection</a></li>
-##                            <li><a href="https://www.lib.utexas.edu/maps/historical/index.html">The Perry-Castaneda Library Map Collection</a></li>
-##                            <li><a href="http://alabamamaps.ua.edu/historicalmaps/">Alabama Maps Historical Maps</a></li>
-##                            <li><a href="http://www.zum.de/whkmla/region/indexa.html">World History at KMLA</a></li>
-##                            <li><a href="http://www.antiquemapsandprints.com/prints-and-maps-by-country-12-c.asp">Antique Maps and Prints</a></li>
-##                            <li><a href="http://catalogue.defap-bibliotheque.fr/index.php?lvl=index">La bibliotheque du Defap</a></li>
-##                        </ul>
-##
-##                        In the field below identify and reference the source, author, and year of the
-##                        map in as much detail as possible.
-##
-##                        <div style="padding:20px"><b>Map Reference: </b>{{ form.transfer_reference }}</div>
-##
-##                            <div style="background-color:rgb(248,234,150); outline: black solid thick; font-family: comic sans ms">
-##                            <p style="font-size:large; font-weight:bold">Note:</p>
-##                            <p style="font-size:medium; font-style:italic">
-##                            Note: In accordance with the open-source
-##                            nature of the Pshapes project, the map source must be free to share and use without any license restrictions.
-##                            Submissions that are based on copyrighted map sources will not be used in the final data. 
-##                            </p>
-##                            </div>
-##                """
-##        rendered = Template(html).render(Context({"form":self}))
-##        return rendered
-##
-##
-##class GeorefForm(forms.ModelForm):
-##
-##    step_title = "Georeference"
-##    step_descr = """
-##                    Georeference the historical map image. 
-##                   """
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ["transfer_source"]
-##        widgets = {"transfer_source": forms.TextInput(attrs={'size': 90}) }
-##
-##    def clean(self):
-##        data = super(GeorefForm, self).clean()
-##        if data:
-##            if "mapwarper.net" in data['transfer_source']:
-##                pass
-##            else:
-##                mapwarpid = data['transfer_source']
-##                data['transfer_source'] = "http://mapwarper.net/maps/wms/%s" % mapwarpid
-##        return data
-##        
-##    def as_p(self):
-##        html = """
-##                        Georeferencing is as easy as matching a handful of control points on your historical map image with the equivalent
-##                        locations on a real-world map.
-##                        For this you must <a href="http://mapwarper.net/">create an account or login to the MapWarper project website</a>.
-##
-##                        <br><br>
-##                        <iframe width="100%" height="300px" src="http://mapwarper.net/"></iframe>
-##                        <br>
-##
-##                        Once finished with georeferencing, simply insert the MapWarper ID of your georeferenced map
-##                        (a short number near the top of the MapWarper page)
-##                        into the field below. 
-##
-##                        <div style="padding:20px"><b>MapWarper Map ID: </b>{{ form.transfer_source }}</div>
-##                """
-##        rendered = Template(html).render(Context({"form":self}))
-##        return rendered
-
-geoinstruct = """
-                <ol>
-                    <li>
-                    Guided by the map, draw a clipping polygon that <em>encircles</em> the province that gave away territory.
-                    <br>
-                    That is, do not follow the borders exactly, but rather draw with a significant error-margin around the province boundaries.
-                    <br>
-                    This makes it easier to draw and will avoid common topological and integration problems in border dataset,
-                    since there are bound to be minor inaccuracies in the historical maps and their georeferencing. 
-                    <br><br>
-                    </li>
-                    <li>
-                    Only if the giving province shares a border with the
-                    receiving province or any other giving provinces, should you follow those parts of the border exactly.
-                    (To avoid gaps between the clipping polygon and any previously drawn giving provinces, shown in gray, 
-                    just make sure they overlap.)
-                    <br><br>
-                    </li>
-                    <li>
-                    If the giving province only gave away parts of its territory
-                    it's sufficient to just draw around the area that was transferred (e.g. a tiny corner of the province
-                    or a series of islands).
-                    <br><br>
-                    </li>
-                    <li>
-                    Draw multiple polygons if necessary.
-                    <br><br>
-                    </li>
-                </ol>
-                
-            </b>
-            """
 
 class GeoChangeForm(forms.ModelForm):
 
@@ -7118,866 +6119,7 @@ class GeoChangeForm(forms.ModelForm):
 
 
 
-#################################################
-# LEAFLET VERSION
 
-##from leaflet.forms.widgets import LeafletWidget
-##
-##LeafletWidget.settings_overrides.update({"RESET_VIEW":False,                                         })
-##
-##class GeoChangeForm(forms.ModelForm):
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ["transfer_source","transfer_geom"]
-##        widgets = {'transfer_geom': LeafletWidget()}
-
-##    def __init__(self, *args, **kwargs):
-##        forms.ModelForm.__init__(self, *args, **kwargs)
-##        # make wms auto add/update on sourceurl input
-##        self.fields['transfer_source'].widget.attrs.update({
-##            "onload":"""
-##$(document).ready(function() {
-##    // Store the variable to hold the map in scope
-##    var map;
-##    alert("hello");
-##    
-##    // Populate the map var during the map:init event (see Using Javascript callback function)
-##    // here https://github.com/makinacorpus/django-leaflet
-##    $(window).on('map:init', function(e) {
-##      map = e.originalEvent.detail.map;
-##      alert(map);
-##    });
-##""",
-##            "onchange": """
-##var map = L.Map.djangoMap('id_transfer_geom_map') //window['loadmap' + 'id_transfer_geom_map'];
-##alert(map);
-##var nexrad = L.tileLayer.wms("http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi", {
-##    layers: 'nexrad-n0r-900913',
-##    format: 'image/png',
-##    transparent: true,
-##    attribution: "Weather data 2012 IEM Nexrad"
-##});
-##map.addLayer(nexrad);
-##"""
-##            })
-
-##            'oninput': "".join(["var wmsurl = document.getElementById('id_transfer_source').value;",
-##                                "var layerlist = geodjango_transfer_geom.map.getLayersByName('Custom WMS');",
-##                                "if (layerlist.length >= 1) ",
-##                                "{",
-##                                "layerlist[0].url = wmsurl;",
-##                                "} ",
-##                                "else {",
-##                                """customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
-##                                """customwms.isBaseLayer = false;""",
-##                                """geodjango_transfer_geom.map.addLayer(customwms);""",
-##                                "};",
-##                                ])
-        
-
-
-################################################################
-# OLWIDGET APPROACH
-
-###from django.contrib.gis.forms.widgets import OpenLayersWidget
-##from olwidget.fields import EditableLayerField, MapField, MapModelForm
-##
-##
-##
-##class GeoChangeForm(MapModelForm):
-##
-##    class Meta:
-##        model = ProvChange
-##        fields = ["transfer_source","transfer_geom"]
-##
-####    def __init__(self, *args, **kwargs):
-####        super(MapModelForm, self).__init__(*args, **kwargs)
-##
-####        # autozoom map to country depending on country
-######        import pycountries as pc
-######        self.fields['country'].widget.attrs.update({
-######            'onchange': "".join(["var cntr = document.getElementById('id_country').value;",
-######                                 #"alert(cntr);",
-######                                 "var bbox = [0,0,180,90];", #%s[cntr];" % dict([(c.iso3,getbox(c)) for c in pc.all_countries() if getbox(c)]),
-######                                 #"alert(bbox);",
-######                                 "geodjango_changepart.map.zoomToExtent(bbox);",
-######                                ])
-######            })
-####
-######        self.fields = (
-######                    (None, {
-######                        'fields': ('country', 'date', 'type')
-######                    }),
-######                    ('Map', {
-######                        'classes': ('collapse',),
-######                        'fields': ('transfer_source', 'transfer_geom'),
-######                    }),
-######                    ("From Province", {
-######                        'fields': tuple('fromname fromiso fromfips fromhasc fromcapital fromtype'.split())
-######                    }),
-######                    ("To Province", {
-######                        'fields': tuple('toname toiso tofips tohasc tocapital totype'.split())
-######                    }),
-######                )
-##
-##        # make wms auto add/update on sourceurl input
-####        self.fields['transfer_geom'].widget = EditableLayerField().widget
-####        self.fields['transfer_source'].widget.attrs.update({
-####            "onload": "alert(OpenLayers);",
-####            'oninput': "".join(["alert(OpenLayers.objectName);","var wmsurl = document.getElementById('id_transfer_source').value;",
-####                                "alert(wmsurl);",
-####                                """var customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
-####                                #"""customwms.isBaseLayer = false;""",
-####                                "alert(customwms.objectName);",
-####                                """geodjango_transfer_geom.map.addLayer(customwms);""",
-####                                ])
-####            })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##class SubmitChangeWizard(SessionWizardView):
-##    form_list = [   GeneralChangeForm,
-##                     TypeChangeForm,
-##                      FromChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-##                      GeoChangeForm,
-##                      ToChangeForm,
-##                      ]
-##    def _geomode(wiz):
-##        typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##        return "Transfer" in typeformdata["type"]
-##    
-##    condition_dict = {"3": _geomode,
-##                      "4": _geomode,
-##                      "5": _geomode,}
-##        
-####    def __init__(self, *args, **kwargs):
-####        self.form_list = [TypeChangeForm,
-####                      GeneralChangeForm,
-####                      FromChangeForm,
-####                      GeoChangeForm,
-####                      ToChangeForm,
-####                      ]
-####        SessionWizardView.__init__(self, *args, **kwargs)
-##
-####    def get_form_list(self):
-####        return [SourceForm,
-####                     TypeChangeForm,
-####                      GeneralChangeForm,
-####                      FromChangeForm,
-####                     HistoMapForm,
-####                     GeorefForm,
-####                      GeoChangeForm,
-####                      ToChangeForm,
-####                      ]
-##
-##    def __iter__(self):
-##        for step in self.get_form_list():
-##            yield self.get_form(step=step)
-## 
-##    def get_context_data(self, form, **kwargs):
-##        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
-##        context.update({'wizard_subclass': self})
-##        return context
-##
-##    def get_form(self, step=None, data=None, files=None):
-##        form = super(SubmitChangeWizard, self).get_form(step, data, files)
-##        print step,repr(form)
-##        if isinstance(form, GeoChangeForm):
-##            # ADD CUSTOM WMS
-##            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##            if "Transfer" in typeformdata["type"]:
-##                wmsdata = self.get_cleaned_data_for_step("4") or {}
-##                wms = wmsdata.get("transfer_source")
-##                if wms:
-##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-##                    form.fields['transfer_geom'].widget.wms = wms
-##        return form
-##
-####    def get_form(self, step=None, data=None, files=None):
-####        # SKIP GEOFORM IF NOT NEEDED
-####        form = super(SubmitChangeWizard, self).get_form(step, data, files)
-####        print step,repr(form)
-####        if isinstance(form, HistoMapForm):
-####            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-####            if not "Transfer" in typeformdata["type"]:
-####                # skip til after geoform
-####                self.step = bytes(int(step)+3)
-####                form = super(SubmitChangeWizard, self).get_form(self.step, data, files)
-####        elif isinstance(form, GeoChangeForm):
-####            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-####            if "Transfer" in typeformdata["type"]:
-####                wmsdata = self.get_cleaned_data_for_step("5") or {}
-####                wms = wmsdata.get("transfer_source")
-####                if wms:
-####                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-####                    form.fields['transfer_geom'].widget.wms = wms
-####        return form
-##        
-##    def get_template_names(self):
-##        return ["provchanges/submitchange.html"]
-##
-##    def done(self, form_list, form_dict, **kwargs):
-##        # NOT YET DONE...
-##        print "DONE!", form_list, form_dict, kwargs
-##        
-##        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-##        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-##        formfieldvalues["user"] = self.request.user.username
-##        formfieldvalues["added"] = datetime.date.today()
-##        formfieldvalues["bestversion"] = True
-##        print formfieldvalues
-##
-##        obj = ProvChange.objects.create(**formfieldvalues)
-##        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-##        print obj
-##        
-##        obj.save()
-##        html = redirect("/provchange/%s/view/" % obj.pk)
-##
-##        return html
-
-class AddChangeWizard(SessionWizardView):
-
-##    form_list = [   GeneralChangeForm,
-##                     TypeChangeForm,
-##                      FromChangeForm,
-##                    ToChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-##                      GeoChangeForm,
-##                      ]
-##    
-##    def _geomode(wiz):
-##        typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##        print wiz.get_cleaned_data_for_step("1")
-##        return "Transfer" in typeformdata["type"]
-##    
-##    condition_dict = {"0": lambda wiz: False,
-##                      "1": lambda wiz: True,
-##                      "2": lambda wiz: wiz.request.GET["type"].lower() == "expansion",
-##                      "3": lambda wiz: wiz.request.GET["type"].lower() == "split",
-##                      "4": _geomode,
-##                      "5": _geomode,
-##                      "6": _geomode,}
-##
-##    country = None
-##    province = None
-
-    def __iter__(self):
-        for step in self.get_form_list():
-            yield self.get_form(step=step)
- 
-    def get_context_data(self, form, **kwargs):
-        context = super(AddChangeWizard, self).get_context_data(form=form, **kwargs)
-        context.update({'wizard_subclass': self})
-        return context
-
-##    def get_form(self, step=None, data=None, files=None):
-##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-##        data = data or {}
-##        print data
-##        data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-##        print data
-##        typ = self.request.GET["type"].lower().strip('"')
-##        
-##        if typ == "expansion":
-##            for k,v in [("0-country","country"),
-##                        ("0-date","date"),
-##                        ("0-source","source"),
-##                        ("3-toname","toname")
-##                        ]:
-##                if k not in data:
-##                    data[k] = self.request.GET[v]
-##            print "DATA",data
-##
-##        elif typ == "split":
-##            for k,v in [("0-country","country"),
-##                        ("0-date","date"),
-##                        ("0-source","source"),
-##                        ("2-fromname","fromname")
-##                        ]:
-##                if k not in data:
-##                    data[k] = self.request.GET[v]
-##            print "DATA",data
-##        
-##        if step == "1":
-##            # NOT WOORKING !!!!
-##            print 77777,repr(typ),typ=="split"
-##            form = super(AddChangeWizard, self).get_form(step, data=data, files=files)  
-##            if typ == "expansion":
-##                form._meta.widgets = {"type": forms.RadioSelect(renderer=ExpansionTypeChangeRenderer) }
-##                #form = ExpansionTypeChangeForm(data=data, files=files)
-##            elif typ == "split":
-##                form._meta.widgets = {"type": forms.RadioSelect(renderer=SplitTypeChangeRenderer) }
-##                #form = SplitTypeChangeForm(data=data, files=files)
-##            else:
-##                fsfdsfdsfdsf
-##        else:
-##            form = super(AddChangeWizard, self).get_form(step, data=data, files=files)        
-##        print step,repr(form)
-##        print "FORMDATA",form.data
-##        
-##        if isinstance(form, GeoChangeForm):
-##            # ADD CUSTOM WMS
-##            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##            if "Transfer" in typeformdata["type"]:
-##                wmsdata = self.get_cleaned_data_for_step("4") or {}
-##                wms = wmsdata.get("transfer_source")
-##                if wms:
-##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-##                    form.fields['transfer_geom'].widget.wms = wms
-##        return form
-
-##    def get_form_instance(self, step):
-##        params = dict([(k,v) for k,v in self.request.GET.items()])
-##        # THIS IS WHERE I AMMMMM
-##        print "INST PARAMS",params
-##        inst = ProvChange(**params)
-##        return inst
-
-    def get_template_names(self):
-        return ["provchanges/addchange.html"]
-
-    def done(self, form_list, form_dict, **kwargs):
-        # NOT YET DONE...
-        print "DONE!", form_list, form_dict, kwargs
-        
-        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-        formfieldvalues["user"] = self.request.user.username
-        formfieldvalues["added"] = datetime.datetime.now()
-        formfieldvalues["bestversion"] = True
-        print formfieldvalues
-
-        eventvalues = dict(((k,v) for k,v in self.request.GET.items()))
-        print eventvalues
-
-        if eventvalues["type"].strip('"') in "Form Expand" and formfieldvalues["type"].strip('"') == "NewInfo":
-            # all tos become froms when newinfo for merge event
-            # ACTUALLY: shouldnt happen anymore
-            raise Exception()
-            #trans = dict([(k.replace("to","from"),v) for k,v in eventvalues.items() if k.startswith("to")])
-            #eventvalues = dict([(k,v) for k,v in eventvalues.items() if not k.startswith("to")])
-            #eventvalues.update(trans)
-
-        objvalues = dict(eventvalues)
-        objvalues.update(formfieldvalues)
-
-        objvalues.pop('sources',None)
-        objvalues.pop('mapsources',None)
-        #sources = [get_object_or_404(Source, pk=int(pk)) for pk in objvalues.pop('sources').split(',') if pk]
-        #mapsources = [get_object_or_404(Map, pk=int(pk)) for pk in objvalues.pop('mapsources').split(',') if pk]
-        print objvalues
-        
-        obj = ProvChange.objects.create(**objvalues)
-        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-        print obj
-        
-        obj.save()
-##        for s in sources:
-##            obj.sources.add(s)
-##        for m in mapsources:
-##            obj.mapsources.add(m)
-##        obj.save()
-        
-        html = self.done_redirect(obj)
-
-        return html
-
-
-class AddNewInfoChangeWizard(AddChangeWizard):
-
-    form_list = [   
-                    ToChangeForm,
-                      ]
-
-    country = None
-    province = None
-    
-##    def get_form(self, step=None, data=None, files=None):
-##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-##        if data:
-##            print data
-##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-##        else:
-##            data = {}
-##        print data
-##
-##        form = super(AddNewInfoChangeWizard, self).get_form(step, data=data, files=files)        
-##
-##        return form
-
-    def get_form_kwargs(self, step=None):
-        kwargs = {}
-        if step == "0": # from or to form
-            kwargs["step_descr"] = "Fill in the province information after the change. Only the parts that have changed will be registered." 
-        return kwargs
-
-    def get_form_initial(self, step=None):
-        data = dict()
-        if step == "0":
-            data["tocountry"] = self.request.GET["fromcountry"]
-            data["toname"] = self.request.GET["fromname"]
-            data["toalterns"] = self.request.GET["fromalterns"]
-            data["toiso"] = self.request.GET["fromiso"]
-            data["tofips"] = self.request.GET["fromfips"]
-            data["tohasc"] = self.request.GET["fromhasc"]
-            data["totype"] = self.request.GET["fromtype"]
-            data["tocapital"] = self.request.GET["fromcapital"]
-            data["tocapitalname"] = self.request.GET["fromcapitalname"]
-        return data  
-
-    def done_redirect(self, obj):
-        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
-        params = dict([(field,getattr(obj,field)) for field in fields])
-        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
-        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
-        params = urlencode(params)
-        eventlink = "/contribute/view/{country}/{prov}/?type=NewInfo&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
-        html = redirect(eventlink)
-        return html
-
-class AddBreakawayChangeWizard(AddChangeWizard):
-
-    form_list = [   BreakawayTypeChangeForm,
-                    ToChangeForm,
-                      ]
-
-    country = None
-    province = None
-    
-##    def get_form(self, step=None, data=None, files=None):
-##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-##        if data:
-##            print data
-##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-##        else:
-##            data = {}
-##        print data
-##
-##        form = super(AddSplitChangeWizard, self).get_form(step, data=data, files=files)        
-##
-##        return form
-
-    def get_form_kwargs(self, step=None):
-        kwargs = {}
-        if step == "1": # from or to form
-            kwargs["step_descr"] = "Please identify the province that broke away?"
-        return kwargs
-
-    def get_form_initial(self, step=None):
-        data = dict()
-        if step == "1":
-            data["tocountry"] = self.country
-        return data  
-
-    def done_redirect(self, obj):
-        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
-        params = dict([(field,getattr(obj,field)) for field in fields])
-        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
-        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
-        params = urlencode(params)
-        eventlink = "/contribute/view/{country}/{prov}/?type=Breakaway&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
-        html = redirect(eventlink)
-        return html
-
-class AddSplitChangeWizard(AddChangeWizard):
-
-    form_list = [   SplitTypeChangeForm,
-                    ToChangeForm,
-                      ]
-
-    country = None
-    province = None
-    
-##    def get_form(self, step=None, data=None, files=None):
-##        print "HELLOOOO", self.request.GET, repr(self.request.GET["type"].lower())
-##        if data:
-##            print data
-##            data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-##        else:
-##            data = {}
-##        print data
-##
-##        form = super(AddSplitChangeWizard, self).get_form(step, data=data, files=files)        
-##
-##        return form
-
-    def get_form_kwargs(self, step=None):
-        kwargs = {}
-        if step == "1": # from or to form
-            kwargs["step_descr"] = "Please identify the province that broke away?"
-        return kwargs
-
-    def get_form_initial(self, step=None):
-        data = dict()
-        if step == "1":
-            data["tocountry"] = self.country
-        return data  
-
-    def done_redirect(self, obj):
-        fields = ["fromcountry","date","source","sources","mapsources","fromname","fromalterns","fromiso","fromhasc","fromfips","fromtype","fromcapitalname","fromcapital"]
-        params = dict([(field,getattr(obj,field)) for field in fields])
-        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
-        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
-        params = urlencode(params)
-        eventlink = "/contribute/view/{country}/{prov}/?type=Split&".format(country=urlquote(self.country), prov=urlquote(obj.fromname)) + params
-        html = redirect(eventlink)
-        return html
-    
-class AddExpandChangeWizard(AddChangeWizard):
-
-    form_list = [   ExpandTypeChangeForm,
-                    FromChangeForm,
-                    ToChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-                      GeoChangeForm,
-                      ]
-    
-    def _geomode(wiz):
-        typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
-        print wiz.get_cleaned_data_for_step("0")
-        return typeformdata["type"] in "TransferExisting MergeExisting FullTransfer PartTransfer"
-
-    condition_dict = {"0": lambda wiz: True,
-                      "1": lambda wiz: True,
-                      "2": lambda wiz: False,
-                      "3": _geomode,}
-
-    country = None
-    province = None
-
-    def get_form_kwargs(self, step=None):
-        kwargs = {}
-        if step == "1": # from or to form
-            kwargs["step_descr"] = "Please identify the province that merged or transferred territory?"
-        elif step == "3":
-            kwargs["country"] = self.country
-            kwargs["province"] = self.province
-            kwargs["date"] = self.request.GET["date"]
-        return kwargs
-
-    def get_form_initial(self, step=None):
-        data = dict()
-        if step == "1":
-            data["fromcountry"] = self.country
-        elif step == "3":
-            data["country"] = self.country
-        return data
-    
-    def done_redirect(self, obj):
-        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
-        params = dict([(field,getattr(obj,field)) for field in fields])
-        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
-        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
-        params = urlencode(params)
-        eventlink = "/contribute/view/{country}/{prov}/?type=Expand&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
-        html = redirect(eventlink)
-        return html
-
-
-
-
-
-class AddFormChangeWizard(AddChangeWizard):
-
-    form_list = [   FormTypeChangeForm,
-                    FromChangeForm,
-                    ToChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-                      GeoChangeForm,
-                      ]
-    
-    def _geomode(wiz):
-        typeformdata = wiz.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
-        print wiz.get_cleaned_data_for_step("0")
-        return typeformdata["type"] in "TransferNew MergeNew"
-
-    condition_dict = {"0": lambda wiz: True,
-                      "1": lambda wiz: True,
-                      "2": lambda wiz: False,
-                      "3": _geomode,}
-
-    country = None
-    province = None
-
-    def get_form_kwargs(self, step=None):
-        kwargs = {}
-        if step == "1": # from or to form
-            kwargs["step_descr"] = "Please identify the province that merged or transferred territory?"
-        elif step == "3":
-            kwargs["country"] = self.country
-            kwargs["province"] = self.province
-            kwargs["date"] = self.request.GET["date"]
-        return kwargs
-
-    def get_form_initial(self, step=None):
-        data = dict()
-        if step == "1":
-            data["fromcountry"] = self.country
-        elif step == "3":
-            data["country"] = self.country
-        return data
-    
-    def done_redirect(self, obj):
-        fields = ["tocountry","date","source","sources","mapsources","toname","toalterns","toiso","tohasc","tofips","totype","tocapitalname","tocapital"]
-        params = dict([(field,getattr(obj,field)) for field in fields])
-        params['sources'] = ','.join([str(s.pk) for s in params['sources'].all()])
-        params['mapsources'] = ','.join([str(m.pk) for m in params['mapsources'].all()])
-        params = urlencode(params)
-        eventlink = "/contribute/view/{country}/{prov}/?type=Form&".format(country=urlquote(self.country), prov=urlquote(obj.toname)) + params
-        html = redirect(eventlink)
-        return html
-
-
-    
-    
-##class SubmitChangeWizard(SessionWizardView):
-##    form_list = [   GeneralChangeForm,
-##                     TypeChangeForm,
-##                      FromChangeForm,
-##                    ToChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-##                      GeoChangeForm,
-##                      ]
-##
-##    # NOTE: MUST BE EITHER EXPANSION OR SPLIT OR NEWINFO EVENT, WITH GET PARAMS FOR ALL CONSTANT EVENTINFO
-##    
-##    def _geomode(wiz):
-##        typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##        print wiz.get_cleaned_data_for_step("1")
-##        return "Transfer" in typeformdata["type"]
-##    
-##    condition_dict = {"0": lambda wiz: False,
-##                      "1": lambda wiz: wiz.request.GET["eventtype"] != "newinfo", # for newinfo events, no point in setting type
-##                      "2": lambda wiz: wiz.request.GET["eventtype"] in ("expansion","newinfo"),
-##                      "3": lambda wiz: wiz.request.GET["eventtype"] in ("split","newinfo"),
-##                      "4": _geomode,
-##                      "5": _geomode,
-##                      "6": _geomode,}
-##
-##    def __iter__(self):
-##        for step in self.get_form_list():
-##            yield self.get_form(step=step)
-## 
-##    def get_context_data(self, form, **kwargs):
-##        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
-##        context.update({'wizard_subclass': self})
-##        return context
-##
-##    def get_form(self, step=None, data=None, files=None):
-##        data = data or {}
-##        print data
-##        data = dict([(key,data.getlist(key)[0] if isinstance(data.getlist(key),list) else data.getlist(key)) for key in data.keys()])
-##        print data
-##        
-##        if self.request.GET["eventtype"] == "expansion":
-##            for k,v in [("0-country","country"),
-##                        ("0-date","date"),
-##                        ("0-source","source"),
-##                        ("3-toprov","toprov")
-##                        ]:
-##                if k not in data:
-##                    data[k] = self.request.GET[v]
-##            print "DATA",data
-##
-##        elif self.request.GET["eventtype"] == "split":
-##            for k,v in [("0-country","country"),
-##                        ("0-date","date"),
-##                        ("0-source","source"),
-##                        ("2-toprov","fromprov")
-##                        ]:
-##                if k not in data:
-##                    data[k] = self.request.GET[v]
-##            print "DATA",data
-##        
-##        if step == "1":
-##            # NOT WOORKING !!!!
-##            print 77777,self.request.GET["eventtype"]
-##            if self.request.GET["eventtype"] == "expansion":
-##                form = ExpansionTypeChangeForm(data=data, files=files)
-##            elif self.request.GET["eventtype"] == "split":
-##                form = SplitTypeChangeForm(data=data, files=files)
-##            else:
-##                form = TypeChangeForm(data=data, files=files)
-##        else:
-##            form = super(SubmitChangeWizard, self).get_form(step, data=data, files=files)        
-##        print step,repr(form)
-##        print "FORMDATA",form.data
-##        
-##        if isinstance(form, GeoChangeForm):
-##            # ADD CUSTOM WMS
-##            typeformdata = self.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##            if "Transfer" in typeformdata["type"]:
-##                wmsdata = self.get_cleaned_data_for_step("4") or {}
-##                wms = wmsdata.get("transfer_source")
-##                if wms:
-##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-##                    form.fields['transfer_geom'].widget.wms = wms
-##        return form
-##
-##    def get_template_names(self):
-##        return ["provchanges/submitchange.html"]
-##
-##    def done(self, form_list, form_dict, **kwargs):
-##        # NOT YET DONE...
-##        print "DONE!", form_list, form_dict, kwargs
-##        
-##        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-##        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-##        formfieldvalues["user"] = self.request.user.username
-##        formfieldvalues["added"] = datetime.date.today()
-##        formfieldvalues["bestversion"] = True
-##        print formfieldvalues
-##
-##        obj = ProvChange.objects.create(**formfieldvalues)
-##        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-##        print obj
-##        
-##        obj.save()
-##        html = redirect("/provchange/%s/view/" % obj.pk)
-##
-##        return html
-
-##class SubmitExpansionChangeWizard(SessionWizardView):
-##    form_list = [   GeneralChangeForm,
-##                    FromChangeForm,
-##                     HistoMapForm,
-##                     GeorefForm,
-##                      GeoChangeForm
-##                      ]
-##    def _geomode(wiz):
-##        typeformdata = wiz.get_cleaned_data_for_step("1") or {"type":"NewInfo"}
-##        return "Transfer" in typeformdata["type"]
-##    
-##    condition_dict = {"2": _geomode,
-##                      "3": _geomode,
-##                      "4": _geomode,}
-##    
-##    def __iter__(self):
-##        for step in self.get_form_list():
-##            yield self.get_form(step=step)
-## 
-##    def get_context_data(self, form, **kwargs):
-##        context = super(SubmitExpansionChangeWizard, self).get_context_data(form=form, **kwargs)
-##        context.update({'wizard_subclass': self})
-##        return context
-##
-##    def get_form(self, step=None, data=None, files=None):
-##        form = super(SubmitChangeWizard, self).get_form(step, data, files)
-##        print step,repr(form)
-##        if isinstance(form, GeoChangeForm):
-##            # ADD CUSTOM WMS
-##            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
-##            if "Transfer" in typeformdata["type"]:
-##                wmsdata = self.get_cleaned_data_for_step("3") or {}
-##                wms = wmsdata.get("transfer_source")
-##                if wms:
-##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-##                    form.fields['transfer_geom'].widget.wms = wms
-##        return form
-##    
-##    def get_template_names(self):
-##        return ["provchanges/submitchange.html"]
-##
-##    def done(self, form_list, form_dict, **kwargs):
-##        # NOT YET DONE...
-##        print "DONE!", form_list, form_dict, kwargs
-##        
-##        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-##        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-##        formfieldvalues["user"] = self.request.user.username
-##        formfieldvalues["added"] = datetime.date.today()
-##        formfieldvalues["bestversion"] = True
-##        print formfieldvalues
-##
-##        obj = ProvChange.objects.create(**formfieldvalues)
-##        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-##        print obj
-##        
-##        obj.save()
-##        html = redirect("/provchange/%s/view/" % obj.pk)
-##
-##        return html
-##
-##class SubmitSplitChangeWizard(SessionWizardView):
-##    form_list = [   GeneralChangeForm,
-##                    ToChangeForm,]
-##      
-##    def __iter__(self):
-##        for step in self.get_form_list():
-##            yield self.get_form(step=step)
-## 
-##    def get_context_data(self, form, **kwargs):
-##        context = super(SubmitChangeWizard, self).get_context_data(form=form, **kwargs)
-##        context.update({'wizard_subclass': self})
-##        return context
-##
-##    def get_form(self, step=None, data=None, files=None):
-##        form = super(SubmitSplitChangeWizard, self).get_form(step, data, files)
-##        print step,repr(form)
-##        if isinstance(form, GeoChangeForm):
-##            # ADD CUSTOM WMS
-##            typeformdata = self.get_cleaned_data_for_step("0") or {"type":"NewInfo"}
-##            if "Transfer" in typeformdata["type"]:
-##                wmsdata = self.get_cleaned_data_for_step("3") or {}
-##                wms = wmsdata.get("transfer_source")
-##                if wms:
-##                    wms = wms.split("?")[0]+"?service=wms&format=image/png" # trim away junk wms params and ensure uses transparency
-##                    form.fields['transfer_geom'].widget.wms = wms
-##        return form
-##
-##    def get_template_names(self):
-##        return ["provchanges/submitchange.html"]
-##
-##    def done(self, form_list, form_dict, **kwargs):
-##        # NOT YET DONE...
-##        print "DONE!", form_list, form_dict, kwargs
-##        
-##        fieldnames = [f.name for f in ProvChange._meta.get_fields()]
-##        formfieldvalues = dict(((k,v) for form in form_list for k,v in form.cleaned_data.items() if k in fieldnames))
-##        formfieldvalues["user"] = self.request.user.username
-##        formfieldvalues["added"] = datetime.date.today()
-##        formfieldvalues["bestversion"] = True
-##        print formfieldvalues
-##
-##        obj = ProvChange.objects.create(**formfieldvalues)
-##        obj.changeid = obj.pk # upon first creation, changeid becomes the same as the pk, but remains unchanged for further revisions
-##        print obj
-##        
-##        obj.save()
-##        html = redirect("/provchange/%s/view/" % obj.pk)
-##
-##        return html
 
 
 
