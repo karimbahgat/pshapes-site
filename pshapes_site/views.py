@@ -223,7 +223,7 @@ def home(request):
     mapp = """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
 
-            <div style="width:98%; height:400px; margins:auto; border-radius:10px; background-color:rgb(0,162,232);" id="map">
+            <div style="height:320px; border-radius:10px; background-color:rgb(0,162,232);" id="map">
             </div>
 	
 	<script defer="defer">
@@ -322,64 +322,51 @@ def home(request):
 
                         <h3 style="text-align:center">Crowdsourcing Historical Province Boundaries</h3>
                         
-                        <div style="text-align:center">
+                        <div style="display:inline-block; text-align:center; width:70%; margin:0; margin-left:10px">
                             {mapp}
                         </div>
 
-                        <br>
-    
-                        <table style="width:98%">
-                        <tr style="vertical-align:text-top; text-align:center; margin:0; padding:0">
+                        <div style="display:inline-block; height:320px">
+                        <table style="height:100%">
 
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="40px" src="/static/globe.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{countrycount}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Countries coded</h4>
-                            </td>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{countrycount}</h1>
+                                <td><h4 style="padding:0; margin:0">Countries coded</h4>
+                            </td></tr>
                             
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="35px" src="/static/typechange.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{changes}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Historical changes</h4>
-                            </td>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{changes}</h1>
+                                <td><h4 style="padding:0; margin:0">Historical changes</h4>
+                            </td></tr>
 
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="40px" src="/static/globe.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{avgedits}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Edits per change</h4>
-                            </td>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{edits}</h1>
+                                <td><h4 style="padding:0; margin:0">Revisions</h4>
+                            </td></tr>
 
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="40px" src="/static/vouch.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{vouches}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Vouches</h4>
-                            </td>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{vouches}</h1>
+                                <td><h4 style="padding:0; margin:0">Vouches</h4>
+                            </td></tr>
                             
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="35px" src="/static/issue.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{issues}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Issues</h4>
-                            </td>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{issues}</h1>
+                                <td><h4 style="padding:0; margin:0">Issues</h4>
+                            </td></tr>
 
-                            <td>
-                                <div>
+                            <tr><td>
                                 <img height="35px" src="/static/comment.png" style="display:inline-block; filter:invert(100%)">
-                                <h1 style="display:inline-block; padding:0; margin:0">{discussions}</h1>
-                                </div>
-                                <h4 style="padding:0; margin:0">Discussions</h4>
-                            </td>
-                        </tr>
+                                <td><h1 style="text-align:center; padding:0; margin:0">{discussions}</h1>
+                                <td><h4 style="padding:0; margin:0">Discussions</h4>
+                            </td></tr>
+
                         </table>
+                        </div>
 
                         <br>
 
@@ -395,13 +382,13 @@ def home(request):
                         <div style="text-align:right;">
                             {quickstartbut}
                         </div>
-                        <br>
+                        <br><br>
 
                     </div>
                     """.format(mapp=mapp,
                                users=users,
                                changes=changes,
-                               avgedits=format(edits/float(changes), '.1f'),
+                               edits=edits,
                                issues=issues,
                                discussions=discussions,
                                vouches=vouches,

@@ -87,13 +87,13 @@ def issues2html(request, issues, commentheadercolor="orange"):
         link = "/viewissue/%s" % i.pk
         row = ['<a href="%s"><img src="/static/comment.png" style="opacity:0.2" height="45px"></a>' % link]
         row += [rowdict[f] for f in fields]
-        replies = IssueComment.objects.filter(issue=i, status='Active').count()
-        row += [replies]
+        #replies = IssueComment.objects.filter(issue=i, status='Active').count()
+        #row += [replies]
         lists.append((None,row))  
 
     #print lists
     
-    html = lists2table(request, lists, [''] + fields + ['replies'], classname="topicstable", color=commentheadercolor)
+    html = lists2table(request, lists, [''] + fields, classname="topicstable", color=commentheadercolor)
     
     return html
 
@@ -1910,7 +1910,7 @@ def contribute_countries(request):
 
 
 def contribute_regions(request):
-    bannertitle = "Contributions"
+    bannertitle = "Contribute"
 
     mapp = """
 	<script src="http://openlayers.org/api/2.13/OpenLayers.js"></script>
@@ -2068,10 +2068,77 @@ def contribute_regions(request):
                         .blackbackground a:visited { color:grey }
                     </style>
                     """
+##    custombanner += """
+##                    <div class="blackbackground" style="width:95%">
+##                        <br>
+##                        <h2 style="text-align:center">{bannertitle}</h2>
+##                    </div>
+##                    """
+    
+##    custombanner += """<br><br>
+##                            <table align="center" width="80%" style="table-layout: fixed">
+##
+##                                <tr>
+##                                    <td>
+##                                    <img src="/static/globe.png" height="40px" style="display:inline-block; filter:invert(100%)">
+##                                    <h2 style="display:inline-block">
+##                                    Data
+##                                    </h2>
+##                                    </td>
+##
+##                                    <td>
+##                                    <img src="/static/map.png" height="30px" style="display:inline-block; filter:invert(100%)">
+##                                    <h2 style="display:inline-block">
+##                                    Maps
+##                                    </h2>
+##                                    </td>
+##
+##                                    <td>
+##                                    <img src="/static/comment.png" height="30px" style="display:inline-block; filter:invert(100%)">
+##                                    <h2 style="display:inline-block">
+##                                    Discussions
+##                                    </h2>
+##                                    </td>
+##                                </tr>
+##
+##                            </table>
+##                    """.format(bannertitle=bannertitle)
+
+##    custombanner += """<br>
+##                        <h2 style="display:inline-block; vertical-align:top; padding-right:10%">Contributions:</h2>
+##                            <table align="center" width="70%" style="display:inline-table; table-layout: fixed">
+##
+##                                <tr>                                    
+##                                    <td>
+##                                    <img src="/static/globe.png" height="40px" style="display:inline-block; filter:invert(100%)">
+##                                    <h3 style="display:inline-block">
+##                                    Data
+##                                    </h3>
+##                                    </td>
+##
+##                                    <td>
+##                                    <img src="/static/map.png" height="30px" style="display:inline-block; filter:invert(100%)">
+##                                    <h3 style="display:inline-block">
+##                                    Maps
+##                                    </h3>
+##                                    </td>
+##
+##                                    <td>
+##                                    <img src="/static/comment.png" height="30px" style="display:inline-block; filter:invert(100%)">
+##                                    <h3 style="display:inline-block">
+##                                    Discussions
+##                                    </h3>
+##                                    </td>
+##                                </tr>
+##
+##                            </table>
+##                    """.format(bannertitle=bannertitle)
+##    
     custombanner += """
+                    <br>
                     <div class="blackbackground" style="width:95%">
-                        <br>
-                        <h2 style="text-align:center">{bannertitle}</h2>
+                        <h2 style="display: none; text-align:center">Choose one of the regions to begin</h2>
+                        <h2 style="text-align:center">Contributions</h2>
                         <div style="display:none; text-align:center">{welcome}</div>
                         <div style="text-align:center">
                             {mapp}
@@ -2079,7 +2146,9 @@ def contribute_regions(request):
                     </div>
                     <div class="blackbackground" style="width:95%; vertical-align:top">
 
+                            <br>
                             {signuparea}
+                            <br>
 
                             <br>
                     
@@ -2102,7 +2171,7 @@ def contribute_regions(request):
                                     <div>
                                     <img src="/static/comment.png" height="40px" style="display:inline-block; filter:invert(100%)">
                                     <h4 style="display:inline-block">
-                                    Participate in discussions about the Pshapes project or website. 
+                                    Participate in discussions about the history and evolution of provinces. 
                                     </h4>
                                     </div>
 
@@ -2167,19 +2236,59 @@ def contribute_regions(request):
                         </script>
                     """ % updatemapbars
         
-    regionstable = lists2table(request, lists=lists,
-                                  fields=fields,
-                                 )
+##    regionstable = lists2table(request, lists=lists,
+##                                  fields=fields,
+##                                 )
+##    content = """
+##                <div style="margin-left:21px">{regionstable}</div>
+##                """.format(regionstable=regionstable)
+##    print updatemapbars
+##    content += updatemapbars
+##    grids.append(dict(title='''<img src="/static/globe.png" height="55px" style="display:inline-block; margin-left:0; padding-left:0">
+##                                Choose one of the regions to begin:''',
+##                      content=content,
+##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="99%",
+##                      ))
+
+    # map link
     content = """
-                <div style="margin-left:21px">{regionstable}</div>
-                """.format(regionstable=regionstable)
-    print updatemapbars
-    content += updatemapbars
-    grids.append(dict(title='''<img src="/static/globe.png" height="55px" style="display:inline-block; margin-left:0; padding-left:0">
-                                Choose one of the regions to begin:''',
+                <div style="height:220px">
+                <b>
+                <img style="width:100%; max-height:80%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+                
+                <p>
+                Add useful maps to the map collection. 
+                </p>
+                </b>
+                </div>
+              """
+
+    grids.append(dict(title='''<img src="/static/map.png" height="40px" style="display:inline-block">
+                                Maps:''',
                       content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
+                      style="background-color:orange; border-radius:0",
+                      width="47%",
+                      ))
+
+    # discussions link
+    content = """
+                <div style="height:220px">
+                <b>
+                <img width="100%" border="2" src="https://blog.tradeshift.com/wp-content/uploads/2015/10/collaboration-illustration.jpg">
+                
+                <p>
+                Join the conversation to help clear up how exactly a province may have changed. 
+                </p>
+                </b>
+                </div>
+              """
+
+    grids.append(dict(title='''<img src="/static/comment.png" height="40px" style="display:inline-block">
+                                Discussions:''',
+                      content=content,
+                      style="background-color:orange; border-radius:0",
+                      width="47%",
                       ))
 
     # milestones
@@ -2196,7 +2305,7 @@ def contribute_regions(request):
                 progresstext = "NA"
             yield m,milestoneform,progress,progresstext
 
-    color = 'rgb(58,177,73)' #'rgb(255,108,72)'
+    color = 'orange' #'rgb(58,177,73)' #'rgb(255,108,72)'
     fields = ["","title","progress"]
     lists = []
     for m,milestoneform,progress,progresstext in sorted(iter_milestones(), key=lambda (m,milestoneform,progress,progresstext): -progress):
@@ -2221,31 +2330,31 @@ def contribute_regions(request):
                 <br><div width="100%" style="text-align:center"><a href="/addmilestone/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
                 """.format(milestonetable=milestonetable, color=color)
     
-    grids.append(dict(title='''<br><hr>
+    grids.append(dict(title='''<br>
                                 <img src="/static/milestone.png" height="40px" style="display:inline-block">
-                                Not sure where to start? Help reach these goals:''',
+                                Milestones:''',
                       content=content, #'Join existing efforts to improve the data:'
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
                       width="99%",
                       ))
 
     # comments
-    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
-    
-    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
-
-    content = """
-                <div style="margin-left:22px">{issuetable}</div>
-                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(issuetable=issuetable)
-
-    grids.append(dict(title='''<br><hr>
-                                <img src="/static/comment.png" height="37px" style="display:inline-block">
-                                Ask questions or suggest improvements to the website:''',
-                      content=content,
-                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
-                      ))
+##    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+##    
+##    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+##
+##    content = """
+##                <div style="margin-left:22px">{issuetable}</div>
+##                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+##                """.format(issuetable=issuetable)
+##
+##    grids.append(dict(title='''<br><hr>
+##                                <img src="/static/comment.png" height="37px" style="display:inline-block">
+##                                Ask questions or suggest improvements to the website:''',
+##                      content=content,
+##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="99%",
+##                      ))
 
 ##    # maps
 ##    color = 'rgb(58,177,73)'
@@ -2295,6 +2404,36 @@ def contribute_regions(request):
                   )
 
 
+def contribute_discuss(request):
+    bannertitle = "Contribute"
+
+    custombanner = ""
+
+    grids = []
+
+    # discussion list
+    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+    
+    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+
+    content = """
+                <div style="margin-left:22px">{issuetable}</div>
+                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                """.format(issuetable=issuetable)
+
+    grids.append(dict(title='''<br><hr>
+                                <img src="/static/comment.png" height="37px" style="display:inline-block">
+                                Ask questions or suggest improvements to the website:''',
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="99%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           'custombanner':custombanner,
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
+                  )
 
 def contribute_region(request, region):
     bannertitle = region
@@ -3184,6 +3323,7 @@ def viewcountry(request, country):
                 
                 <script defer="defer">
                 var map = new OpenLayers.Map('map', {allOverlays: true,
+                                                    fractionalZoom: true,
                                                     //resolutions: [0.5,0.6,0.7,0.8,0.9,1],
                                                     controls: [],
                                                     });
@@ -3216,6 +3356,29 @@ def viewcountry(request, country):
 
                 $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
 
+                onlybigbbox = function(lyr) {
+                    var bbox = 0;
+                    totarea = 0
+                    for (f of lyr.features) {
+                        totarea += f.geometry.getArea();
+                    };
+                    for (f of lyr.features) {
+                        for (g of f.geometry.components) {
+                            area = g.getArea();
+                            perc = area / totarea * 100
+                            if (perc > 0.1) {
+                                _box = g.getBounds();
+                                if (bbox == 0) {
+                                    bbox = _box;
+                                } else {
+                                    bbox.extend(_box);
+                                }
+                            }
+                        }
+                    }
+                    return bbox;
+                }
+
                 renderprovs = function(data) {
                         var geojson_format = new OpenLayers.Format.GeoJSON();
                         var geoj_str = JSON.stringify(data);
@@ -3226,7 +3389,8 @@ def viewcountry(request, country):
                                 dateFeats.push(feat);
                         };
                         provLayer.addFeatures(dateFeats);
-                        map.zoomToExtent(provLayer.getDataExtent());
+                        var bbox = onlybigbbox(provLayer);
+                        map.zoomToExtent(bbox);
                         map.updateSize();
                 };
 

@@ -248,6 +248,7 @@
                         countryLayer.addFeatures(feats);
                 };
                 $.getJSON('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json', {}, rendercountries);
+                //$.getJSON('/static/countries_semisimple.geojson', {}, rendercountries);
 
                 //map.zoomToMaxExtent();
                 </script>
@@ -563,9 +564,28 @@
                 
 
                 // initiate map
+                onlybigbbox = function(lyr) {
+                    var bbox = 0;
+                    for (f of lyr.features) {
+                        for (g of f.geometry.components) {
+                            area = g.getArea();
+                            if (area > 30 | (f.attributes.region == 'Central America' & area > 2)) {
+                                _box = g.getBounds();
+                                if (bbox == 0) {
+                                    bbox = _box;
+                                } else {
+                                    bbox.extend(_box);
+                                }
+                            }
+                        }
+                    }
+                    return bbox;
+                }
+	
                 onstartup = function(data) {
                     renderCountries(data);
-                    map.zoomToExtent(countryBorderLayer.getDataExtent());
+                    var bbox = onlybigbbox(countryBorderLayer);
+                    map.zoomToExtent(bbox);
                     }
                 var date = document.getElementById('datetext').value;
                 var year = date.split("-")[0]
