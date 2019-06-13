@@ -4585,7 +4585,10 @@ def editchange(request, pk):
 
 
 
-# Event forms
+#################################################
+# Custom Widgets
+
+from django.contrib.gis.forms.widgets import OpenLayersWidget
 
 class ListTextWidget(forms.TextInput):
     # from http://stackoverflow.com/questions/24783275/django-form-with-choices-but-also-with-freetext-option
@@ -4603,6 +4606,367 @@ class ListTextWidget(forms.TextInput):
         data_list += '</datalist>'
 
         return (text_html + data_list)
+
+class CustomDateWidget(forms.TextInput):
+
+    ### WARNING: id_1-date is hacky for now, may not always work...
+    
+    def render(self, name, value, attrs = None):
+        output = super(CustomDateWidget, self).render(name, value, attrs)
+        output += """
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<script>
+$('#id_0-date').datepicker({
+    changeMonth: true,
+    changeYear: true,
+    dateFormat: "yy-mm-dd",
+    defaultDate: "2014-12-31",
+    yearRange: '1946:2014',
+    showOn: "both",
+    buttonImage: 'http://jqueryui.com/resources/demos/datepicker/images/calendar.gif',
+    buttonImageOnly: true,
+});
+$(".ui-datepicker-trigger").css("margin-bottom","-3px");
+</script>
+"""
+        return output
+
+class CustomOLWidget(OpenLayersWidget):
+    default_zoom = 1
+
+    #class Media:
+        #extend = False
+        #js = ("OpenLayers.js",)
+    
+    def render(self, name, value, attrs=None):
+        #print self.Media.js, self.Media.
+        output = super(CustomOLWidget, self).render(name, value, attrs=attrs)
+        output += """
+<script>
+var jsmap = %s;
+var selectedFeature;
+var selectControl;
+
+function syncwms() {
+    var mapOverlayId = document.getElementById('id_transfer_map').value;
+    var wmsurl = document.getElementById('id_transfer_map_wms_'+mapOverlayId).value;
+    if (wmsurl.trim() != "") {
+        var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
+        
+        var layerlist = jsmap.map.getLayersByName('Historical Map');
+        
+        if (layerlist.length >= 1) 
+            {
+            // replace existing
+            jsmap.map.removeLayer(layerlist[0]);
+            };
+            
+        customwms = new OpenLayers.Layer.WMS("Historical Map", wmsurl, {layers: 'basic'} );
+        customwms.isBaseLayer = false;
+        jsmap.map.addLayer(customwms);
+        jsmap.map.setLayerIndex(customwms, 1);
+
+        // zoom to country bbox somehow
+        //jsmap.map.zoomToExtent(customwms.getDataExtent());
+    };
+};
+
+function setExistingClipFeatures(geoj) {
+    var geojson_format = new OpenLayers.Format.GeoJSON();
+    var features = geojson_format.read(geoj, "FeatureCollection");
+    
+    //vectors.addFeatures requires an array, thus
+    if(features.constructor != Array) {
+        features = [features];
+    }
+    existingClipLayer = jsmap.map.getLayersByName('Existing Clip Polygons')[0];
+    existingClipLayer.addFeatures(features);
+};
+
+function onPopupClose(evt) {
+    selectControl.unselect(selectedFeature);
+};
+
+function onFeatureSelect(feature) {
+    selectedFeature = feature;
+    popup = new OpenLayers.Popup.FramedCloud("featinfo", 
+                             feature.geometry.getBounds().getCenterLonLat(),
+                             null,
+                             "<div style='font-size:.8em'>Feature: " + feature.id +"<br>Area: " + feature.geometry.getArea()+"</div>",
+                             null, true, onPopupClose);
+    feature.popup = popup;
+    jsmap.map.addPopup(popup);
+    return true;
+};
+
+function onFeatureUnselect(feature) {
+    jsmap.map.removePopup(feature.popup);
+    feature.popup.destroy();
+    feature.popup = null;
+};
+
+function setupmap() {
+    // layer switcher
+    jsmap.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
+    jsmap.map.addControl(new OpenLayers.Control.MousePosition());
+
+    // existing clips
+    var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"gray", fillOpacity:0.3}});
+    jsmap.map.addLayers([existingClipLayer]);
+
+    // enable popup for clips (currently only works if disabling the transfer_geom layer)
+    //selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
+    //jsmap.map.addControl(selectControl);
+    //selectControl.activate();
+
+    // wms
+    syncwms();
+};
+
+setupmap();
+
+</script>
+""" % self.attrs["jsmapname"]
+        
+        return output
+
+
+class GeoChangeForm(forms.ModelForm):
+
+    icon = "/static/globe.png"
+    step_title = "Territory"
+    step_descr = """
+                    What did the giving province look like before giving away territory?
+                   """
+
+    class Meta:
+        model = ProvChange
+        fields = ["transfer_reference", "transfer_source", "transfer_map", "transfer_geom"]
+        widgets = {"transfer_geom": CustomOLWidget(attrs={"id":"geodjango_transfer_geom"}),
+                    "transfer_source": ListTextWidget([], name="sources", attrs={'style':'width:80%',"id":"id_transfer_source"}),
+                    "transfer_reference": ListTextWidget([], name="references", attrs={'style':'width:80%',"id":"id_transfer_reference"}),
+                   }
+        
+    def __init__(self, *args, **kwargs):
+        self.inst = kwargs.get("instance")
+        print "INST",self.inst
+        self.country = kwargs.pop("country")
+        self.province = kwargs.pop("province")
+        self.date = kwargs.pop("date")
+        print "kwargs",kwargs
+        super(GeoChangeForm, self).__init__(*args, **kwargs)
+        print 999, self.fields["transfer_geom"].widget
+
+        # find other relates provs
+        country = self.country
+        province = self.province
+        date = self.date
+        otherfeats = ProvChange.objects.filter(fromcountry=country, toname=province, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, toname=province, date=date).exclude(status="NonActive")
+        if self.inst:
+            otherfeats = otherfeats.exclude(pk=self.inst.pk)
+        otherfeats = self.otherfeats = [f for f in otherfeats if f.transfer_geom] # only those with geoms
+
+        print kwargs
+        if "initial" in kwargs:
+            country = kwargs["initial"]["country"]
+            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
+            sources = sorted((r.transfer_source for r in provs.distinct("transfer_source")))
+            references = sorted((r.transfer_reference for r in provs.distinct("transfer_reference")))
+            self.fields['transfer_source'].widget._list = sources
+            self.fields['transfer_reference'].widget._list = references
+
+        self.maps = maps = list(get_country_maps(country))
+        choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
+        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(id="id_transfer_map", style='width:80%'))
+
+        # make wms auto add/update on map change
+        #self.fields['transfer_geom'].widget = EditableLayerField().widget
+        print 888,kwargs
+        jsmapname = "geodjango_transfer_geom" if kwargs.get("instance") else "geodjango_3_transfer_geom"
+        self.fields['transfer_map'].widget.attrs.update({
+##            "onload": "setupmap();",
+##            'oninput': "".join(["alert(OpenLayers.objectName);","var wmsurl = document.getElementById('id_transfer_source').value;",
+##                                "alert(wmsurl);",
+##                                """var customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
+##                                #"""customwms.isBaseLayer = false;""",
+##                                "alert(customwms.objectName);",
+##                                """geodjango_transfer_geom.map.addLayer(customwms);""",
+##                                ])
+            "onchange": "syncwms();",
+            })
+        self.fields["transfer_geom"].widget.attrs["jsmapname"] = jsmapname
+        
+    def as_p(self):
+        html = """
+                        Before you begin:
+                        <br><br>
+                        To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
+                        If you have not already done so, go ahead and <a href="/addmap/?country={{ country }}">register the map for this country now.</a> 
+
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
+
+                        <br>
+
+                        <div>{{ form.transfer_geom }}</div>
+
+                        <div style="clear:both">
+                        <br>
+                        Instructions:
+                        <br>
+                        {{ geoinstruct | safe }}
+
+                        </div>
+                        
+                    """
+        # add features
+        import json
+        geoj = {"type":"FeatureCollection",
+                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
+                             for f in self.otherfeats]}
+        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
+        print geoj_str
+        html += """<script>
+                setExistingClipFeatures('{geoj}')
+                </script>
+                """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
+        
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct, 'country':urlquote(self.country)}))
+        return rendered
+
+    def as_simple(self):
+        html = """
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
+
+                        <br>
+
+                        <div>{{ form.transfer_geom }}</div>
+
+                        <div style="clear:both">
+                        <br>
+                        Instructions:
+                        <br>
+                        {{ geoinstruct | safe }}
+                        
+                        </div>
+                        
+                    """
+        # add features
+        import json
+        geoj = {"type":"FeatureCollection",
+                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
+                             for f in self.otherfeats]}
+        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
+        print geoj_str
+        html += """<script>
+                setExistingClipFeatures('{geoj}')
+                </script>
+                """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
+        
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
+        return rendered
+
+    def as_maponly(self):
+        html = """
+                        <div>{{ form.transfer_geom }}</div>
+
+                        <div style="clear:both">                        
+                    """
+        # add features
+        import json
+        geoj = {"type":"FeatureCollection",
+                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
+                             for f in self.otherfeats]}
+        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
+        print geoj_str
+        html += """<script>
+                setExistingClipFeatures('{geoj}')
+                </script>
+                """.format(geoj=geoj_str)
+
+        # add wms urls
+        html += '<datalist id="id_datalist_map_wms">'
+        for m in self.maps:
+            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
+        html += "</datalist>"
+
+        html += "<script>syncwms();</script>"
+        
+        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
+        return rendered
+
+    def as_nogeo(self):
+        html = """
+                        <p>OLD (to be phased out)!</p>
+                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
+                        <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
+
+                        <p>NEW!</p>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
+
+                        <br>                        
+                    """
+        
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
+    def as_nogeo_readonly(self):
+        html = """
+                        <p>OLD (to be phased out)!</p>
+                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source.value }}</div>
+                        <div style="padding:20px">Map Description: {{ form.transfer_reference.value }}</div>
+
+                        <p>NEW!</p>
+                        <div style="padding:20px">Map Overlay: {{ form.transfer_map.value }}</div>
+
+                        <br>                        
+                    """
+        
+        rendered = Template(html).render(Context({"form":self}))
+        return rendered
+
+    def clean(self):
+        cleaned_data = super(GeoChangeForm, self).clean()
+        if cleaned_data and cleaned_data.get('transfer_map'):
+            cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
+        if cleaned_data and self.otherfeats:
+            othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
+            diff = cleaned_data["transfer_geom"].difference(othergeoms)
+            if diff.geom_type != "MultiPolygon":
+                from django.contrib.gis.geos import MultiPolygon
+                diff = MultiPolygon(diff)
+            cleaned_data["transfer_geom"] = diff
+        return cleaned_data
+
+
+
+
+
+
+
+
+
+
+
+
+# Event forms
 
 class SourceEventForm(forms.ModelForm):
 
@@ -4921,16 +5285,6 @@ class AddEventWizard(SessionWizardView):
         html = redirect(url)
 
         return html
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5752,368 +6106,6 @@ class AddFormChangeWizard(AddChangeWizard):
 
 
 
-
-
-
-
-
-
-
-
-
-
-#################################################
-# Builtin widgets etc
-
-from django.contrib.gis.forms.widgets import OpenLayersWidget
-
-class CustomDateWidget(forms.TextInput):
-
-    ### WARNING: id_1-date is hacky for now, may not always work...
-    
-    def render(self, name, value, attrs = None):
-        output = super(CustomDateWidget, self).render(name, value, attrs)
-        output += """
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-<script>
-$('#id_0-date').datepicker({
-    changeMonth: true,
-    changeYear: true,
-    dateFormat: "yy-mm-dd",
-    defaultDate: "2014-12-31",
-    yearRange: '1946:2014',
-    showOn: "both",
-    buttonImage: 'http://jqueryui.com/resources/demos/datepicker/images/calendar.gif',
-    buttonImageOnly: true,
-});
-$(".ui-datepicker-trigger").css("margin-bottom","-3px");
-</script>
-"""
-        return output
-
-class CustomOLWidget(OpenLayersWidget):
-    default_zoom = 1
-
-    #class Media:
-        #extend = False
-        #js = ("OpenLayers.js",)
-    
-    def render(self, name, value, attrs=None):
-        #print self.Media.js, self.Media.
-        output = super(CustomOLWidget, self).render(name, value, attrs=attrs)
-        output += """
-<script>
-var jsmap = %s;
-var selectedFeature;
-var selectControl;
-
-function syncwms() {
-    var mapOverlayId = document.getElementById('id_transfer_map').value;
-    var wmsurl = document.getElementById('id_transfer_map_wms_'+mapOverlayId).value;
-    if (wmsurl.trim() != "") {
-        var wmsurl = wmsurl.split("?")[0] + "?service=wms&format=image/png"; // trim away junk wms params and ensure uses transparency
-        
-        var layerlist = jsmap.map.getLayersByName('Historical Map');
-        
-        if (layerlist.length >= 1) 
-            {
-            // replace existing
-            jsmap.map.removeLayer(layerlist[0]);
-            };
-            
-        customwms = new OpenLayers.Layer.WMS("Historical Map", wmsurl, {layers: 'basic'} );
-        customwms.isBaseLayer = false;
-        jsmap.map.addLayer(customwms);
-        jsmap.map.setLayerIndex(customwms, 1);
-
-        // zoom to country bbox somehow
-        //jsmap.map.zoomToExtent(customwms.getDataExtent());
-    };
-};
-
-function setExistingClipFeatures(geoj) {
-    var geojson_format = new OpenLayers.Format.GeoJSON();
-    var features = geojson_format.read(geoj, "FeatureCollection");
-    
-    //vectors.addFeatures requires an array, thus
-    if(features.constructor != Array) {
-        features = [features];
-    }
-    existingClipLayer = jsmap.map.getLayersByName('Existing Clip Polygons')[0];
-    existingClipLayer.addFeatures(features);
-};
-
-function onPopupClose(evt) {
-    selectControl.unselect(selectedFeature);
-};
-
-function onFeatureSelect(feature) {
-    selectedFeature = feature;
-    popup = new OpenLayers.Popup.FramedCloud("featinfo", 
-                             feature.geometry.getBounds().getCenterLonLat(),
-                             null,
-                             "<div style='font-size:.8em'>Feature: " + feature.id +"<br>Area: " + feature.geometry.getArea()+"</div>",
-                             null, true, onPopupClose);
-    feature.popup = popup;
-    jsmap.map.addPopup(popup);
-    return true;
-};
-
-function onFeatureUnselect(feature) {
-    jsmap.map.removePopup(feature.popup);
-    feature.popup.destroy();
-    feature.popup = null;
-};
-
-function setupmap() {
-    // layer switcher
-    jsmap.map.addControl(new OpenLayers.Control.LayerSwitcher({'div':OpenLayers.Util.getElement('layerswitcher')}));
-    jsmap.map.addControl(new OpenLayers.Control.MousePosition());
-
-    // existing clips
-    var existingClipLayer = new OpenLayers.Layer.Vector("Existing Clip Polygons", {style:{fillColor:"gray", fillOpacity:0.3}});
-    jsmap.map.addLayers([existingClipLayer]);
-
-    // enable popup for clips (currently only works if disabling the transfer_geom layer)
-    //selectControl = new OpenLayers.Control.SelectFeature(existingClipLayer, {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
-    //jsmap.map.addControl(selectControl);
-    //selectControl.activate();
-
-    // wms
-    syncwms();
-};
-
-setupmap();
-
-</script>
-""" % self.attrs["jsmapname"]
-        
-        return output
-
-
-class GeoChangeForm(forms.ModelForm):
-
-    icon = "/static/globe.png"
-    step_title = "Territory"
-    step_descr = """
-                    What did the giving province look like before giving away territory?
-                   """
-
-    class Meta:
-        model = ProvChange
-        fields = ["transfer_reference", "transfer_source", "transfer_map", "transfer_geom"]
-        widgets = {"transfer_geom": CustomOLWidget(attrs={"id":"geodjango_transfer_geom"}),
-                    "transfer_source": ListTextWidget([], name="sources", attrs={'style':'width:80%',"id":"id_transfer_source"}),
-                    "transfer_reference": ListTextWidget([], name="references", attrs={'style':'width:80%',"id":"id_transfer_reference"}),
-                   }
-        
-    def __init__(self, *args, **kwargs):
-        self.inst = kwargs.get("instance")
-        print "INST",self.inst
-        self.country = kwargs.pop("country")
-        self.province = kwargs.pop("province")
-        self.date = kwargs.pop("date")
-        print "kwargs",kwargs
-        super(GeoChangeForm, self).__init__(*args, **kwargs)
-        print 999, self.fields["transfer_geom"].widget
-
-        # find other relates provs
-        country = self.country
-        province = self.province
-        date = self.date
-        otherfeats = ProvChange.objects.filter(fromcountry=country, toname=province, date=date).exclude(status="NonActive") | ProvChange.objects.filter(tocountry=country, toname=province, date=date).exclude(status="NonActive")
-        if self.inst:
-            otherfeats = otherfeats.exclude(pk=self.inst.pk)
-        otherfeats = self.otherfeats = [f for f in otherfeats if f.transfer_geom] # only those with geoms
-
-        print kwargs
-        if "initial" in kwargs:
-            country = kwargs["initial"]["country"]
-            provs = ProvChange.objects.filter(fromcountry=country) | ProvChange.objects.filter(tocountry=country)
-            sources = sorted((r.transfer_source for r in provs.distinct("transfer_source")))
-            references = sorted((r.transfer_reference for r in provs.distinct("transfer_reference")))
-            self.fields['transfer_source'].widget._list = sources
-            self.fields['transfer_reference'].widget._list = references
-
-        self.maps = maps = list(get_country_maps(country))
-        choices = [(m.pk, "{yr} - {title}".format(yr=m.year, title=m.title.encode('utf8'))) for m in maps]
-        self.fields['transfer_map'].widget = forms.Select(choices=[('','')]+choices, attrs=dict(id="id_transfer_map", style='width:80%'))
-
-        # make wms auto add/update on map change
-        #self.fields['transfer_geom'].widget = EditableLayerField().widget
-        print 888,kwargs
-        jsmapname = "geodjango_transfer_geom" if kwargs.get("instance") else "geodjango_3_transfer_geom"
-        self.fields['transfer_map'].widget.attrs.update({
-##            "onload": "setupmap();",
-##            'oninput': "".join(["alert(OpenLayers.objectName);","var wmsurl = document.getElementById('id_transfer_source').value;",
-##                                "alert(wmsurl);",
-##                                """var customwms = new OpenLayers.Layer.WMS("Custom WMS", wmsurl, {layers: 'basic'} );""",
-##                                #"""customwms.isBaseLayer = false;""",
-##                                "alert(customwms.objectName);",
-##                                """geodjango_transfer_geom.map.addLayer(customwms);""",
-##                                ])
-            "onchange": "syncwms();",
-            })
-        self.fields["transfer_geom"].widget.attrs["jsmapname"] = jsmapname
-        
-    def as_p(self):
-        html = """
-                        Before you begin:
-                        <br><br>
-                        To define the territory that changed you need a historical map that shows the giving province as it was prior to the change.
-                        If you have not already done so, go ahead and <a href="/addmap/?country={{ country }}">register the map for this country now.</a> 
-
-                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
-
-                        <br>
-
-                        <div>{{ form.transfer_geom }}</div>
-
-                        <div style="clear:both">
-                        <br>
-                        Instructions:
-                        <br>
-                        {{ geoinstruct | safe }}
-
-                        </div>
-                        
-                    """
-        # add features
-        import json
-        geoj = {"type":"FeatureCollection",
-                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
-                             for f in self.otherfeats]}
-        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
-        print geoj_str
-        html += """<script>
-                setExistingClipFeatures('{geoj}')
-                </script>
-                """.format(geoj=geoj_str)
-
-        # add wms urls
-        html += '<datalist id="id_datalist_map_wms">'
-        for m in self.maps:
-            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
-        html += "</datalist>"
-
-        html += "<script>syncwms();</script>"
-        
-        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct, 'country':urlquote(self.country)}))
-        return rendered
-
-    def as_simple(self):
-        html = """
-                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
-
-                        <br>
-
-                        <div>{{ form.transfer_geom }}</div>
-
-                        <div style="clear:both">
-                        <br>
-                        Instructions:
-                        <br>
-                        {{ geoinstruct | safe }}
-                        
-                        </div>
-                        
-                    """
-        # add features
-        import json
-        geoj = {"type":"FeatureCollection",
-                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
-                             for f in self.otherfeats]}
-        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
-        print geoj_str
-        html += """<script>
-                setExistingClipFeatures('{geoj}')
-                </script>
-                """.format(geoj=geoj_str)
-
-        # add wms urls
-        html += '<datalist id="id_datalist_map_wms">'
-        for m in self.maps:
-            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
-        html += "</datalist>"
-
-        html += "<script>syncwms();</script>"
-        
-        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
-        return rendered
-
-    def as_maponly(self):
-        html = """
-                        <div>{{ form.transfer_geom }}</div>
-
-                        <div style="clear:both">                        
-                    """
-        # add features
-        import json
-        geoj = {"type":"FeatureCollection",
-                "features": [dict(type="Feature", properties=dict(fromname=f.fromname), geometry=json.loads(f.transfer_geom.json))
-                             for f in self.otherfeats]}
-        geoj_str = json.dumps(geoj).replace("'", "\\'") # if the any property names include a single apo, escape it so doesnt cancel the string quotes
-        print geoj_str
-        html += """<script>
-                setExistingClipFeatures('{geoj}')
-                </script>
-                """.format(geoj=geoj_str)
-
-        # add wms urls
-        html += '<datalist id="id_datalist_map_wms">'
-        for m in self.maps:
-            html += '<option id="id_transfer_map_wms_{pk}" value="{wms}"></option>'.format(pk=m.pk, wms=m.wms)
-        html += "</datalist>"
-
-        html += "<script>syncwms();</script>"
-        
-        rendered = Template(html).render(Context({"form":self, 'geoinstruct':geoinstruct}))
-        return rendered
-
-    def as_nogeo(self):
-        html = """
-                        <p>OLD (to be phased out)!</p>
-                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source }}</div>
-                        <div style="padding:20px">Map Description: {{ form.transfer_reference }}</div>
-
-                        <p>NEW!</p>
-                        <div style="padding:20px">Map Overlay: {{ form.transfer_map }}</div>
-
-                        <br>                        
-                    """
-        
-        rendered = Template(html).render(Context({"form":self}))
-        return rendered
-
-    def as_nogeo_readonly(self):
-        html = """
-                        <p>OLD (to be phased out)!</p>
-                        <div style="padding:20px">WMS Map Link: {{ form.transfer_source.value }}</div>
-                        <div style="padding:20px">Map Description: {{ form.transfer_reference.value }}</div>
-
-                        <p>NEW!</p>
-                        <div style="padding:20px">Map Overlay: {{ form.transfer_map.value }}</div>
-
-                        <br>                        
-                    """
-        
-        rendered = Template(html).render(Context({"form":self}))
-        return rendered
-
-    def clean(self):
-        cleaned_data = super(GeoChangeForm, self).clean()
-        if cleaned_data and cleaned_data.get('transfer_map'):
-            cleaned_data['transfer_map'] = get_object_or_404(Map, pk=int(cleaned_data['transfer_map'].pk))
-        if cleaned_data and self.otherfeats:
-            othergeoms = reduce(lambda res,val: res.union(val), (f.transfer_geom for f in self.otherfeats))
-            diff = cleaned_data["transfer_geom"].difference(othergeoms)
-            if diff.geom_type != "MultiPolygon":
-                from django.contrib.gis.geos import MultiPolygon
-                diff = MultiPolygon(diff)
-            cleaned_data["transfer_geom"] = diff
-        return cleaned_data
 
 
 
