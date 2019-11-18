@@ -1612,29 +1612,99 @@ def account(request):
 ####################
 # Issues pages
 
-def contribute_discuss(request):
-    bannertitle = "Contribute"
+class IssueSearchForm(forms.Form):
+    text = forms.CharField(widget=forms.TextInput(attrs={'size':60}))
+    country = forms.CharField(widget=forms.TextInput(attrs={'size':30}))
+    status = forms.CharField(widget=forms.Select(choices=[("Active","Active"),
+                                                           ("Resolved","Resolved"),
+                                                           ("Withdrawn","Withdrawn"),
+                                                            ])
+                             )
 
-    custombanner = ""
+def contribute_discuss(request):
+    bannertitle = "Issues and Comments"
+    color = 'rgb(27,138,204)'
+
+    custombanner = """
+                    <style>
+                        .blackbackground a { color:white }
+                        .blackbackground a:visited { color:grey }
+                    </style>
+                    """
 
     grids = []
 
-    # discussion list
-    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+    # main banner
+    if request.method == "GET":
+        searchform = IssueSearchForm(request.GET)
+ 
+    else:
+        searchform = IssueSearchForm()
+
+    templ = """
+            <br>
+            <div class="blackbackground" style="width:90%">
+                <h2 style="text-align:center">{{ title }}</h2>
+                <form action="/contribute/issues/" method="get">
+                    {% csrf_token %}
+
+                    <table>
+                    <tr>
+
+                    <td>
+                    Text: <br> {{ searchform.text }}
+                    </td>
+                    
+                    <td>
+                    Country: <br> {{ searchform.country }}
+                    </td>
+
+                    <td>
+                    Status: <br> {{ searchform.status }}
+                    </td>
+
+                    <td>
+                    <h4>
+                        <input type="submit" value="Search" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    </h4>
+                    </td>
+
+                    </tr>
+                    </table>
+                    
+                </form>
+            </div>
+                """
+
+    custombanner += Template(templ).render( RequestContext(request, {'searchform':searchform, 'title':bannertitle}) )
+
+    # issue list
+    issues = Issue.objects.all()
+    if request.GET.get('country'):
+        issues = issues.filter(country__icontains=request.GET['country'])
+    if request.GET.get('status'):
+        issues = issues.filter(status=request.GET['status'])
+    if request.GET.get('text'):
+        issues = issues.filter(title__icontains=request.GET['text']) | issues.filter(text__icontains=request.GET['text'])
+    issues = issues.order_by('-added')
+    print issues
     
-    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+    table = issues2html(request, issues, color)
 
-    content = """
-                <div style="margin-left:22px">{issuetable}</div>
-                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
-                """.format(issuetable=issuetable)
-
-    grids.append(dict(title='''<br><hr>
-                                <img src="/static/comment.png" height="37px" style="display:inline-block">
-                                Ask questions or suggest improvements to the website:''',
+    content = '''
+                 <h3 id="issues">
+                     Results (first 50 only):
+                </h3>
+                <div style="margin-left:2%">
+                    {table}
+                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                </div>
+                '''.format(table=table.encode('utf8'), color=color)
+        
+    grids.append(dict(title="",
                       content=content,
                       style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
-                      width="99%",
+                      width="95%",
                       ))
 
     return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
@@ -1642,6 +1712,37 @@ def contribute_discuss(request):
                                                            #"bannerleft":bannerleft, "bannerright":bannerright,
                                                            }
                   )
+
+##def contribute_discuss(request):
+##    bannertitle = "Issues and Comments"
+##
+##    custombanner = ""
+##
+##    grids = []
+##
+##    # discussion list
+##    issues = Issue.objects.filter(country='', changeid=None, status="Active").order_by('-added')
+##    
+##    issuetable = issues2html(request, issues, 'rgb(27,138,204)')
+##
+##    content = """
+##                <div style="margin-left:22px">{issuetable}</div>
+##                <br><div width="100%" style="text-align:center"><a href="/addissue" style="text-align:center; background-color:rgb(27,138,204); color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+##                """.format(issuetable=issuetable)
+##
+##    grids.append(dict(title='''<br><hr>
+##                                <img src="/static/comment.png" height="37px" style="display:inline-block">
+##                                Ask questions or suggest improvements to the website:''',
+##                      content=content,
+##                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+##                      width="99%",
+##                      ))
+##
+##    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+##                                                           'custombanner':custombanner,
+##                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
+##                                                           }
+##                  )
 
 
 
@@ -1656,7 +1757,130 @@ def contribute_discuss(request):
 
 ####################
 # Map pages
-# ...
+
+class MapSearchForm(forms.Form):
+    text = forms.CharField(widget=forms.TextInput(attrs={'size':60}))
+    country = forms.IntegerField(widget=forms.TextInput(attrs={'size':30}))
+    fromyear = forms.CharField(widget=forms.TextInput(attrs={'size':6}))
+    toyear = forms.CharField(widget=forms.TextInput(attrs={'size':6}))
+
+def contribute_maps(request):
+    bannertitle = "Map Collection"
+    color = 'rgb(58,177,73)'
+
+    custombanner = """
+                    <style>
+                        .blackbackground a { color:white }
+                        .blackbackground a:visited { color:grey }
+                    </style>
+                    """
+
+    grids = []
+
+    # main banner
+    if request.method == "GET":
+        searchform = MapSearchForm(request.GET)
+ 
+    else:
+        searchform = MapSearchForm()
+
+    templ = """
+            <br>
+            <div class="blackbackground" style="width:90%">
+                <h2 style="text-align:center">{{ title }}</h2>
+                <form action="/maps/" method="get">
+                    {% csrf_token %}
+
+                    <table>
+                    <tr>
+
+                    <td>
+                    Map text: <br> {{ searchform.text }}
+                    </td>
+                    
+                    <td>
+                    Country: <br> {{ searchform.country }}
+                    </td>
+
+                    <td>
+                    Start: <br> {{ searchform.fromyear }}
+                    </td>
+
+                    <td>
+                    End: <br> {{ searchform.toyear }}
+                    </td>
+
+                    <td>
+                    <h4>
+                        <input type="submit" value="Search" style="text-align:center; background-color:orange; color:white; border-radius:10px; padding:7px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:underline; margin:3px;">
+                    </h4>
+                    </td>
+
+                    </tr>
+                    </table>
+                    
+                </form>
+            </div>
+                """
+
+    custombanner += Template(templ).render( RequestContext(request, {'searchform':searchform, 'title':bannertitle}) )
+
+    # maps list
+    maps = Map.objects.all()
+    if request.GET.get('country'):
+        maps = maps.filter(country__icontains=request.GET['country'])
+    if request.GET.get('fromyear'):
+        maps = maps.filter(year__gte=float(request.GET['fromyear']))
+    if request.GET.get('toyear'):
+        maps = maps.filter(year__lte=float(request.GET['toyear']))
+    if request.GET.get('text'):
+        maps = maps.filter(title__icontains=request.GET['text']) | maps.filter(note__icontains=request.GET['text'])
+    maps = maps.filter(status='Active')
+    maps = maps.order_by('-added')
+    print maps
+    
+    fields = ['', 'year', 'title', 'note', 'external link']
+    lists = []
+    for mapp in maps[:10]: # only first 10
+        wms = mapp.wms #"https://mapwarper.net/maps/wms/26754" #"https://mapwarper.net/maps/wms/19956"
+        if wms:
+            try:
+                wmslink = WMS_Helper(wms).image_url(height=50)
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+            except:
+                wmslink = "/static/map.png"
+                imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+        else:
+            wmslink = "/static/map.png"
+            imglink = '<a href="/viewmap/{pk}/"><img height="50px" src="{wmslink}" style="opacity:0.15"></a>'.format(pk=mapp.pk, wmslink=wmslink)
+        urllink = '<a target="_blank" href="{url}">{urlshort}</a>'.format(url=mapp.url.encode('utf8'), urlshort=mapp.url.replace('http://','').replace('https://','').split('/')[0])
+        row = [imglink, mapp.year, mapp.title, mapp.note, urllink]
+        lists.append((None,row))
+
+    table = lists2table(request, lists, fields, 'maptable', color)
+
+    content = '''
+                 <h3 id="maps">
+                     Results (first 10 only):
+                </h3>
+                <div style="margin-left:2%">
+                    {table}
+                    <br><div width="100%" style="text-align:center"><a href="/addmap/" style="text-align:center; background-color:{color}; color:white; border-radius:5px; padding:5px; font-family:inherit; font-size:inherit; font-weight:bold; text-decoration:none; margin:5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></div>
+                </div>
+                '''.format(table=table.encode('utf8'), color=color)
+        
+    grids.append(dict(title="",
+                      content=content,
+                      style="background-color:white; margins:0 0; padding: 0 0; border-style:none",
+                      width="95%",
+                      ))
+
+    return render(request, 'pshapes_site/base_grid.html', {"grids":grids,"bannertitle":'<h2 style="padding-top:10px">'+bannertitle+'</h2>',
+                                                           'custombanner':custombanner,
+                                                           #"bannerleft":bannerleft, "bannerright":bannerright,
+                                                           }
+                  )
+
 
 
 
@@ -2242,12 +2466,15 @@ def contribute_regions(request):
     content = """
                 <div style="height:220px">
                 <b>
-                <img style="width:100%; max-height:80%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+                <a href="/contribute/maps/" style="color:black">
+                    <img style="width:100%; max-height:80%" border="2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfcsofKnVvMiG0mN7BKmmGlGfM_16ANpxoDMT4MjufR40Ya-ZdfQ">
+                </a>
                 
                 <p>
                 Add useful maps to the map collection. 
                 </p>
                 </b>
+                
                 </div>
               """
 
@@ -2262,12 +2489,15 @@ def contribute_regions(request):
     content = """
                 <div style="height:220px">
                 <b>
-                <img width="100%" border="2" src="https://blog.tradeshift.com/wp-content/uploads/2015/10/collaboration-illustration.jpg">
-                
+                <a href="/contribute/issues/" style="color:black">
+                    <img width="100%" border="2" src="https://blog.tradeshift.com/wp-content/uploads/2015/10/collaboration-illustration.jpg">
+                </a>
+                    
                 <p>
                 Join the conversation to help clear up how exactly a province may have changed. 
                 </p>
                 </b>
+                
                 </div>
               """
 

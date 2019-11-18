@@ -49,6 +49,7 @@ urlpatterns = [
     url('^contribute/edit/(?P<country>[^/]+)/$', "provchanges.views.editcountry"),
 
     # province (event or change depending on get params)
+    url('^contribute/$', "provchanges.views.contribute_regions"), 
     url('^contribute/countries/$', "provchanges.views.contribute_regions"), 
     url('^contribute/view/(?P<country>[^/]+)/(?P<province>[^/]+)/$', "provchanges.views.viewprov"), # event
     url('^contribute/add/(?P<country>[^/]+)/$', "provchanges.views.addprov"),
@@ -63,27 +64,34 @@ urlpatterns = [
     url(r'^provchange/(?P<pk>[0-9]+)/addvouch/$', "provchanges.views.addvouch"),
     url(r'^provchange/(?P<pk>[0-9]+)/withdrawvouch/$', "provchanges.views.withdrawvouch"),
 
+    # issues
+    url(r'^contribute/issues/$', "provchanges.views.contribute_discuss"),
     url(r'^addissue/$', "provchanges.views.addissue"),
     url(r'^addissuecomment/$', "provchanges.views.addissuecomment"),
     url(r'^editissue/(?P<pk>[0-9]+)/$', "provchanges.views.editissue"),
     url(r'^viewissue/(?P<pk>[0-9]+)/$', "provchanges.views.viewissue"),
     url(r'^dropissue/(?P<pk>[0-9]+)/$', "provchanges.views.dropissue"),
     url(r'^dropissuecomment/(?P<pk>[0-9]+)/$', "provchanges.views.dropissuecomment"),
-    
+
+    # sources
     url(r'^addsource/$', "provchanges.views.addsource"),
     url(r'^viewsource/(?P<pk>[0-9]+)/$', "provchanges.views.viewsource"),
     url(r'^editsource/(?P<pk>[0-9]+)/$', "provchanges.views.editsource"),
     url(r'^dropsource/(?P<pk>[0-9]+)/$', "provchanges.views.dropsource"),
 
+    # maps 
+    url(r'^contribute/maps/$', "provchanges.views.contribute_maps"),
     url(r'^addmap/$', "provchanges.views.addmap"),
     url(r'^viewmap/(?P<pk>[0-9]+)/$', "provchanges.views.viewmap"),
     url(r'^editmap/(?P<pk>[0-9]+)/$', "provchanges.views.editmap"),
     url(r'^dropmap/(?P<pk>[0-9]+)/$', "provchanges.views.dropmap"),
 
+    # milestones
     url(r'^addmilestone/$', "provchanges.views.addmilestone"),
     url(r'^viewmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.viewmilestone"),
     url(r'^editmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.editmilestone"),
     url(r'^dropmilestone/(?P<pk>[0-9]+)/$', "provchanges.views.dropmilestone"),
+
 
 
     # -----
